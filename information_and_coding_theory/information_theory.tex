@@ -1,0 +1,212 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\setlength{\parindent}{0pt}
+
+\title{Information and Coding Theory (CO349) - Information Theory}
+\author{Michael Tsang}
+
+\newtheorem{defn}{Definition}
+\newtheorem{eg}{Example}
+\newtheorem{theo}{Theorem}
+
+\begin{document}
+
+\maketitle
+
+\section{Simple Codes and Coding}
+\subsection{Motivation: Information and Security}
+\textbf{Side-Channel Attacks:}
+In optimised encryption algorithms, properties of the secret key determine the execution time.
+If it is the case that zeroes lead to longer times and ones shorter then we could predict that when the algorithm runs for a longer time, the secret key contains more zeroes. \\
+How much information about the secret key is revealed?
+\\ \\
+\textbf{Differential Privacy:}
+In large statistical databases an attacker can try to reveal information (de-anonymise) individuals.
+Suppose there are three individuals under 25 with hair loss registred and two individuals are getting hair loss treatment in SW7.
+Kim is on the database, is 21, and lives at 170 Queen's Gate. \\
+How much information about individuals is revealed?
+
+\subsection{Entropy}
+\begin{defn}
+  The \textbf{entropy} of a probability distribution $p$ is:
+  \[ H(p) = - \sum p(x) \log_{2} (p(x)) \].
+\end{defn}
+
+\subsection{Revision: Logarithms}
+\begin{defn}
+  Logarithms are defined implicitly via the equation:
+  \[ x = b^{\log_{b} (x)}\]
+\end{defn}
+
+Useful identities:
+\[ \log_{b} (xy) = \log_{b} (x) + \log_{b} (y) \]
+
+\[ \log_{b} (x^{n}) = n \log_{b} (x) \]
+
+\[ \log_{b} (x) = \frac{\log_{a} (x)}{\log_{a} (b)} \]
+
+\subsection{Messages and Strings}
+\begin{defn}
+  An \textbf{alphabet} is a finite set $S$; its members $s \in S$ are \textbf{symbols}.
+\end{defn}
+
+\begin{defn}
+  A \textbf{message} (or string, or word) $m$ in the alphabet $S$ is a finite sequence of elements in $S$:
+  \[ m = s_1 s_2 \ldots s_n \text{ with } s_i \in S, 1 \leq i \leq n \]
+  The number $n \in \mathbb{N}$ is the length of $m$, $\lvert m \rvert = n$.
+\end{defn}
+
+\begin{defn}
+  A \textbf{prefix} of $m$ is defined:
+  \[ m \rvert_{k} = s_1 s_2 \ldots s_k \text{ with } k \leq n \]
+\end{defn}
+
+\subsection{Notation}
+\begin{defn}
+  A string of length zero is denoted $\epsilon$, with $\lvert \epsilon \rvert = 0$.
+\end{defn}
+
+\begin{defn}
+  $S^n$ denotes the set of all strings of length $n$, and
+  \[ S^* = S^0 \cup S^1 \cup S^2 \cup \ldots \]
+\end{defn}
+
+\begin{eg}
+  With the alphabet $S = \mathbb{B} = \{ 0, 1 \}$, we can produce all binary messages of a certain length $n$.
+  \[ \mathbb{B}^3 = \{ 000, 001, 010, 011, 100, 101, 110, 111 \} \]
+\end{eg}
+
+\subsection{Coding}
+\begin{defn}
+  Let $S$ and $T$ be two alphabets; a \textbf{code} $c$ is an injective function
+  \[ c : S \rightarrow T^* \]
+\end{defn}
+
+\begin{defn}
+  For each symbol $s \in S$, the string $ c(s) \in T^*$ is called the \textbf{codeword} for $s$; the set of all code words is also referred to as the \textbf{code}:
+  \[ C = \{ c(s) \mid s \in S \} \]
+\end{defn}
+
+An example is Morse code:
+\[ c : \{ A, \ldots, Z \} \rightarrow \{ \bullet, -,\odot \} \]
+
+\subsection{Decoding}
+\begin{defn}
+  A code $c : S \rightarrow T^*$ is extended to $S^*$ as follows: given a string $s_1 s_2 \ldots s_n$ in $S^*$ we define:
+  \[ c(s_1 s_2 \ldots s_n) = c(s1) c(s2) \ldots c(s_n) \]
+\end{defn}
+
+\begin{defn}
+  A code $c : S \rightarrow T^*$ is \textbf{uniquely decodeable (UD)} if the extended code function $c : S^* \rightarrow T^*$ is injective.
+\end{defn}
+
+This means that every string in $T^*$ corresponds to at most one message in $S^*$.
+
+\subsection{Prefix-Free}
+\begin{defn}
+  A code $c : S \rightarrow T^*$ is \textbf{prefix-free (PF)} if there is no pair of codewords $q = c(s)$ and $q' = c(s')$ such that:
+  \[ q' = qr \text{ for some non-empty word } r \in T^* \]
+\end{defn}
+
+\begin{eg}
+  Let $S = \{ w, x, y, z\}$ with $c : S \rightarrow \mathbb{B}^*$ defined by:
+  \begin{align*}
+    w &\mapsto 10 & x &\mapsto 01 & y &\mapsto 11 & z &\mapsto 011
+  \end{align*}
+  The code is not PF, and it is not UD either:
+  \begin{align*}
+    wxwy &\mapsto 10011011 & wzz &\mapsto 10011011
+  \end{align*}
+\end{eg}
+
+\subsection{PF implies UD}
+\begin{defn}
+  If a code $c : S \rightarrow T^*$ is prefix-free then it is uniquely decodeable.
+\end{defn}
+
+\textbf{Proof:}
+Given that a code $c$ is prefix-free, let us assume that it is not uniquely decodeable.
+Then there is an $x = x_1 x_2 \ldots x_m$ and a $y = y_1 y_2 \ldots y_n$ such that $c(x) = c(y)$, where $c(x) = c(x_1) c(x_2) \ldots c(x_m)$ and $c(y) = c(y_1) c(y_2) \ldots c(y_n)$. \\
+
+The prefixes must be the same $c(x) \rvert_{k} = c(y) \rvert_{k}$ for any $k$, but it might be that $\lvert c(x_1) \rvert \neq \lvert c(y_1) \rvert$.
+Assume that $\lvert c(x_1) \rvert \leq \lvert c(y_1) \rvert$, and take $k = \lvert c(x_1) \rvert$ then $c(x) \rvert_{k} = c(x_1) = c(y_1) \rvert_{k}$.
+Thus, $c(y_1) = c(x_1) r$ for some $r \in T^*$, this contradicts PF so it must be uniquely decodeable. \\
+
+We repeat this to cover all of $c(x) = c(y)$.
+
+\subsection{Strings and Codes in Trees}
+If we concentrate on binary codes with $T = \mathbb{B}$, any codeword in $C$ can be seen as a finite path in a binary tree.
+Moreover, the codewords in $C$ can be represented as the end-points of the corresponding paths: if a code $c$ is PF then none of its decendents can represent a codeword in $C$.
+
+\begin{eg}
+  The code $C = \{ 0, 10, 110, 111 \}$ is PF, its corresponding tree is: \\
+  TODO: ADD TREE
+\end{eg}
+
+\subsection{Parameters of a Code}
+\begin{defn}
+  Given a code $c: S \rightarrow T^*$, let $n_i$ denote the number of symbols $s \in S$ which are \textbf{decoded} by strings of length $i$:
+  \[ n_i = \lvert \{ s \in S \mid \lvert c(s) \rvert = i \} \rvert = \lvert \{ s \in S \mid c(s) \in T^i \} \rvert \]
+\end{defn}
+
+We refer to $n_1, n_2, \ldots, n_M$ as parameters of $c$, where $M$ is the maximal length of a codeword.
+
+\begin{defn}
+  The number of all \textbf{potential codewords} of length $i$ is given by:
+  \[ b^i = \lvert T^i \rvert \]
+  In particular: 
+  \[ b = \lvert T \rvert = b^1 \]
+\end{defn}
+
+\begin{defn}
+  The \textbf{filling rate} is the fraction of possible codewords of length $i$ actually used by a code is:
+  \[ \frac{n_i}{b^i} \]
+\end{defn}
+
+\subsection{Kraft-McMillan Number}
+\begin{defn}
+  Given a code $c : S \rightarrow T^*$ with parameters $n_1, n_2, \ldots, n_M$, the \textbf{Kraft-McMillan number} of $c$ is:
+  \[ K = \sum_{i = 1}^{M} \frac{n_i}{b^i} = \frac{n_1}{b} + \frac{n_2}{b^2} + \ldots + \frac{n_M}{b^M} \]
+\end{defn}
+
+\begin{eg}
+  Considering a binary code $C = \{ 0, 10, 110, 111 \}$:
+  \[ K = \frac{1}{2} + \frac{1}{4} + \frac{2}{8} = \frac{8}{8} = 1 \]
+\end{eg}
+
+\subsection{Existence of PF Codes}
+\begin{theo}
+  Given an alphabet $T$ with $\lvert T \rvert = b$ and parameters $n_1, n_2, \ldots, n_M \in \mathbb{N}$, if $K \leq 1$ then there exists a PF $b$-ary code $c : S \rightarrow T^*$ with these parameters.
+\end{theo}
+
+That is, there is a PF $b$-ary code with $n_1$ codewords of length $1$, $n_2$ codewords of length $2$, \ldots, $n_M$ codewords of length $M$.
+In fact, if $K < 1$ then there is a more optimal PF code. \\
+
+\textbf{Proof:}
+Any partial sum of the one defining $K$ also fulfills $\sum_{i} \frac{n_i}{b^i} \leq 1$.
+e.g.\ $\frac{n_1}{b^1} \leq 1$, $\frac{n_2}{b^2} \leq 1$, etc.
+
+This implies:
+\begin{align*}
+  n_1 &\leq b & n_2 &\leq b(b^1 - n_1) & n_3 \leq b(b^3 - n_1b^1 - n_2) & &\text{etc \ldots}
+\end{align*}
+
+or in general:
+\[ n_i \leq b(b^{i - 1} - n_1b^{i - 2} - n_2b^{i - 3} - \ldots - n_{i - 1}) \]
+
+With codeword length $1$, since $n_1 \leq b^i$, we can choose any of them, $b - n_1$ words of length 1 remain as prefixes for words of length $2, 3, \ldots$
+
+With codeword length $2$, there are $b^2$ codewords of length 2 but $b^1n_1$ are unavailable so $b^2 - b^1n_1$ are left.
+However we have $n_2 \leq b(b - n_1)$ so we can make our choices, leaving $b^2 - n_1b - n_2$ prefixes of length 2 left.
+
+With codeword length $i$, there are always $b^{i - 1} - n_1b^{i - 2} - n_2b^{i-3} - \ldots - n_{i - 1}$ prefixes of length $i - 1$ left, and from $K \leq 1$ we have:
+\[ n_i \leq b(b^{i - 1} - n_1b^{i - 2} - n_2b^{i - 3} - \ldots - n_{i - 1}) \]
+
+That is, we can choose enough codewords $n_i$ of length $i$ and enough remain.
+
+\end{document}
+
