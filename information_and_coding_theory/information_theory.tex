@@ -208,5 +208,83 @@ With codeword length $i$, there are always $b^{i - 1} - n_1b^{i - 2} - n_2b^{i-3
 
 That is, we can choose enough codewords $n_i$ of length $i$ and enough remain.
 
+\subsection{Encoding Strings}
+\begin{defn}
+  Consider a code $c : S \rightarrow T^*$ with parameters $n_1, n_2, \ldots, n_M$.
+  Let $q_r(i)$ be the number of strings of length $r$ in $S^*$ encoded in a string of length $i$ in $T^*$.
+\end{defn}
+
+\begin{eg}
+  Let $n_1 = 2, n_2 = 3$, what is $q_2(i)$?
+
+  Since $x = x_1x_2 \in S^2$, then $c(x) \in T$ has lengths $2, 3, \text{ or } 4$.
+  This is because $x_1, x_2 = 1 \text{ or } 2$ from the parameters.
+
+  For $\lvert c(x_1x_2) \rvert = 2$: then $q_2(2) = n_1 \times n_1 = 2 \times 2 = 4$.
+
+  For $\lvert c(x_1x_2) \rvert = 3$: then $q_2(3) = n_1 \times n_2 + n_2 \times n_1 = 2 \times 3 + 3 \times 2 = 12$.
+
+  For $\lvert c(x_1x_2) \rvert = 4$: then $q_2(4) = n_2 \times n_2 = 3 \times 3 = 9$.
+\end{eg}
+
+\subsection{Generating Functions}
+Generating functions are an important tool for investigating sequences, e.g.\ enumerations of combinatorial objects.
+
+\begin{defn}
+  For a sequence of numbers $q(1), q(2), q(3), \ldots$ the \textbf{generating function} $Q(x)$ is given as a polynomial (formal power series) in the unknown variable x:
+  \[
+    Q(x) = q(1)x + q(2)x^2 + q(3)x^3 + \ldots 
+  \]
+
+  For a code $c : S -> T^*$, we consider for $1 \leq i \leq rM$:
+  \[
+    q_r(i) = \lvert \{ \lvert c(s) \rvert = i \mid \lvert s \rvert = r \} \rvert
+  \]
+
+  and the generating function: 
+
+  \[
+    Q_r(x) = q_r(1)x + q_r(2)x^2 + q_r(3)x^3 + \ldots + q_r(rM)x^{rM}
+  \]
+\end{defn}
+
+\subsection{Counting Principle (CP)}
+\begin{theo}
+  Given a UD code $c : S \rightarrow T^*$ with $\lvert c(s) \rvert \leq M$ for all $s \in S$ with generating function $Q_r(x)$ then for all $r \geq 1$:
+  \[
+    Q_r(x) = Q_1(x)^r
+  \]
+\end{theo}
+
+\begin{eg}
+  Following the previous example where $n_1 = 2, n_2 = 3$, what is the relationship between $Q_1$ and $Q_2$?
+
+  It is clear that $q_1(1) = n_1 = 2$ and $q_1(2) = n_2 = 3$.
+  We therefore have that:
+  \begin{align*}
+    Q_1(x) &= 2x + 3x^2 & Q_2(x) &= 4x^2 + 12x^3 + 9x^4
+  \end{align*}
+  and thus can see that:
+  \[
+    (Q_1(x))^2 = Q_2(x)
+  \]
+\end{eg}
+
+\subsection{Kraft-McMillan Number for UD Codes}
+\begin{theo}
+  If there exists a UD code $c : S \rightarrow T^*$ with parameters $n_1, n_2, \ldots, n_M$ then $K \leq 1$.
+
+  \[
+    \exists UD \implies K \leq 1 \implies \exists PF \text{ and } PF \implies UD
+  \]
+\end{theo}
+
+Then the following are equivalent for codes $c : S \rightarrow T^*$:
+\begin{itemize}
+  \item There exists a UD code with parameters $n_1, n_2, \ldots, n_M$.
+  \item It holds that $K \leq 1$ for parameters $n_1, n_2, \ldots, n_M$.
+  \item There exists a PF code with parameters $n_1, n_2, \ldots, n_M$.
+\end{itemize}
+
 \end{document}
 
