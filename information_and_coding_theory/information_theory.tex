@@ -286,5 +286,151 @@ Then the following are equivalent for codes $c : S \rightarrow T^*$:
   \item There exists a PF code with parameters $n_1, n_2, \ldots, n_M$.
 \end{itemize}
 
+\section{Probability}
+Probability theory is concerned with quantifying or measuring the chances that certain events can happen.
+
+We consider an event space, i.e.\ a finite set $\Omega$ and a set $\mathcal{B} \subseteq \mathcal{P}(\Omega)$ of measureable sets in $\Omega$ which form a Boolean algebra.
+For finite sets we can use the power set $\mathcal{B} = \mathcal{P}(\Omega)$.
+
+Probabilities are assigned via a \textbf{measure}, i.e.\ a function $Pr : \mathcal{B} \rightarrow \mathbb{R}$ or $m : \mathcal{B} \rightarrow \mathbb{R}$.
+
+\subsection{Finite Probability Spaces}
+Consider finite measureable spaces $(\Omega, \mathcal{B})$ with $\lvert \Omega \rvert = n$.
+
+\begin{defn}
+  A probability measure $Pr : \mathcal{B}$ on $(\Omega, \mathcal{B})$ has to fulfil:
+  \begin{itemize}
+    \item $Pr(\Omega) = 1$.
+    \item $0 \leq Pr(A) \leq 1$ for all $A \in \mathcal{B}$.
+    \item $Pr(A \cup B) = Pr(A) + Pr(B)$ for $A \cap B = \emptyset$.
+  \end{itemize}
+\end{defn}
+
+Some further rules:
+\begin{itemize}
+  \item $Pr(\emptyset) = 0$.
+  \item $Pr(\overline{A}) = 1 - Pr(A)$.
+  \item $Pr(A \cup B) = Pr(A) + Pr(B) - Pr(A \cap B)$.
+\end{itemize}
+
+\subsection{Random Distributions}
+For finite measureable spaces $(\Omega, \mathcal{B}, Pr)$ with $\lvert \Omega \rvert = n$, we can define a probability measure via atoms in $\omega \in \Omega$.
+
+\begin{defn}
+  A probability distribution is a function $\textbf{p} : \Omega \rightarrow [0, 1]$, with:
+  \[
+    \sum_{\omega \in \Omega} \textbf{p}(\omega) = 1
+  \]
+\end{defn}
+
+If we enumerate the elements in $\Omega = \{\omega_1, \omega_2, \ldots, \omega_n \}$ in some arbitrary way, we can also represent $\textbf{p}$ by a row vector in $\mathbb{R}^n$:
+\[
+  \textbf{p} = (\textbf{p}(\omega_1), \textbf{p}(\omega_2), \ldots, \textbf{p}(\omega_n))
+\]
+
+\subsection{Random Variables} 
+\[
+  Pr(A) = \sum_{\omega \in A} \textbf{p}(\omega)
+\]
+
+\begin{defn}
+  A \textbf{random variable} is a function $X : \omega \rightarrow \mathbb{R}$.
+\end{defn}
+
+\subsection{Moments in Probability}
+\[
+  \textbf{E}(X) = \sum_{\omega \in \Omega} \textbf{p}(\omega)X(\omega) = \sum_i \textbf{p}_i \textbf{X}_i = \mu_X
+\]
+
+\begin{align*}
+  \textbf{E}(X + Y) &= \textbf{E(X)} + \textbf{E}(Y) & \textbf{E}(\alpha X) & \alpha \textbf{E}(X)
+\end{align*}
+
+\[
+  Var(X) = \textbf{E}((X - \textbf{E}(X)))^2 = \textbf{E}(X^2) - (\textbf{E}(X))^2 = \sigma_X^2
+\]
+
+\subsection{Bayes Theorem and Independence}
+Given two subsets $A$ and $B$ in a probability space $(\Omega, \mathcal{B}, Pr)$, the conditional probability of $A$ given that $B$ has happened is:
+
+\[
+  Pr_B(A) = Pr(A \mid B) = \frac{Pr(A \cup B)}{Pr(B)}
+\]
+
+Bayes Theorem states:
+\[
+  Pr_A(B) = \frac{Pr_B(A)Pr(B)}{Pr(A)} = \frac{Pr(A \mid B)Pr(B)}{Pr(A)} = Pr(A \mid B)
+\]
+
+$A$ and $B$ are independent if:
+\[
+  Pr(B) = Pr(B \mid A) = \frac{Pr(A \cup B)}{Pr(A)}
+\]
+or  
+\[
+  Pr(A \cup B) = Pr(A)Pr(B)
+\]
+
+\subsection{Products and Probability}
+Given two probability spaces $(\Omega_1, Pr_1)$ and $(\Omega_2, Pr_2)$, to keep things simple use $\mathcal{B_i} = \mathcal{P}(\Omega_i)$, we can define a probability $Pr$ on the cartesian product $\Omega = \Omega_1 \times \Omega_2$ via:
+\[
+  Pr(\langle \omega_1, \omega_2 \rangle) = Pr_1(\omega_1)Pr_2(\omega_2)
+\]
+
+If $Pr_1$ and $Pr_2$ correspond to probability distributions $\textbf{p}_1$ and $\textbf{p}_2$, and $\textbf{p}$ to $Pr$ then $\textbf{p} = \textbf{p}_1 \otimes \textbf{p}_2$, the \textbf{tensor product}.
+
+Not all distributions on $\Omega_1 \times \Omega_2$ are a product.
+
+\subsection{Tensor/Kronecker Product}
+Given a $n \times m$ matrix $\textbf{A}$ and a $k \times l$ matrix $\textbf{B}$:
+\begin{align*}
+  \textbf{A} &=
+  \begin{pmatrix}
+    a_{11} & \ldots & a_{1m} \\
+    \dots & \ddots & \dots \\
+    a_{n1} & \ldots & a_{nm}
+  \end{pmatrix}
+  &
+  \textbf{B} &=
+  \begin{pmatrix}
+    b_{11} & \ldots & b_{1l} \\
+    \dots & \ddots & \dots \\
+    b_{k1} & \ldots & b_{kl}
+  \end{pmatrix}
+\end{align*}
+
+The tensor or Kronecker product $\textbf{A} \otimes \textbf{B}$ is a $nk \times ml$ matrix:
+\[
+  \textbf{A} \otimes \textbf{B} = 
+  \begin{pmatrix}
+    a_{11}\textbf{B} & \ldots & a_{1m}\textbf{B} \\
+    \dots & \ddots & \dots \\
+    a_{n1}\textbf{B} & \ldots & a_{nm}\textbf{B}
+  \end{pmatrix}
+\]
+
+Special cases are square matrices and vectors.
+
+\subsection{Correlation}
+\[
+  Cov(X, Y) = \textbf{E}(X - \textbf{E}(X))\textbf{E}(Y - \textbf{E}(Y)) = \textbf{E}(XY) - \textbf{E}(X)\textbf{E}(Y)
+\]
+
+The correlation coefficient is:
+\[
+  \rho(X, Y) = \frac{Cov(X, Y)}{\sigma_X \sigma_Y}
+\]
+
+For independent random variables $X$ and $Y$:
+\[
+  \textbf{E}(XY) = \textbf{E}(X)\textbf{E}(Y)
+\]
+\[
+  Cov(X, Y) = \rho(X, Y) = 0
+\]
+
+Note that $\rho(X, Y) = 0$ does not imply independence.
+
+\section{Presentation of Information}
 \end{document}
 
