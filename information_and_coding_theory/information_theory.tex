@@ -12,6 +12,7 @@
 \newtheorem{defn}{Definition}
 \newtheorem{eg}{Example}
 \newtheorem{theo}{Theorem}
+\newtheorem{lem}{Lemma}
 
 \begin{document}
 
@@ -431,6 +432,183 @@ For independent random variables $X$ and $Y$:
 
 Note that $\rho(X, Y) = 0$ does not imply independence.
 
-\section{Presentation of Information}
+\section{Representation of Information}
+Information resolves or allows us to resolve uncertainty.
+The larger the resolved uncertainty, the more information we have.
+
+This could be referred to as the surprise: if $p$ is the probability of an event, $\frac{1}{p}$ is the surprise measure.
+
+If there are two pieces of independent information, we would like that they ``add up,'' but $Pr(A \land B) = Pr(A) \times Pr(B)$.
+Using the logarithm we get an additive information measure which fulfills:
+\[
+  \log(\frac{1}{p_1} \times \frac{1}{p_2}) = \log(\frac{1}{p_1}) + \log(\frac{1}{p_2})
+\]
+
+\subsection{Sources}
+\begin{defn}
+  Let $S$ be an alphabet, a \textbf{source} $(S, \textbf{p})$ with probability distributions $\textbf{p} = \textbf{p}^{(k)} = (p_1^{(k)}, p_2^{(k)}, \ldots, p_n^{(k)})$ emits a stream (sequence) $\sigma_1 \sigma_2 \sigma_3 \ldots$ of symbols with probability:
+  \[
+    Pr(\sigma_k = s_i) = p_i^{(k)}
+  \]
+
+Assume identitcal $\textbf{p}^{(k)} = \textbf{p}$, but not necessarily independent.
+\end{defn}
+
+\begin{defn}
+  Let $S$ be an alphabet, a \textbf{memoryless source} $(S, \textbf{p})$ emits a stream (sequence) $\sigma_1 \sigma_2 \sigma_3 \ldots$ such that for all $k$ and $l$:
+  \[
+    Pr(\sigma_k = s_i \and \sigma_l = s_j) = Pr(\sigma_k = s_i)Pr(\sigma_l = s_j)
+  \]
+\end{defn}
+
+\begin{defn}
+  A \textbf{stochastic process} on a state space $S$ is a collection of $S$-valued random variables $X_i$ with $i \in \mathbb{N} \text{or} \mathbb{Z}$.
+  This allows the investigation of the probability of finite paths, traces and streams.
+  The probability at any moment in time depends on the past.
+\end{defn}
+
+\begin{defn}
+  A \textbf{Markov Chain} is a stochastic process where the probability at one moment in time depends on the result in the last state.
+\end{defn}
+
+\subsection{Average Word Length}
+Consider a source $(S, \textbf{p})$ and a code $c : S \rightarrow T^*$.
+Consider the stream of symbols we obtain by encoding $\{ s_1, \ldots, s_m \}$ via $c$.
+
+\begin{defn}
+  The \textbf{average word length} $L$ of a code $c : S \rightarrow T^*$ for a source $(S, \textbf{p})$ is:
+  \[
+    L = p_1l_1 + p_2l_2 + \ldots + p_ml_m = \sum_{i = 1}^m p_il_i = \textbf{E}(l)
+  \]
+  with $l_i = \lvert c(s_i) \rvert$, the length of codewords in $T^*$ for each $s_i \in S$.
+\end{defn}
+
+We aim to keep the average ``blow up'' of a message using a code $c$ as small as possible.
+
+\subsection{Optimal Code}
+\begin{defn}
+  Given a source $(S, \textbf{p})$ and an alphabet $T$, a uniquely decodeable code $c : S \rightarrow T^*$ is optimal if there is no other code $c' : S \rightarrow T^*$ with smaller average word length.
+\end{defn}
+
+We can formulate this as an optimisation problem:
+Given $b \in \mathbb{N}$ and $p_1, p_2, \ldots, p_m \in [0, 1]$ with $\sum_{i_1}^m p_i = 1$; find (positive) integers $y_1, y_2, \ldots, y_m$ such that
+\begin{align*}
+  \text{minimise } L &= \sum_{i = 1}^m p_iy_i & \text{subject to } K &= \sum_{i = 1}^m \frac{1}{b^{y_1}} \leq 1
+\end{align*}
+where we use $y_i = \lvert c(s_i) \rvert = l_i$ to express $K$ (with $m = \lvert S \rvert)$) as:
+\[
+  K = \sum_{i = 1}^M \frac{n_i}{b^i} = \sum_{i = 1}^M (\sum_{j = 1}^{n_i} \frac{1}{b^i}) = \sum_{i = 1}^m \frac{1}{b^{y_i}}
+\]
+
+\subsection{Entropy of a Distribution}
+\begin{defn}
+  Given a distribution $\textbf{p} = (p_1, p_2, \ldots, p_m)$, the entropy of \textbf{p} to base $b$ is:
+  \[
+    \textbf{H}_b(\textbf{p}) = \sum_{i = 1}^m p_i\log_b \frac{1}{p_i}
+  \]
+\end{defn}
+
+For $p_i = 0$, we set $p_i \log_b (\frac{1}{p_i})$.
+
+\subsection{Properties of Entropy}
+For source $(\mathcal{B}, (p, 1 - p))$, the binary entropy is given by:
+\[
+  \textbf{h}(p) = p \cdot \log_b (\frac{1}{p}) + (1 - p) \cdot \log_b (\frac{1}{(1 - p)})
+\]
+
+We have $\textbf{h}(0) = 0 = \textbf{h}(1)$ and maximal for $\textbf{h}(\frac{1}{2}) = 1$.
+
+We can change the base by:
+\[
+  \textbf{H}_a(\textbf{p}) = \log_a(b) \textbf{H}_b(\textbf{p})
+\]
+
+Except for base, entropy is uniquely defined if we require a continuous function with:
+\begin{itemize}
+  \item $\textbf{H}(\textbf{p})$ is maximal for uniform distribution $\textbf{p}$.
+  \item $\textbf{H}(\textbf{p} \otimes \textbf{q}) = \textbf{H}(\textbf{p}) + \textbf{H}(\textbf{q} \mid \textbf{p})$.
+  \item $\textbf{H}((p_1, p_2, \ldots, p_n, 0)) = \textbf{H}((p_1, p_2, \ldots, p_n))$.
+\end{itemize}
+
+with conditional entropy $\textbf{H}(\textbf{p} \mid \textbf{q}) = \sum_jq_j \cdot \textbf{H}(\textbf{p} \mid j)$.
+
+\subsection{Comparison Theorem}
+\begin{theo}
+  Given probability distributions $\textbf{p} = (p_1, p_2, \ldots, p_m)$ and $\textbf{q} = (q_1, q_2, \ldots, q_m)$, then:
+  \[
+    \textbf{H}_b(\textbf{p}) = \sum_{i = 1}^m p_i \cdot \log_b (\frac{1}{p_i}) \leq \sum_{i = 1}^m p_i \cdot \log_b (\frac{1}{q_i}) 
+  \]
+  There is equality if and only if $p_i = q_i$ for all $1 \leq i \leq m$.
+\end{theo}
+
+\begin{lem}
+For all $x > 0$, we have $\ln(x) \leq x - 1$ with equality iff $x = 1$.
+\end{lem}
+
+\textbf{Proof:}
+Take $b = \exp$, by previous lemma we have $\ln(\frac{q_i}{p_i}) \leq \frac{q_i}{p_i} - 1$, with equality iff $p_i = q_i$.
+\begin{align*}
+  \sum_{i = 1}^m p_i \cdot \ln(\frac{1}{p_i}) - \sum_{i = 1}^m p_i \cdot \ln({\frac{1}{q_i}}) &= \sum_{i = 1}^m p_i \cdot \ln(\frac{q_i}{p_i}) \\
+  & \leq \sum_{i = 1}^m p_i \cdot (\frac{q_i}{p_i} - 1) = \sum_{i = 1}^m q_i - \sum_{i = 1}^m p_i = 1 - 1 = 0
+\end{align*}
+Equality holds iff $p_i = q_i$ for all $i$.
+
+\subsection{Uniform Distribution}
+\begin{theo}
+  The entropy of a probability distribution $\textbf{p}$ on $m$ symbols is at most $\log_b(m)$, i.e.
+  \[
+    \textbf{H}_b(\textbf{p}) \leq \log_b(m)
+  \]
+  There is equality iff $p_i = \frac{1}{m}$ for all symbols.
+\end{theo}
+
+\textbf{Proof:}
+Given probability distributions $\textbf{p} = (p_1, p_2, \ldots, p_m)$ and take $\textbf{q} = (q_1, q_2, \ldots, q_m)$ with $q_i = \frac{1}{m}$ for all $1 \leq i \leq m$, then we have:
+\[
+  \textbf{H}_b(\textbf{p}) \leq \sum_{i = 1}^m p_i \cdot \log_b(m) = \log_b(m)
+\]
+There is equality iff $p_i = q_i = \frac{1}{m}$ for all $1 \leq i \leq m$.
+
+\subsection{Fundamental Theorem}
+\begin{theo}
+  The average word length $L$ of any uniquely decodeable code $c : S \rightarrow T^*$ with $\lvert T \rvert = b$ for the source $(S, \textbf{p})$ satisfies:
+  \[
+    L \geq \textbf{H}_b(\textbf{p})
+  \]
+\end{theo}
+
+\textbf{Proof:}
+With $S = \{ s_1, s_2, \ldots, s_m \}$ denote by $y_i$ the length of the codeword $s_i \in S$, then the Kraft-McMillan number is:
+\[
+  K =\sum_{i = 1}^m \frac{1}{b^{y_i}} = \frac{1}{b^{y_1}} + \frac{1}{b^{y_2}} + \ldots + \frac{1}{b^{y_m}}
+\]
+Take probability distribution $\textbf{q} = (q_1, q_2, \ldots, q_m)$ with $q_i = \frac{1}{Kb^{y_i}}$, apply the Comparison Theorem to $p$ and $q$ so that:
+\[
+  \textbf{H}_b(\textbf{p}) = \sum_{i = 1}^m p_i \cdot \log_b(\frac{1}{p_i}) \leq \sum_{i = 1}^m p_i \cdot \log_b(\frac{1}{q_i})
+\]
+which (with the $q$ chosen) gives:
+\begin{align*}
+  \textbf{H}_b(\textbf{p}) & \leq \sum_{i = 1}^m p_i \cdot \log_b(Kb^{y_i}) \\
+  & = \sum_{i = 1}^m p_i \cdot (\log_b(K) + y_i) \\
+  & = \log_b(K) + \sum_{i = 1}^m p_i \cdot y_i \\
+  & = \log_b(K) + L \leq L
+\end{align*}
+
+For a UD code $K \leq 1$, it follows that $\log_b(K) \leq 0$.
+
+\subsection{Shannon-Fano Rule}
+To get $L = \textbf{H}_b(\textbf{p})$ we would need $b^{y_i} = \frac{1}{p_i}$ for all $1 \leq i \leq m$.
+\textbf{Shannon-Fane (SF) Rule:}
+Select the word length $y_i$ for a symbol $s_i$ the least positve integer such that $b^{y_i} \geq \frac{1}{p_i}$.
+\begin{theo}
+  There exists a PF code $c : S \rightarrow T^*$ with $\lvert T \rvert = b$ for the source $(S, \textbf{p})$ which satisifies $L < \textbf{H}_b(\textbf{p}) + 1$.
+\end{theo}
+
+\textbf{Proof:}
+We chose $y_i$ as the least positive integer with $b^{y_i} \geq \frac{1}{p_i}$ so we have $b^{y_i - 1} < \frac{1}{p_i}$, thus $y_i - 1 < \log_b(\frac{1}{p_i})$ or $y_i < 1 + \log_b(\frac{1}{p_i})$.
+\[
+  L = \sum p_iy_i < \sum p_i \cdot (1 + \log_b(\frac{1}{p_i})) = 1 + \textbf{H}_b(\textbf{p})
+\]
+
 \end{document}
 
