@@ -312,6 +312,42 @@ Consider a robot which either drives ahead or turns on the spot:
   \end{pmatrix}
 \]
 
+\subsection{Position-Based Path Planning}
+Assuming that robot has localisation and knows where it is relative to a fixed coordinate frame, then \textbf{position-based path planning} allows it to move in precise way along a sequence of pre-defined waypoints.
+Paths of various curved shapes could be planning, aiming to optimise criteria (e.g.\ time or power).
+
+We assume that:
+\begin{itemize}
+  \item Movements are composed by straight-line segments separated by turns on the spot.
+  \item Total distance travelled is minimised - it always faces to turn the next waypoint and drive straight towards it.
+\end{itemize}
+
+If the current pose is $(x, y, \theta)$ and the next waypoint is $(W_x, W_y)$, it must first rotate to point towards the waypoint at vector direction:
+\[
+  \begin{pmatrix}
+    d_x \\
+    d_y
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    W_x - x \\
+    W_y - y
+  \end{pmatrix}
+\]
+The absolute angular orientation $\alpha$ the robot must drive in is:
+\[
+  \alpha = \tan^{-1} \frac{d_x}{d_y}
+\]
+
+Care must be taken to ensure $\alpha$ is in the correct quadrant of $-\pi < \alpha \leq \pi$.
+
+The angle the robot must rotate through is therefore $\beta = \alpha - \theta$.
+To move as efficiently as possible, care should be taken to shift this angle by adding or subtracting $2\pi$ to ensure $-\pi < \beta \leq \pi$.
+
+The robot should then drive forward straight for
+\[
+  d = \sqrt{d_x^2 + d_y^2}
+\]
 
 \end{document}
 
