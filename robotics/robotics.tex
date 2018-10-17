@@ -126,7 +126,7 @@ To find radius $R$ of a curved path, consider a period of motion $\Delta t$ wher
 \subsection{Circular Path of a Car-Like Tricycle Robot}
 \begin{figure}[h]
   \caption{Tricycle Robot.}
-  \includegraphics[scale=0.4]{tricycle}
+  \includegraphics[scale=0.5]{tricycle}
   \centering
 \end{figure}
 
@@ -145,6 +145,171 @@ The radius of the path the rear wheels moves is:
 In time $\Delta t$, the distance along its circular arc moved by the wheel is $v\Delta t$, so the angle $\Delta \theta$ through which the robot rotates is:
 \[
   \Delta \theta = \frac{v\Delta t}{R_d} = \frac{v\Delta t \sin s}{L}
+\]
+
+\subsection{Gearing}
+\begin{figure}[h]
+  \caption{Gears of a DC motor.}
+  \includegraphics[scale=0.5]{gearing}
+  \centering
+\end{figure}
+
+DC motors offer high speed and low torque, so gearing is nearly always required to drive a robot.
+
+If Gear 1 is driven with torque $t_1$, it exerts tangential force:
+\[
+  F = \frac{t_1}{r_1}
+\]
+
+on Gear 2; the torque in Gear 2 is therefore:
+\[
+  t_2 = r_2F = \frac{r_2}{r_1}t_1
+\]
+
+The change in angular velocity between Gear 1 and Gear 2 is calcualted by considering velocity at the point where they meet:
+\[
+  v = \omega_1 r_1 = \omega_2 r_2
+\]
+\[
+  \implies \omega_2 = \frac{r_1}{r_2}\omega_1
+\]
+\begin{itemize}
+  \item When a small gear drives a bigger gear, the second gear has higher torque and lower angular velocity in proportion to the ratio of teeth.
+  \item Gears can be chained together to achieve compound effects.
+\end{itemize}
+
+\subsection{Motor Control - Open Loop}
+\begin{figure}[h]
+  \caption{Open loop system.}
+  \includegraphics[scale=0.4]{openloop}
+  \centering
+\end{figure}
+
+Let $P$ be a Single-Input-Single-Output (SISO) dynamic system, it is described by:
+\begin{itemize}
+  \item An input $u$ - here: voltage $V$, or corresponding Pulse Width Modulation (PWM) value.
+  \item Internal states $x$, whose dynamics follow differential equations - here: $x = [x_1, x_2]^\top = [\omega, \varphi]^\top$, with rotation speed $\omega$ and angle $\varphi$.
+  \item An output $y$ as a function of $x$ - here: angle $\varphi$, $y = x_2$.
+\end{itemize}
+
+Qualitative open-loop response on input (voltage) step: input $V$ leads to output motor angle $\phi$, which changes with time.
+
+\subsection{Motor Control - Closed Loop}
+\begin{figure}[h]
+  \caption{Closed loop system.}
+  \includegraphics[scale=0.4]{closedloop}
+  \centering
+\end{figure}
+
+Let $C$ be a controller possibly with internal states:
+\begin{itemize}
+  \item $r$ is a reference (desired) output.
+  \item $e$ is the e  rror between reference and actual output.
+\end{itemize}
+
+The controller runs at a high frequency, at each iteration it checks the current error and calculates a control value to the motor which aims to reduce the error.
+
+This is simple: a binary on or off.
+
+\subsection{General Motor Control - PID}
+Proportional-Integral-Differential (PID), a controller:
+\[
+  C : u(t) = k_p \exp(t) + k_i \int_{t_0}^{t} \exp(\tau)d_\tau + k_d \frac{d\exp(t)}{dt}
+\]
+where
+\begin{itemize}
+  \item $k_p$ - proportional gain, reduces the error.
+  \item $k_i$ - integral gain, removes steady-state error.
+  \item $k_d$ - differential gain, can reduce settling time.
+\end{itemize}
+
+A simple (heuristic) tuning rule is the \textbf{Ziegler-Nichols}:
+\begin{itemize}
+  \item Set $k_i$ and $k_d$ to zero.
+  \item Increase $k_p$ until the system starts oscillating with Period $P_u$ (in seconds) - remember this gain as $k_u$.
+  \item Set $k_p = 0.6k_u, k_i = 2k_p/P_u, \text{and } k_d = k_pP_u/8$.
+\end{itemize}
+
+\subsection{Motor Control - Additional Tweaks}
+\begin{itemize}
+  \item Reference filtering - respect physical limits already in reference.
+  \item Anti-Reset-Windup - stops integrating the effor for the I-part, when $u$ is at its physical limit.
+  \item Dead-band compensation - add offset to $u$ to compensate friction.
+  \item Feed-forward controller - $C_f : u_f(t) = k_f \frac{dr(t)}{dt}$, reduces ``work'' for the feedback controller
+\end{itemize}
+
+\subsection{Mapping Wheel Rotation Speed to Velocity}
+In principle, we could emasure the radius of each wheel $r_W$ to turn angular into linear motion.
+However in practice, due to hard to model factors, it is better to calibrate empirically, i.e.\ work out the scaling between the motor reference angle and the distance travelled over the ground via experiments.
+
+\subsection{Motion and State on a 2D Plane}
+We can define a \textbf{state vector} $\textbf{x}$:
+\[
+  \textbf{x} = 
+  \begin{pmatrix}
+    x \\ y \\ \theta
+  \end{pmatrix}
+\]
+\begin{itemize}
+  \item $x$ and $y$ specify the location of the pre-define ``robot centre'' point in the world frame.
+  \item $\theta$ specifies the rotation angle between the two coordinate frames (the angle between the $x^W$ and $x^R$ axes).
+  \item At the origin, $x = y = \theta = 0$.
+\end{itemize}
+
+\subsection{Integrating Motion in 2D}
+2D motion on a plane: three degrees of position freedom $(x, y, \theta)$, with $-\pi < \theta \leq \pi$.
+
+Consider a robot which either drives ahead or turns on the spot:
+\begin{itemize}
+  \item During straight-line period of motion of distance $D$:
+    \[
+      \begin{pmatrix}
+        x_{\text{new}} \\
+        y_{\text{new}} \\
+        \theta_{\text{new}} 
+      \end{pmatrix}
+      =
+      \begin{pmatrix}
+        x + D\cos\theta \\
+        y + D\sin\theta \\
+        \theta 
+      \end{pmatrix}
+    \]
+  \item During a pure rotation of angle $\alpha$:
+    \[
+      \begin{pmatrix}
+        x_{\text{new}} \\
+        y_{\text{new}} \\
+        \theta_{\text{new}} 
+      \end{pmatrix}
+      =
+      \begin{pmatrix}
+        x \\
+        y \\
+        \theta + \alpha
+      \end{pmatrix}
+    \]
+\end{itemize}
+
+\subsection{Integrating Circular Motion Estimates in 2D}
+\begin{figure}[h]
+  \caption{Circular Motion estimation.}
+  \includegraphics[scale=0.4]{circularmotionestimate}
+  \centering
+\end{figure}
+
+\[
+  \begin{pmatrix}
+    x_{\text{new}} \\
+    y_{\text{new}} \\
+    \theta_{\text{new}} 
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x + R(\sin(\Delta \theta + \theta) - \sin \theta) \\
+    y - R(\cos(\Delta \theta + \theta) - \cos \theta) \\
+    \theta + \Delta \theta
+  \end{pmatrix}
 \]
 
 
