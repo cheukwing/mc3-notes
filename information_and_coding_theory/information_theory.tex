@@ -3,6 +3,9 @@
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{graphicx}
+
+\graphicspath{ {./imgs/} }
 
 \setlength{\parindent}{0pt}
 
@@ -144,8 +147,13 @@ If we concentrate on binary codes with $T = \mathbb{B}$, any codeword in $C$ can
 Moreover, the codewords in $C$ can be represented as the end-points of the corresponding paths: if a code $c$ is PF then none of its decendents can represent a codeword in $C$.
 
 \begin{eg}
-  The code $C = \{ 0, 10, 110, 111 \}$ is PF, its corresponding tree is: \\
-  TODO: ADD TREE
+  The code $C = \{ 0, 10, 110, 111 \}$ is PF, its corresponding tree is shown in figure \ref{fig:treepath}.
+  \begin{figure}[h!]
+    \caption{Tree for the given code $C$.}
+    \centering
+    \includegraphics[width=\textwidth]{treepaths}
+    \label{fig:treepath}
+  \end{figure}
 \end{eg}
 
 \subsection{Parameters of a Code}
