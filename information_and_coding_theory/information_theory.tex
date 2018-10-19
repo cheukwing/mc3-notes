@@ -1,8 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage{fullpage}
 \usepackage{amsthm}
-\usepackage{amsmath}
-\usepackage{amssymb}
+\usepackage{amsmath} \usepackage{amssymb}
 \usepackage{graphicx}
 
 \graphicspath{ {./imgs/} }
@@ -606,7 +605,7 @@ For a UD code $K \leq 1$, it follows that $\log_b(K) \leq 0$.
 
 \subsection{Shannon-Fano Rule}
 To get $L = \textbf{H}_b(\textbf{p})$ we would need $b^{y_i} = \frac{1}{p_i}$ for all $1 \leq i \leq m$.
-\textbf{Shannon-Fane (SF) Rule:}
+\textbf{Shannon-Fano (SF) Rule:}
 Select the word length $y_i$ for a symbol $s_i$ the least positve integer such that $b^{y_i} \geq \frac{1}{p_i}$.
 \begin{theo}
   There exists a PF code $c : S \rightarrow T^*$ with $\lvert T \rvert = b$ for the source $(S, \textbf{p})$ which satisifies $L < \textbf{H}_b(\textbf{p}) + 1$.
@@ -617,6 +616,138 @@ We chose $y_i$ as the least positive integer with $b^{y_i} \geq \frac{1}{p_i}$ s
 \[
   L = \sum p_iy_i < \sum p_i \cdot (1 + \log_b(\frac{1}{p_i})) = 1 + \textbf{H}_b(\textbf{p})
 \]
+
+\subsection{Optimal PF Codes}
+Using SF we can obtain good but not optimal codes:
+\[
+  \textbf{H} \leq L_{opt} \leq L_{SF} \leq \textbf{H} + 1
+\]
+
+Consider from now on only binary codes and $\log = \log_2$.
+
+\begin{lem}
+  An optimal PF code $c : S \rightarrow \mathbb{B}^*$ for a source $(S, \textbf{p})$ has the following properties:
+  \begin{itemize}
+    \item if the codeword $c(s')$ is longer than $c(s)$ then $p_s \geq p_{s'}$.
+    \item among the codewords of maximal length there are two of the form $w0$ and $w1$ for some $w \in \mathbb{B}^*$.
+  \end{itemize}
+\end{lem}
+
+\textbf{Proof:}
+\begin{itemize}
+  \item We have $\lvert c(s') \rvert > \lvert c(s) \rvert$ and $p_s \geq p_{s'}$.
+    Define a new code which swaps the encodings of $s$ and $s'$, $\tilde{c}(s) = c(s')$ and $\tilde{c}(s') = c(s)$.
+    The difference between the average world-lengths is:
+    \begin{align*}
+      L(\tilde{c}) - L(c) &= (p_s \lvert \tilde{c}(s') \rvert + p_{s'} \lvert \tilde(c)(s) \rvert) - (p_s \lvert c(s) \rvert + p_{s'} \lvert c(s') \rvert) \\
+      &= (p_s - p_{s'})(\lvert c(s') \rvert - \lvert c(s) \rvert) \geq 0
+    \end{align*}
+  \item If there are no maximal codewords of the from $w0$ and $w1$, i.e.\ either of form $w0$ or $w1$ but not both, delete the last bit and obtain a better code.
+\end{itemize}
+
+\subsection{Huffman's Rules}
+\begin{itemize}
+  \item \textbf{H1:}
+    Given a source $(S, \textbf{p})$, let $s'$ and $s''$ be symbols with the smallest probability.
+    Construct a new source $(S^*, \textbf{p}^*)$ by replacing $s'$ and $s''$ with new symbol $s^*$, with probability $p_{s^*} = p_{s'} + p_{s''}$.
+  \item \textbf{H2:}
+    If we are given a PF binary code $h^*$ for $(S^*, p^*)$ with $h^* : s^* \mapsto w$, then define a binary code $h$ for $(S, \textbf{p})$ with $h : s' \mapsto w0$ and $h : s'' \mapsto w1$.
+\end{itemize}
+
+We apply \textbf{H1} until we have a trivial source $(\{ s^* \}, \textbf{p}^* = (1))$.
+
+We apply \textbf{H2} to construct a new, more concrete code by splitting a symbol $s^*$ into $s'$ and $s''$.
+
+\begin{figure}[h]
+  \caption{Applying \textbf{H1}, building the tree downwards.}
+  \centering
+  \includegraphics[width=\textwidth]{huffman1}
+\end{figure}
+
+\begin{figure}[h]
+  \caption{Applying \textbf{H2}, building the tree upwards.}
+  \centering
+  \includegraphics[width=\textwidth]{huffman2}
+\end{figure}
+
+\subsection{Quantifying the Increase in L}
+\begin{lem}
+  Let codes $h$ and $h^*$ be defined as required by \textbf{H2}, then the average word lengths of $h$ and $h^*$ satisfy:
+  \[
+    L(h) = L(h^*) + p_{s^*}^*
+  \]
+\end{lem}
+
+\textbf{Proof:}
+Consider $\lvert h^*(s^*) \rvert$, then $\lvert h(s') \rvert = \lvert h(s'') \rvert = \lvert h^*(s^*) \rvert + 1$, hence:
+\[
+  L(h) - L(h^*) = (p_{s'} + p_{s''})(\lvert h^*(s^*) \rvert + 1) - p_{s^*}^* \lvert h^*(s^*) \rvert
+\]
+
+Since $p_{s*}^* = p_{s'} + p_{s''}$, then $L(h) - L(h^*) = p_{s^*}^*$.
+
+\subsection{Optimality of Huffman Code}
+\begin{theo}
+  Using Huffman's rules, if the $h^*$ is optimal for $(S^*, \textbf{p}^*)$, then $h$ is optimal for $(S, \textbf{p})$.
+\end{theo}
+
+\subsection{Coding in Blocks}
+We now consider block coding, $c : S^2 \rightarrow \mathbb{B}^*, c : S^3 \rightarrow \mathbb{B}^*$, etc.
+\begin{eg}
+  Consider $c: \mathbb{B} \rightarrow \mathbb{B}^*$ with $\textbf{p} = (0.9, 0.1)$, it has entropy $\textbf{H}(\textbf{p}) \approx 0.469$ and $L_1 = 1$ (at best).
+
+  Consider $c: \mathbb{B}^2 \rightarrow \mathbb{B}^*$ with $\textbf{p} = (0.81, 0.09. 0.09, 0.01)$, now $L_2 = 1.29$ or $\frac{L_2}{2} = 0.645$.
+
+  Consider $c: \mathbb{B}^3 \rightarrow \mathbb{B}^*$ with $\textbf{p} = (0.729, 0.081, 0.081, 0.009, 0.081, 0.009, 0.009, 0.001)$, now $L_3 = 1.598$ or $\frac{L_3}{3} = 0.533$.
+
+  We approach the theoretical minimum $\textbf{H}(\textbf{p})$.
+\end{eg}
+
+\subsection{Products and Distributions}
+Consider two sets/alphabets:
+\begin{align*}
+  S' = \{ s'_1, s'_2, \ldots, s'_m \} & S'' = \{ s''_1, s''_2, \ldots, s''_n \}
+\end{align*}
+and a probability distribution $\textbf{p}$ on their cartesian product $S$:
+\[
+  S' \times S'' = \{ \langle s', s'' \rangle \mid s' \in S', s'' \in S'' \} = \{ s's'' \mid s' \in S', s'' \in S'' \}
+\]
+
+\begin{defn}
+  Given a distribution $\textbf{p} = (p_{ij})_{i, j}$ on $S = S' \times S''$, the marginal distributions $\textbf{p}'$ on $S'$ and $\textbf{p}''$ on $S''$ are given by:
+  \begin{align*}
+    p'_i = \sum_{j = 1}^n p_{ij} (i = 1, \ldots, m) & p''_j = \sum_{i = 1}^m p_{ij} (j = 1, \ldots, n)
+  \end{align*}
+\end{defn}
+
+$\textbf{p}'$ and $\textbf{p}''$ are independent if $p_{ij} = p'_i p''_j$ or $\textbf{p} = \textbf{p}' \otimes \textbf{p}''$.
+
+\subsection{Entropies of Products}
+\begin{theo}
+  For a distribution $\textbf{p}$ on $S' \times S''$ and its marginal distributions $\textbf{p}'$ and $\textbf{p}''$, we have:
+  \[
+    \textbf{H}(\textbf{p}) \leq \textbf{H}(\textbf{p}') + \textbf{H}(\textbf{p}'')
+  \]
+  Equality holds iff $\textbf{p}'$ and $\textbf{p}''$ are independent.
+\end{theo}
+
+\textbf{Proof:}
+From the right hand side:
+\begin{align*}
+  \textbf{H}(\textbf{p}') + \textbf{H}(\textbf{p}'') &= \sum_i p'_i \log(\frac{1}{p'_i}) + \sum_j p''_j \log(\frac{1}{p''_j}) \\
+  &= \sum_i \sum_j p_{ij} \log(\frac{1}{p'_i}) + \sum_j \sum_i p_{ij} \log(\frac{1}{p''_j}) \\
+  &= \sum_i \sum_j p_{ij} \log(\frac{1}{p'_ip''_j}) \\
+  &= \sum_{ij} p_{ij} \log(\frac{1}{p'_ip''_j})
+\end{align*}
+
+From the left hand side:
+We define a probability distribution $\textbf{q} = \textbf{p}' \otimes \textbf{p}''$ on $S' \times S''$ via $q_{ij} = p'_ip''_j$.
+Applying the Comparison Theorem:
+\[
+  \textbf{H}(\textbf{p}) \leq \sum_{ij} p_{ij} \log(\frac{1}{q_{ij}}) = \sum_{ij} p_{ij} \log(\frac{1}{p'_ip''_j}) = \textbf{H}(\textbf{p}') + \textbf{H}(\textbf{p}'')
+\]
+
+Equality iff $\textbf{q} = \textbf{p}$, i.e.\ $\textbf{p}'$ and $\textbf{p}''$ are independent.
 
 \end{document}
 
