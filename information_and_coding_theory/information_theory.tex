@@ -749,5 +749,153 @@ Applying the Comparison Theorem:
 
 Equality iff $\textbf{q} = \textbf{p}$, i.e.\ $\textbf{p}'$ and $\textbf{p}''$ are independent.
 
+\subsection{Stationary Sources}
+\begin{defn}
+  A source emitting a stream $\sigma_1 \sigma_2 \sigma_3$ is \textbf{stationary} if, for any positive integers $l_1, l_2, \ldots, l_r$, the probabilities:
+  \[
+    Pr(\sigma_{k + l_1} = s_1, \sigma_{k + l_2} = s_2, \ldots, \sigma_{k + l_r} = s_r)
+  \]
+  depend only on the string $s_1 s_2 \ldots s_r$ and not on $k$.
+\end{defn}
+
+Typically, $l_1 = 1, l_2 = 2, \ldots, l_r = r$:
+\[
+  \textbf{p}^r(s_1 s_2 \ldots s_r) = Pr(\sigma_{k + l_1} = s_1, \sigma_{k + l_2} = s_2, \ldots, \sigma_{k + l_r} = s_r)
+\]
+
+We have for any stationary source that:
+\[
+  \textbf{p}^{r - 1}(s_1 s_2 \ldots s_{r - 1}) = \sum_{s \in S} p^r(s_1 s_2 \ldots s_{r - 1}s) = \sum_{s \in S} p^r(s s_1 s_2 \ldots s_{r - 1})
+\]
+
+A memoryless source is a stationary source with:
+\[
+  \textbf{p}^r(s_1 s_2 \ldots \s_r) = \textbf{p}^1 (s_1) \textbf{p}^1 (s_2) \ldots \textbf{p}^1 (s_r)
+\]
+A stationary source which is not memoryless is one where the probability of characters appearing together in a string is different to the probability of these characters appearing independently.
+
+\subsection{Entropy of a Stationary Source}
+\begin{defn}
+  The entropy $\textbf{H}$ of a stationary source with probability distribution $\textbf{p}^r$ is the infimum (greatest) over the numbers
+  \begin{align*}
+    \textbf{H} &= \inf \frac{\textbf{H}(\textbf{p}^r)}{r} & r &= 1, 2, 3, \ldots
+  \end{align*}
+\end{defn}
+
+\begin{theo}
+  For a memoryless stationary source, its entropy is $\textbf{H} = \textbf{H}(\textbf{p}^1)$.
+\end{theo}
+
+\textbf{Proof:}
+For memoryless sources $\textbf{H}(\textbf{p}^2) = 2 \textbf{H}(\textbf{p}^1)$.
+By induction, we have $\textbf{H}(\textbf{p}^r) = r \textbf{H}(\textbf{p}^1)$. 
+Thus $\inf \frac{\textbf{H}(\textbf{p}^r)}{r} = \frac{r \textbf{H}(\textbf{p}^1)}{r} = \textbf{H}(\textbf{p}^1)$.
+
+\subsection{Sub-Block Coding}
+\begin{lem}
+  Suppose $n$ is a multiple of $r$, then:
+  \[
+     \frac{\textbf{H}(\textbf{p}^n)}{n} \leq \frac{\textbf{H}(\textbf{p}^r)}{r}
+  \]
+\end{lem}
+
+\subsection{Coding Theorem: Stationary Sources}
+\begin{lem}
+  For a stationary source $S$ and entropy $\textbf{H}$, given $\epsilon > 0$ there exists $n > 0$ and a PF binary code $(S^n, \textbf{p}^n)$ with $L_n$ satisfying:
+  \[
+    \frac{L_n}{n} < \textbf{H} + \epsilon
+  \]
+\end{lem}
+
+\subsection{Algorithms for Data Compression}
+We cannot use Huffman's rule for data compression as we need to know the probabilites of symbols or blocks in advance.
+
+Data compression makes particular sense if based on blocks (not symbols), there are two approaches:
+\begin{itemize}
+  \item The encoding of a block is calculated in isolation: we do not consider other blocks.
+  \item The codewords of a block are updated online: adaptive coding.
+\end{itemize}
+
+\subsection{Dynamic Dictionaries}
+\begin{defn}
+  A \textbf{dictionary} $D$ based on an alphabet $S$ is a finite sequence of distinct words in $S^*$:
+  \[
+    D = d_1, d_2, \ldots, d_N
+  \]
+  We say $i$ is the index of $d_i$.
+\end{defn}
+
+\textbf{Static Dictionary:} construct dictionary at the start and leave unchanged (Arithmetic Coding).
+
+\textbf{Dynamic Dictionary:} update dictionary during data compression to adapt to frequency of blocks.
+
+\subsection{Lempel, Ziv and Welch}
+\begin{defn}
+  Suppose we have a message $X = x_1 x_2 \ldots x_n$ in the alphabet $S = \{ s_1, s_2, \ldots, s_m \}$, and $D_0 = d_1, d_2, \ldots, d_m$ with $d_i = s_i$.
+  The LZW coding rules construct $c(X) = c_1 c_2 c_3 \ldots$ as follows:
+  \begin{itemize}
+    \item \textbf{Step 1:} The first symbol $x_1$ (say $x_1 = s_p$) is an entry $d_p$ in $D_0$.
+      Encode $x_1$ via:
+      \[
+        c_1 = p
+      \]
+      The string $x_1 x_2$ is not in $D_0$, but we define:
+      \begin{align*}
+        d_{m + 1} &= x_1 & D_1 &= D_0, d_{m + 1}
+      \end{align*}
+    \item \textbf{Step k:} ($k > 1$) We have the code $c_1 c_2 \ldots c_{k - 1}$ for the initial $x_1 x_2 \ldots x_i$ and $D_{k - 1} = d_1, d_2, \ldots, d_{m + k - 1}$.
+      Find the longest string $w = x_{i + 1} \ldots x_j = d_t$ in $D_{k - 1}$.
+      By definition $wx_{j + 1}$ is not in $D_{k - 1}$, encode:
+      \[
+        c_k = t
+      \]
+      and extend $D_{k - 1}$:
+      \begin{align*}
+        d_{m + k} &= wx_{j + 1} & D_k &= D_{k - 1}, d_{m + k}
+      \end{align*}
+  \end{itemize}
+  Repeat until end of message $X$.
+\end{defn}
+
+\subsection{Unique Decodability for LZW}
+\begin{theo}
+  An LZW code constructed as above is uniquely decodable.
+\end{theo}
+
+\textbf{Proof:}
+Suppose we have partially decoded $c_1 c_2 \ldots c_{k - 1}$ as $x = x_1 x_2 \ldots x_i$, and we constructed $D_{k - 1}$ by adding $k - 1$ blocks to $D_0$ with $k \geq 2$.
+
+Use this to construct $c_k$ and $D_k = D_{k - 1}, d_{m + k}$.
+It must be that $c_k$ is the index of a string $s_u \ldots s_v$ in $D_{k - 1}$, so the decoded string extends $x$ by $x_{i + 1} = s_u, \ldots, x_j = s_v$.
+
+This leaves us to construct $D_k$ or more concretely $d_{m + k}$.
+
+If $c_{k + 1} = r \leq m + k - 1$ then $d_r$ is already in $D_{k - 1}$, e.g.\ $d_r = s_a \ldots$.
+Thus $x_{i + 1} = s_a$ (ignore the tail) and the new dictionary entry is $d_{m + k} = s_u \ldots s_v s_a$.
+
+The other possibility is that $c_{k + 1}$ is exactly the new entry in $D_k$, i.e.\ $d_{m + k}$, or that $c_{k + 1} = m + k$.
+Then $d_{m + k}$ is a string of the form $s_u \ldots s_v s_z$ with $s_z = x_{j + 1}$.
+Thus $c_k c_{k + 1}$ is the encoded form of $s_u \ldots s_v s_u \ldots s_v s_z$ and in fact $x_{j + 1} = s_u$ or $d_{m + k} = s_u \ldots s_v s_u$.
+
+We have thus reconstructed $D_k$.
+
+\section{Transmission of Information}
+\subsection{Channel}
+\begin{itemize}
+  \item \textbf{Code:} represents information.
+  \item \textbf{Source:} produces information.
+  \item \textbf{Channel:} transmits information, links sender and receiver.
+\end{itemize}
+
+\begin{figure}[h]
+  \caption{Channel diagram.}
+  \centering
+  \includegraphics[width=\textwidth]{channel}
+\end{figure}
+
+\subsection{Noisy Channel}
+
+
 \end{document}
+
 
