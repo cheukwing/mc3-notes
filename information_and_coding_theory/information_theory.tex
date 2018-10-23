@@ -770,7 +770,7 @@ We have for any stationary source that:
 
 A memoryless source is a stationary source with:
 \[
-  \textbf{p}^r(s_1 s_2 \ldots \s_r) = \textbf{p}^1 (s_1) \textbf{p}^1 (s_2) \ldots \textbf{p}^1 (s_r)
+  \textbf{p}^r(s_1 s_2 \ldots s_r) = \textbf{p}^1 (s_1) \textbf{p}^1 (s_2) \ldots \textbf{p}^1 (s_r)
 \]
 A stationary source which is not memoryless is one where the probability of characters appearing together in a string is different to the probability of these characters appearing independently.
 
@@ -863,15 +863,15 @@ Data compression makes particular sense if based on blocks (not symbols), there 
 \end{theo}
 
 \textbf{Proof:}
-Suppose we have partially decoded $c_1 c_2 \ldots c_{k - 1}$ as $x = x_1 x_2 \ldots x_i$, and we constructed $D_{k - 1}$ by adding $k - 1$ blocks to $D_0$ with $k \geq 2$.
+Suppose we have partially decoded $c_1 c_2 \ldots c_{k - 1}$ as $x = x_1 x_2 \ldots x_i$, and we constructed $D_{k - 1}$ by adding $k - 1$ blocks to $D_0$ with $k \geq 2$. \\
 
 Use this to construct $c_k$ and $D_k = D_{k - 1}, d_{m + k}$.
-It must be that $c_k$ is the index of a string $s_u \ldots s_v$ in $D_{k - 1}$, so the decoded string extends $x$ by $x_{i + 1} = s_u, \ldots, x_j = s_v$.
+It must be that $c_k$ is the index of a string $s_u \ldots s_v$ in $D_{k - 1}$, so the decoded string extends $x$ by $x_{i + 1} = s_u, \ldots, x_j = s_v$. \\
 
-This leaves us to construct $D_k$ or more concretely $d_{m + k}$.
+This leaves us to construct $D_k$ or more concretely $d_{m + k}$. \\
 
 If $c_{k + 1} = r \leq m + k - 1$ then $d_r$ is already in $D_{k - 1}$, e.g.\ $d_r = s_a \ldots$.
-Thus $x_{i + 1} = s_a$ (ignore the tail) and the new dictionary entry is $d_{m + k} = s_u \ldots s_v s_a$.
+Thus $x_{i + 1} = s_a$ (ignore the tail) and the new dictionary entry is $d_{m + k} = s_u \ldots s_v s_a$. \\
 
 The other possibility is that $c_{k + 1}$ is exactly the new entry in $D_k$, i.e.\ $d_{m + k}$, or that $c_{k + 1} = m + k$.
 Then $d_{m + k}$ is a string of the form $s_u \ldots s_v s_z$ with $s_z = x_{j + 1}$.
@@ -894,7 +894,60 @@ We have thus reconstructed $D_k$.
 \end{figure}
 
 \subsection{Noisy Channel}
+A channel (matrix) $\Gamma$ with input set $I = \{ s_1, \ldots, s_m \}$ and output set $J = \{ r_1, \ldots, r_n \}$ is a matrix whose entries define the conditional probabilities $Pr(r_j  \mid s_i)$ with $i \in I$ and $j \in J$, i.e.
+\[
+  \Gamma_{ij} = Pr(j \mid i) = Pr(r_j \mid s_i)
+\]
 
+If at least one $\Gamma_{ij} \neq 0$ with $i \neq j$ then the channel is \textbf{noisy}.
+
+In the matrix, rows correspond to inputs and columns to outputs.
+
+\subsection{Binary Symmetric Channel}
+\begin{defn}
+  A \textbf{binary symmetric channel} (BSC) corresponds to the channel matrix of the form:
+  \[
+    \Gamma =
+    \begin{pmatrix}
+      \Gamma_{00} & \Gamma_{01} \\
+      \Gamma_{10} & \Gamma_{11}
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      1 - e & e \\
+      e & 1- e
+    \end{pmatrix}
+  \]
+  with error $e > 0$.
+\end{defn}
+
+\subsection{Channel Transmission}
+\begin{lem}
+  Each row of a channel matrix $\Gamma$ has sum $1$, i.e.\ it is \textbf{stochastic}.
+  \[
+    \sum_{j \in J} \Gamma_{ij} = 1 \text{ for all } i \in I
+  \]
+\end{lem}
+
+\begin{theo}
+  Let $\Gamma$ be a channel matrix and $(I, \textbf{p})$ and $(J, \textbf{q})$ be the sources associated to the input and output with distributions:
+  \[
+    \textbf{p} = (p_1, p_2, \ldots, p_m) \text{ and } \textbf{q} = (q_1, q_2, \ldots, q_n)
+  \]
+  then
+  \[
+    \textbf{q} = \textbf{p} \Gamma
+  \]
+\end{theo}
+
+\textbf{Proof:}
+Denote by $t_{ij}$ the probability that the input is $s_i$ and output is $r_j$, therefore $q_j = \sum_{i \in I} t_{ij}$.
+
+In addition, $t_{ij} = Pr(\text{output} j \mid \text{input} i) \times Pr(\text{input} i) = \Gamma_{ij}p_i$.
+Thus:
+\[
+  q_j = \sum_{i \in I} t_{ij} = \sum_{i \in I} \Gamma_{ij} p_i \text{ or } \textbf{q} = \textbf{p}\Gamma
+\]
 
 \end{document}
 
