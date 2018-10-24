@@ -349,5 +349,215 @@ The robot should then drive forward straight for
   d = \sqrt{d_x^2 + d_y^2}
 \]
 
+\section{Sensors}
+\subsection{A Well Calibrated Robot}
+After careful calibration, a robot should move to the desired location on average, but scatter will remain due to uncontrollable factors (e.g.\ wheel slip, rough surfaces).
+Although \textbf{systematic error} may have been removed, \textbf{zero mean errors} still remain.
+
+The errors occur incrementally: small additional movements/rotations induce slightly more potential error.
+
+We can model the zero mean errors probabilistically, usually a Gaussian (normal) distribution.
+
+\subsection{Uncertainty in Motion}
+We modify the previous equations to acknowledge the uncertain perturbations:
+\[
+  \begin{pmatrix}
+    x_{\text{new}} \\
+    y_{\text{new}} \\
+    \theta_{\text{new}} 
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x + (D + e)\cos\theta \\
+    y + (D + e)\sin\theta \\
+    \theta + f
+  \end{pmatrix}
+\]
+\[
+  \begin{pmatrix}
+    x_{\text{new}} \\
+    y_{\text{new}} \\
+    \theta_{\text{new}} 
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x \\
+    y \\
+    \theta + \alpha + g
+  \end{pmatrix}
+\]
+
+Here, $e, f, g$ are uncertainty terms with zero mean and Gaussian distribution, they model how the actual motion may deviate from the ideal trajectory.
+
+These equations will be helpful when we probabilistically combine odometry with other sensing.
+
+\subsection{Sensor Types}
+Sensors are either \textbf{proprioceptive} (self-sensing) or \textbf{exteroceptive} (outward-looking).
+\begin{itemize}
+  \item Proprioceptive sensors (e.g.\ motor encoders, internal force sensors) improve a robot's sense of its own internal state and motion.
+  \item Without exteroceptive sensors, a mobile robot moves blindly, it needs to:
+    \begin{itemize}
+      \item Localise without drift and with respect to a map.
+      \item Recognise places and objects it has seen before.
+      \item Map out free space, avoid obstacles.
+      \item Interact with objects and people.
+      \item Be aware of its environment.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Sensor Measurements: Proprioceptive}
+\begin{itemize}
+  \item Sensors gather numerical readings or \textbf{measurements}; for proprioceptive sensors, the value of the measurement $z_p$ will depend on just the state of the robot $x$:
+    \[
+      z_p = z_p(x)
+    \]
+  \item The state of a robot is a vector of variables describing its current status.
+  \item More generally, a proprioceptive measurement might depend not just on the current state but also on previous states or the current rate of change of state.
+\end{itemize}
+
+\subsection{Sensor Measurements: Exteroceptive}
+\begin{itemize}
+  \item A measurement from an exteroceptive sensor depends on both the state of the robot $x$ and the world $y$:
+    \[
+      z_o = z_o(x, y)
+    \]
+  \item The state of the world might be parameterised in many ways, e.g.\ a list of geometric coordinates of walls or landmarks, either uncertain or perfectly known.
+\end{itemize}
+
+\subsection{Single and Multiple Value Sensors}
+\begin{itemize}
+  \item Touch, light and sonar sensors return a singe value within a given range.
+  \item Sensors such as a camera or laser range-finder return an array of values, achieved either by scanning a single sensing element or by having an array of sensing elements.
+\end{itemize}
+
+\subsection{Touch Sensor}
+\begin{itemize}
+  \item Binary on/off state - no processing required.
+  \item Switch open - no current flow.
+  \item Switch closed - current flow.
+\end{itemize}
+
+\subsection{Light Sensor}
+\begin{itemize}
+  \item Detect intensity of light incident from a single forward direction, with some range of angular sensitivity.
+  \item Multiple sensors pointing in different directions can guide steering behaviours.
+  \item The Lego sensors can also emit their own light, which reflect off close targets.
+\end{itemize}
+
+\subsection{Sonar (Ultrasonic) Sensor}
+\begin{itemize}
+  \item Measures depth by emitting an ultrasonic pulse and timing interval for echo to return.
+  \item Fairly accurate in one direction but can give noisy measurements in the presence of complicated shapes.
+  \item Ring of sonar sensors can be used for obstacle detection.
+  \item Important for underwater robots as it is the only serious option beyond very short ranges.
+\end{itemize}
+
+\subsection{External Sensing: Laser Range-Finder}
+\begin{itemize}
+  \item Measures depth using an active signal; commercial LADAR sensors return an array of depth measurements from a scanning beam.
+  \item Very accurate measurement depth, works on most surface types.
+  \item Normally scans in a 2D plane.
+  \item Bulky and expensive.
+\end{itemize}
+
+\subsection{External Sensing: Vision}
+\begin{itemize}
+  \item Generalisation of a light sensor - measures light intensity in many directions simultaneously by directing incident light onto a sensing chip with an array of sensitive elements.
+  \item Returns large, rectangular array of measurements.
+  \item A single camera measures light intensity, multiple cameras or a single moving one allows 3D information processing.
+  \item Low cost.
+\end{itemize}
+
+\subsection{Touch Sensors for Bump Detection}
+The sensor detects when an obstacle has been hit, demanding an immediate reaction (e.g.\ evasive manoeuvre or stopping motion).
+
+For a circular robot, we can mount touch sensors inside a ``floating skirt'' to give the ability to measure different bump directions.
+
+\begin{itemize}
+  \item Stationary object collision: explore by reversing and trying to go around.
+  \item Moving object collision: follow or run away.
+\end{itemize}
+
+\subsection{Servoing}
+\textbf{Servoing} is a robot control technique where control parameters are coupled directly to a sensor reading and updated regularly in a \textbf{negative feedback loop}, sometimes known as \textbf{closed loop control}.
+
+Servoing requires high frequency update of sensor/control cycle, otherwise motion may oscillate.
+
+\subsection{Exteroceptive Servoing}
+In servoing, a control demand is set which over time aims to bring the current value of a sensor reading to agree with a desired value.
+
+\textbf{Proportional control:} set demand proportional to negative error (difference between desired value and actual value).
+\[
+  -k_p(z_{\text{desired}} - z_{\text{actual}})
+\]
+where $k_p$ is the proportional gain constant.
+
+\begin{itemize}
+  \item \textbf{Cascade control} is where the output of one control loop is used to set the input to another, hiding the details of motor/encoder control from the upper level work with sensor control. 
+  \item Problems only arise when the top level controller requests changes too rapidly, exceeding the \textbf{bandwidth} of lower level controllers.
+  \item Sensors may sometimes produce garbage readings for a number of different possible reasons; it is often sensible to use a strategy to remove outliers but this also reduces the responsiveness of the system.
+\end{itemize}
+
+\subsection{Visual Servoing to Control Steering}
+
+\begin{figure}[h]
+  \caption{Steering for a robot with a tricycle or car-type wheel configuration.}
+  \includegraphics[scale=0.4]{steering}
+  \centering
+\end{figure}
+
+Simple steering law to collide with target:
+\[
+  s = k_p \alpha
+\]
+  
+Steering law to avoid obstacle at safe radius:
+\[
+  s = k_p (\alpha - \sin^{-1} \frac{R}{D})
+\]
+
+\subsection{Combining: Sensing/Action Loops}
+We consider each local ``servo''-like sensing-action loop as a \textbf{behaviour}, we do not model or plan.
+
+Sense $\rightarrow$ Act.
+
+The challenge is combining many behaviours into useful overall activity.
+
+\subsection{Combining: World Model Approach}
+\begin{itemize}
+  \item Capture data, store, and manipulate using symbolic representations.
+  \item Plan a sequence of actions to achieve a given goal.
+  \item Execute plan.
+  \item If world changes during execution, stop and re-plan.
+\end{itemize}
+
+This is powerful, but computationally expensive and complicated.
+
+Probabilistic state inference and planning is the modern version of this, and able to cope with uncertainty in sensors.
+
+\subsection{Probabilistic Sensor Modelling}
+Robot sensing, like motion, is fundamentally uncertain.
+Real sensors do not report the exact truth but a perturbed version.
+
+Having characterised (modelled, calibrated) a sensor and understood the uncertainty in measurements, we can build a probabilistic measurement model for how it works.
+This is a \textbf{likelihood function}:
+\[
+  p(z_o \mid x, y)
+\]
+which often has a Gaussian shape.
+
+\subsection{Likelihood Functions}
+A \textbf{likelihood function} fully describes a sensor's performance.
+
+$p(z \mid v)$ is a function of both measurement variables $z$ and ground truth $v$, and can plotted as a probability surface.
+
+\begin{figure}[h]
+  \caption{Probability surfaces for a depth sensor.}
+  \includegraphics[scale=0.4]{uncertainty}
+  \centering
+\end{figure}
+
+
+
 \end{document}
 
