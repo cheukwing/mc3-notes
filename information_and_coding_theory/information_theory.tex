@@ -949,6 +949,85 @@ Thus:
   q_j = \sum_{i \in I} t_{ij} = \sum_{i \in I} \Gamma_{ij} p_i \text{ or } \textbf{q} = \textbf{p}\Gamma
 \]
 
+\subsection{Conditional Entropy}
+Consider the probability distribution $\textbf{t}$ on $I \times J$ as
+\[
+  t_{ij} = Pr(\text{input $i$ and output $j$}) \neq Pr(\text{output $j$ if input $i$})
+\]
+
+We use this to construct the marginal distributions:
+\begin{align*}
+  p_i &= \sum_j t_{ij} & q_j &= \sum_i t_{ij} & \Gamma_{ij} &= \frac{t_{ij}}{p_i}
+\end{align*}
+
+\begin{defn}
+  \textbf{Conditional entropy} $\textbf{H}(\textbf{p} \mid \textbf{q})$ (for $\textbf{q} = \textbf{p} \Gamma$) is defined as:
+  \[
+    \textbf{H}(\textbf{p} \mid \textbf{q}) = \textbf{H}(\textbf{t}) -  \textbf{H}(\textbf{q}) = \textbf{H}(\Gamma ; \textbf{p})
+  \]
+
+  Conditional entropy of $\textbf{p}$ with respect to transmission through $\Gamma$.
+\end{defn}
+
+\subsection{Conditional Entropy for BSC}
+\begin{theo}
+  Let $\Gamma$ be a BSC with a bit-error probability $e$ and source distribution $\textbf{p} = (p_0, p_1) = (p, 1 - p)$, then:
+  \[
+    \textbf{H}(\Gamma ; \textbf{p}) = \textbf{h}(p) + \textbf{h}(e) - \textbf{h}(q)
+  \]
+  where $q = p(1 - e) + (1 - p)e$ and $\textbf{h}$ is the standard entropy:
+  \[
+    \textbf{h}(x) = x \cdot \log_2 (\frac{1}{x}) + (1 - x) \cdot \log_2 (\frac{1}{1 - x})
+  \]
+\end{theo}
+
+\textbf{Proof:}
+We can compute $t_{ij} = p_i \Gamma_{ij}$:
+\begin{align*}
+  t_{00} &= p(1 - e) & t_{01} &= pe & t_{10} &= (1 - p)e & t_{11} &= (1 - p)(1 - e)
+\end{align*}
+
+$\textbf{t}$ can be expressed as a product of two independent distributions: $\textbf{t} = \textbf{p} \otimes \textbf{e}$.
+
+From entropy of product of independent distributions, we get:
+\[
+  \textbf{H}(\Gamma ; \textbf{p}) = \textbf{H}(\textbf{t}) -  \textbf{H}(\textbf{q}) = \textbf{H}(p) + \textbf{H}(e) - \textbf{H}(q)
+\]
+
+\subsection{Channel and Source Entropy}
+\begin{theo}
+  Let $\Gamma$ be a channel and $\textbf{p}$ an input source distribution, then:
+  \[
+     \textbf{H}(\Gamma ; \textbf{p}) \leq \textbf{H}(\textbf{p}) 
+  \]
+  Equality holds iff $\textbf{p}$ and $\textbf{q} = \textbf{p}\Gamma$ are independent.
+\end{theo}
+
+\textbf{Proof:}
+The marginal distributions of $\textbf{t}$ are $\textbf{p}$ and $\textbf{q}$, therefore $\textbf{H}(t) \leq \textbf{H}(p) + \textbf{H}(q)$.
+Since $\textbf{H}(\Gamma ; \textbf{p}) = \textbf{H}(\textbf{t}) -  \textbf{H}(\textbf{q})$:
+\[
+  \textbf{H}(\Gamma ; \textbf{p}) + \textbf{H}(\textbf{q}) = \textbf{H}(t) \leq \textbf{H}(p) + \textbf{H}(q)
+\]
+or $\textbf{H}(\Gamma ; \textbf{p}) \leq \textbf{H}(\textbf{p})$.
+
+\subsection{Capacity of a Channel}
+\begin{defn}
+  The \textbf{capacity} $\gamma$ of a channel $\Gamma$ is the maximum difference $\textbf{H}(\textbf{p}) - \textbf{H}(\Gamma ; \textbf{p})$ over all distributions (on $m$ elements) in $\mathcal{P}$, or:
+  \[
+    \gamma = \gamma(\Gamma) = \max_{\textbf{p} \in \mathcal{P}} (\textbf{H}(\textbf{p}) - \textbf{H}(\Gamma ; \textbf{p}))
+  \]
+\end{defn}
+
+The maximum always exists due to the convexity of the entropy function:
+\[
+  \gamma(\Gamma) = \max_{\textbf{p}} (\textbf{H}(\textbf{p}) + \textbf{H}(\textbf{q}) - \textbf{H}(\textbf{t}))
+\]
+
+\subsection{BSC Capacity}
+
+\subsection{Conditional Entropy (Redux)}
+
 \end{document}
 
 
