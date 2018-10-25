@@ -1025,8 +1025,31 @@ The maximum always exists due to the convexity of the entropy function:
 \]
 
 \subsection{BSC Capacity}
+\begin{theo}
+  Let $\Gamma$ be a BSC with bit-error probability $0 \leq e \leq \frac{1}{2}$, then:
+  \[
+    \gamma = \gamma(\Gamma) = 1 - \textbf{h}(e)
+  \]
+\end{theo}
+
+\textbf{Proof:}
+For $\textbf{p} = (p, 1 - p)$ and BSC with $e$, we know the entropy as $\textbf{H}(\Gamma ; \textbf{p}) = \textbf{H}(p) + \textbf{H}(e) - \textbf{H}(q)$, with $q = p(1 - e) + (1 - p)e$.
+\[
+  \gamma = \max(\textbf{h}(p) - (\textbf{h}(p) + \textbf{h}(e)) -\textbf{h}(q))) = \max(\textbf{h}(q)- \textbf{h}(e))
+\]
+
+Since $e$ is constant, maximum is when $\textbf{h}(q)$ is max, i.e.\ $q = \frac{1}{2} = p(1 - e) + (1 - p)e$, or $(p -\frac{1}{2})(1 - 2e) = 0$.
+Then when $p = \frac{1}{2}$, we have maximum of $\textbf{h}(q) = 1$, then $\gamma = \max(\textbf{h}(q)- \textbf{h}(e)) = 1 - \textbf{h}(e)$.
 
 \subsection{Conditional Entropy (Redux)}
+For input $i \in I$ denote $\textbf{H}(\textbf{q} \mid i) = \sum_{j \in J} \Gamma_{ij} \log (\frac{1}{\Gamma_{ij}})$, with $\textbf{q} = \textbf{p}\Gamma$.
+
+\begin{theo}
+  The conditional entropy $\textbf{H}(\textbf{q} \mid \textbf{p}) = \textbf{H}(\textbf{t}) -  \textbf{H}(\textbf{p})$ can also be calculated as:
+  \[
+    \textbf{H}(\textbf{p} \mid \textbf{q}) = \sum_{i \in I} p_i \cdot \textbf{H}(\textbf{q} \mid i) 
+  \]
+\end{theo}
 
 \end{document}
 
