@@ -1051,6 +1051,254 @@ For input $i \in I$ denote $\textbf{H}(\textbf{q} \mid i) = \sum_{j \in J} \Gamm
   \]
 \end{theo}
 
+\subsection{Communication via Noisy Channels}
+$T_1$: Original Stream $\rightarrow$ Encoded Stream, coding $c : S \rightarrow C \subseteq \mathbb{B}^m$. \\
+
+$T_2$: Encoded Stream $\rightarrow$ Received Stream, channel introduces errors $\Gamma : \mathbb{B}^m \rightarrow \mathbb{B}^n$. \\
+
+$T_3$: Received Stream $\rightarrow$ Final Stream, decision rules $\sigma : \mathbb{B}^n \rightarrow C$.
+
+\subsection{Dealing with Errors}
+Consider the codewords we obtain via a binary code $c : S \rightarrow \mathbb{B}^*$, i.e.\ the set of binary strings.
+
+\begin{defn}
+  Given a set of binary words $C \subseteq \mathbb{B}^n$, a \textbf{decision rule} for $C$ is a function $\sigma : \mathbb{B}^n \rightarrow C$ which assigns to each $z \in \mathbb{B}^n$ a codeword in $C$.
+\end{defn}
+
+\begin{defn}
+  A \textbf{mistake} occurs if a codeword in the final stream is different from the codeword in the encoded stream (at corresponding positions).
+\end{defn}
+
+\subsection{Extended Channel}
+\begin{defn}
+  Given two channels $\Gamma$ and $\Gamma'$ with input alphabets $I, I'$ and output alphabets $J, J'$ respectively, the \textbf{product channel} $\Gamma'' = \Gamma \times \Gamma'$ has input alphabet $I \times I'$ and output alphabet $J \times J'$.
+  The channel matrix is:
+  \[
+    \Gamma''_{\langle i, i' \rangle \langle j, j' \rangle} = \Gamma_{ij} \Gamma'_{i'j'} \text{ or } \Gamma'' = \Gamma \otimes \Gamma'
+  \]
+\end{defn}
+
+\begin{defn}
+  Given a channel $\Gamma$ with input and output alphabets $I, J$ respectively, the \textbf{extended channel} is defined of words of length $n$ as $\Gamma^n$.
+\end{defn}
+
+\subsection{Hamming Distance}
+\begin{defn}
+  Given two binary words $x, y \in \mathbb{B}^n$ as
+  \[
+    x = x_1 x_2 \ldots x_n \text{ and } y = y_1 y_2 \ldots y_n
+  \]
+  The \textbf{Hamming distance} $d(x, y)$ is the number of places (indices) where $x$ and $y$ differ.
+\end{defn}
+
+\subsection{Extended BSC}
+\begin{theo}
+  Given two binary words $x, y \in \mathbb{B}^n$, the entry $(\Gamma^n)_{xy}$ in the channel matrix of the extended BSC with bit error $e$ is given by:
+  \[
+    (\Gamma^n)_{xy} = e^d (1 - e)^{n - d} \text{ with } d = d(x, y)
+  \]
+\end{theo}
+
+\textbf{Proof:}
+Take input $x \in \mathbb{B}^n$ and output $y \in \mathbb{B}^n$ with Hamming distance $d(x, y) = d$.
+$d$ bit errors happened, the probability for this is $e^d$, the remaining $n - d$ bits transmitted correctly with probability $(1 - e)^{n - d}$.
+\[
+  (\Gamma^n)_{xy} = Pr(y \mid x) = e^d (1 - e)^{n - d}
+\]
+
+\subsection{Decision Rules}
+\begin{defn}
+  The \textbf{ideal observer rule} is given by $\sigma (z) = c$ if the probability that $z$ was sent given that $c$ was received is maximal:
+  \[
+    Pr(c \mid z) = \max_{c'} Pr(c' \mid z)
+  \]
+\end{defn}
+
+\begin{defn}
+  The \textbf{maximal likelihood rule} is given by $\sigma (z) = c$ if:
+  \[
+    Pr(z \mid c) \geq Pr(z \mid c') \text{ } \forall c' \in C
+  \]
+\end{defn}
+
+\begin{defn}
+  The \textbf{minimum distance rule} (MD) is given by $\sigma (z) = c$ such that $d(z, c)$ is minimal:
+  \[
+    d(z, c) = \min_{c'} d(z, c')
+  \]
+\end{defn}
+
+\subsection{Equivalence of Decision Rules}
+\begin{theo}
+  For an extended BSC channel $\Gamma^n$ with bit error $e < \frac{1}{2}$, the maximal likelihood rule is equivalent to the MD rule.
+\end{theo}
+
+\textbf{Proof:}
+Suppose $c \in C$ with $d(c, z) = i$, then $Pr(z \mid c) = e^i (1 - e)^{n - 1}$.
+For a second $c' \in C$ s.t.\ $d(c', z) = i' < i$, we have:
+\[
+  \frac{Pr(z \mid c)}{Pr(z \mid c')} = \frac{e^i (1 - e)^{n - 1}}{e'^{i} (1 - e)^{n - i'}} = \left(\frac{1 - e}{e}\right)^{i' - i}
+\]
+For $e < \frac{1}{2}$, it follows that $\frac{1 - e}{e} > 1$.
+If $i < i'$ then $(\frac{1 - e}{e})^{i' - i} > 1$ and thus $Pr(z \mid c) = Pr(z \mid c')$.
+Choosing $c$ over $c'$ with $i < i'$ corresponds to increased likelihood $Pr(z \mid c) > Pr(z \mid c')$.
+
+\subsection{Minimum Distance}
+\begin{defn}
+  Given a set of binary words $C \subseteq \mathbb{B}^n$ (defined by a code), the \textbf{minimum distance} of $C$ is defined as:
+  \[
+    \delta = \min_{c \neq c'} d(c, c')
+  \]
+\end{defn}
+
+\subsection{(Potentially) Error Correcting Code}
+\begin{lem}
+  Given a set of binary words $C \subseteq \mathbb{B}^n$ (defined by a code) with $\delta \geq 2r + 1$, for any two codewords $c, c' \in C$, we have $N_r(c) \cap N_r(c') = \emptyset$, where $N_r(x) = \{ y \in \mathbb{B}^n \mid d(x, y) \leq r \}$.
+\end{lem}
+
+\begin{theo}
+  Given a set of binary words $C \subseteq \mathbb{B}^n$ (defined by a code) with $\delta \geq 2r + 1$ used as input and applying the MD rule, if less than $r$ bit errors are made during transmission then there will be no mistakes.
+\end{theo}
+
+\begin{defn}
+  A code $C \subseteq \mathbb{B}^n$ is $r$-error-correcting if $\delta \geq 2r + 1$.
+\end{defn}
+
+\subsection{Packing Bound}
+\begin{theo}
+  Given a code $C \subseteq \mathbb{B}^n$ with $\delta \geq 2r + 1$, then:
+  \[
+    \lvert C \rvert \left(1 + n + \binom{n}{2} + \ldots + \binom{n}{r}\right) \leq 2^n
+  \]
+\end{theo}
+
+\textbf{Proof:}
+Given $c \in C$, the words $z$ with $d(c, z) = i$ are created by altering any $i$ bits of $n$ possible ones in $c$.
+There are $\binom{n}{i}$ such words and thus $\lvert N_r(c) \rvert = 1 + n + \binom{n}{2} + \ldots + \binom{n}{r}$.
+We have that $\delta \geq 2r + 1$ and thus that all $N_r(c)$ are disjoint for all $\lvert C \rvert$ words $c \in C$ which are less than $2^n$ words in $\mathbb{B}^n$.
+
+\subsection{Information Rate}
+\begin{defn}
+  Given a code $C \subseteq \mathbb{B}^n$, its \textbf{information rate} is:
+  \[
+    \rho = \frac{\log_2 \lvert C \rvert}{n}
+  \]
+\end{defn}
+
+\subsection{Probability of a Mistake}
+Given any decision rule $\sigma : \mathbb{B}^n \rightarrow C$, define for each $c \in C$:
+\[
+  F(c) = F_{\sigma}(c) = \{ z \in \mathbb{B}^n \mid \sigma(z) \neq c \}
+\]
+
+The mistake probability for $c \in C$ is given by:
+\[
+  M_c = M_{c, \sigma} = \sum_{z \in F_{\sigma}(c)} Pr(z \mid c)
+\]
+
+\begin{defn}
+  The \textbf{probability of a mistake} when the encoded stream is given by a source $(C, \textbf{p})$ is given by:
+  \[
+    M(C, \textbf{p}) = M_{\sigma}(C, \textbf{p}) = \sum_{c \in C} p_c \cdot M_{c, \sigma}
+  \]
+\end{defn}
+
+\subsection{Error Correction and Distance for BSC}
+\begin{lem}
+  If $C \subseteq \mathbb{B}^n$ is an $r$-error-correcting code and $z \in F(c)$ then:
+  \[
+    d(z, c) \geq r + 1
+  \]
+\end{lem}
+
+In general we have that:
+\[
+  M_c = \sum_{z \in F(c)} e^{d(c, z)} \cdot (1 - e)^{n - d(c, z)}
+\]
+
+For some $i > r + 1$ and $0 < e < 1$, we have that $e^i (1 - e)^{n - i} < e^i \leq e^{r + 1}$.
+If we have an estimate for $\lvert F (c) \rvert$ then roughly:
+\[
+  M_c = \sum_{z \in F(c)} e^{r + 1} = \lvert F(c) \rvert e^{r + 1}
+\]
+
+\subsection{Transmission with Extended BSC}
+Instead of single symbols, use blocks in channel transmission:
+\begin{align*}
+  (\Gamma^n)_{c_1 \ldots c_n, z_1 \ldots z_n} &= Pr(z_1 \ldots z_n \mid c_1 \ldots c_n)
+  &= Pr(z_1 \mid c_1) \ldots Pr(z_n \mid c_n)
+  &= (\Gamma)_{c_1, z_1} \ldots (\Gamma)_{c_n, z_n}
+\end{align*}
+
+\begin{lem}
+  Let $\Gamma$ be a BSC with bit error probability $e$, then for $\Gamma^n$ we have:
+  \[
+    \textbf{H}(\textbf{q} \mid \textbf{p}) = n \cdot \textbf{h}(e)
+  \]
+\end{lem}
+
+\subsection{Capacity of Extended BSC}
+\begin{theo}
+  If the capacity of the BSC $\Gamma$ is $\gamma(\Gamma) = 1 - \textbf{h}(e)$ then the capcity of the extended BSC $\Gamma^n$ is $\gamma(\Gamma^n) = n \cdot \gamma(\Gamma) = n \cdot \gamma$.
+\end{theo}
+
+\textbf{Proof:}
+Capacity is the maximum value for $\textbf{H} (\textbf{q}) - \textbf{H}(\textbf{q} \mid \textbf{p})$.
+
+From before, we have $\textbf{H}(\textbf{q} \mid \textbf{p}) = n \cdot \textbf{h}(e)$ so we need the maximum of $\textbf{H} (\textbf{q})$.
+We know that $\textbf{H} (\textbf{q}) \leq \log(2^n) = n$ and that the maximum is attained iff we have a uniform distribution.
+
+\[
+  \max(\textbf{H} (\textbf{q}) - \textbf{H}(\textbf{q} \mid \textbf{p})) = n - n \cdot \textbf{h}(e) = n \cdot \gamma
+\]
+
+\subsection{Rate vs Capacity}
+\begin{theo}
+  Given a code $C \subseteq \mathbb{B}^n$ with information rate $\rho$, let $\textbf{p}^*$ be the uniform probability distribution on $C$.
+  Consider source $(C, \textbf{p}^*)$ through an extended BSC $\Gamma^n$ with capacity $\gamma(\Gamma) = \gamma$.
+  \[
+    \textbf{H}(\Gamma^n ; \textbf{p}^*) \geq n \cdot (\rho - \gamma)
+  \]
+\end{theo}
+
+\textbf{Proof:}
+The capacity of $\Gamma^n$ is the maximum for $\textbf{H}(\textbf{p}) - \textbf{H}(\Gamma^n ; \textbf{p})$.
+With $\textbf{p} = \textbf{p}^*$, we have $\textbf{H}(\textbf{p}^*) - \textbf{H}(\Gamma^n ; \textbf{p}^*) \leq n \cdot \gamma$.
+
+As we have $\textbf{H}(\textbf{p}^*) = \log(\lvert C \rvert)$, we get $\textbf{H}(\Gamma^n ; \textbf{p}^*) \geq \log(\lvert C \rvert) - n \cdot \gamma$.
+
+Furthermore, the rate is $\rho = \frac{\log(\lvert C \rvert)}{n}$.
+
+\subsection{Fano's Inequality}
+\begin{theo}
+  Given a code $C \subseteq \mathbb{B}^n$ and $M = M(C, \textbf{p})$ the probability of a mistake for the source $(C, \textbf{p})$ being transmitted through the extended BSC $\Gamma^n$ using the MD rule.
+  Then:
+  \[
+    \textbf{H}(\Gamma^n ; \textbf{p}^*) \leq \textbf{h}(M) + M \cdot \log(\lvert C \rvert - 1)
+  \]
+\end{theo}
+
+\subsection{Rate Exceeding Capacity}
+\begin{theo}
+  Suppose for an infinite sequence $n = n_1, n_2, \ldots$ we have constructed codes $C_n \subseteq \mathbb{B}^n$ such that $\lvert C_n \rvert \geq 2^{\rho n}$.
+  Let $\textbf{p}^*$ be the uniform distribution on $C_n$.
+  If $\rho > \gamma$, then:
+  \[
+    \lim_{n \rightarrow \infty} M(C_n, \textbf{p}^*) \neq 0
+  \]
+\end{theo}
+
+\subsection{Shannon's Theorem}
+For $\rho < \gamma$, it is possible to construct a sequence of codes $C_n \subseteq \mathbb{B}^n$ such that $\lvert C_n \rvert \geq 2^{\rho n}$ and:
+\[
+  \lim_{n \rightarrow \infty} M(C_n, \textbf{p}) = 0
+\]
+
+\begin{itemize}
+  \item Consider $\gamma$ of given channel and choose $\rho < \gamma$.
+  \item Choose $C_n \subseteq \mathbb{B}^n$ with $\lvert C_n \rvert = 2^k$ and $M(C_n, \textbf{p})$ small.
+  \item Encode $k$ blocks of original stream using $C_n$.
+  \item Transmit and apply MD rule.
+\end{itemize}
+
 \end{document}
-
-
