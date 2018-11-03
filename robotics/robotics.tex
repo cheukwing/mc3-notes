@@ -557,7 +557,166 @@ $p(z \mid v)$ is a function of both measurement variables $z$ and ground truth $
   \centering
 \end{figure}
 
+\section{Probabilistic Robots}
+Problem: simple sensing/action procedures can be locally effective but are limited; we need longer-term representations and consistent scene models.
 
+Classical AI approaches (logical reasoning) fail with real-world data:
+\begin{itemize}
+  \item Advanced sensors do not lend themselves to straightforward analysis.
+  \item All information received is uncertain.
+\end{itemize}
+
+A probabilistic approach acknowledges uncertainty and uses models to abstract useful information from data - our goal is an incrementally updated probabilistic estimate of the position of the robot relative to the map.
+
+\subsection{Uncertainty in Robotics}
+\begin{itemize}
+  \item Every robot action is uncertain.
+  \item Every sensor measurement is uncertain.
+  \item When we combine actions adn measurements to estimate state, the state estimate will be uncertain.
+\end{itemize}
+
+Usually, we start with an uncertain state estimate, take some action, receive new sensor information, then must update the uncertain state estimate in response.
+
+\subsection{Probabilistic Inference}
+What is my state and that of the world around me?
+\begin{itemize}
+  \item Prior knowledge is combined with new measurements, generally modelled as a \textbf{Bayesian Network}.
+  \item Series of weighted combinations of old and new measurements.
+  \item \textbf{Sensor fusion} - combining data from many different sources into useful estimates.
+  \item The composite state estimate can then be used to decide the next action.
+\end{itemize}
+
+\subsection{Bayesian Probabilistic Inference}
+\begin{itemize}
+  \item ``Bayesian'' - measure of subjective belief.
+  \item Probabilities describe our state of knowledge, not randomness.
+  \item \textbf{Bayes' Rule:}
+    \[
+      P(X \mid Z) = \frac{P(Z \mid X)P(X)}{P(Z)}
+    \]
+  \item $P(X)$ - \textbf{prior}; $P(Z \mid X)$ - \textbf{likelihood}; $P(X \mid Z)$ - \textbf{posterior}; ($P(Z)$ - \textbf{marginal likelihood}).
+  \item We use Bayes' Rule to incrementally digest new information from sensors about a robot's state.
+\end{itemize}
+
+\subsection{Probability Distributions}
+\begin{itemize}
+  \item As we decrease bin size, discrete probabilistic inference generalises to large numbers of possible states, limiting to a continuous probability density function.
+  \item Explicit Gaussian distributions often represent uncertainty in sensor measurements well.
+  \item The Gaussian prior multiplied by the Gaussian likelihood produce a Gaussian posterior which is tighter than either.
+  \item Particles are a finite set of weighted samples of the state.
+  \item With a high number of particles, they can represent the shape of distribution in ambigiuous situations.
+\end{itemize}
+
+\subsection{Probabilistic Localisation}
+\begin{itemize}
+  \item The robot has a map of its environment in advance.
+  \item The only uncertainty is the robot's position.
+  \item The robot stores and updates a probability distribution representing its uncertain position estimate.
+\end{itemize}
+
+\subsection{Monte Carlo Localisation (Particle Filter)}
+A cloud of particles represent uncertain robot states; the more particles in a region, the higher the probability the robot is there.
+
+A particle is a point estimate $x_i$ of the state of the robot with weight $w_i$:
+\[
+  x_i = 
+  \begin{pmatrix}
+    x_i \\
+    y_i \\
+    \theta_i
+  \end{pmatrix}
+\]
+
+The full particle set is:
+\[
+  \{ x_i, w_i \} \text{ for } i = 1..N \text{ (usually N = 100)}
+\]
+
+All weights should add up to 1, if so the distribution is \textbf{normalised}:
+\[
+  \sum_{i = 1}^N w_i = 1
+\]
+
+\subsection{Displaying a Particle Set}
+\begin{figure}[h]
+  \caption{Particle set representation}
+  \includegraphics[scale=0.4]{particleset}
+  \centering
+\end{figure}
+
+We visualise by plotting the $x$ and $y$ coordinates as a set of dots.
+It is more difficult to visualise the $\theta$, but we can get the main idea from just the linear components.
+
+\subsection{Steps in Particle Filtering}
+\begin{enumerate}
+  \item Motion Prediction based on Proprioceptive Sensors.
+  \item Measurement Update based on Extereoceptive Sensors.
+  \item Normalisation.
+  \item Resampling.
+\end{enumerate}
+
+\subsection{Motion Prediction}
+Uncertainty grows during blind motion.
+When the robot makes a movement, the particle distribution shifts its mean position but also spreads out.
+
+This is achieved by passing the state part of each particle through a function which has a deterministic and a random component.
+
+During a straight-line period of motion of distance $D$:
+\[
+  \begin{pmatrix}
+    x_{new} \\
+    y_{new} \\
+    \theta_{new}
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x + (D + e)\cos \theta \\
+    y + (D + e)\sin \theta \\
+    \theta + f
+  \end{pmatrix}
+\]
+
+During a pure rotation of angle $\alpha$:
+\[
+  \begin{pmatrix}
+    x_{new} \\
+    y_{new} \\
+    \theta_{new}
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x \\
+    y \\
+    \theta + \alpha + g
+  \end{pmatrix}
+\]
+
+Here, $e, f, g$ are zero mean \textbf{noise} terms, random numbers with a Gaussian distribution which are generated for each particle, causing spread.
+
+To set $e, f, g$, make initial estimates then adjust be looking at the particle spread over an extended motion and matching the distribution to experiments.
+
+\subsection{Measurement Updates}
+A measurement update consists of applying Bayes' Rule to each particle:
+\[
+  P(X \mid Z) = \frac{P(Z \mid X) P(X)}{P(Z)}
+\]
+
+When we achieve a measurement $z$, we update the weight of each particle as follows:
+\[
+  w_{i(new)} = P(z \mid x_i) \times w_i
+\]
+The denominator in Bayes' rule is a constant factor which will later be removed by normalisation so it is not calculated.
+
+$P(z \mid x_i)$ is the likelihood of particle $i$, the probability of getting measurement $z$ given that it represents the true state.
+
+\subsection{Likelihood Function}
+The form of a likelihood function comes from a probabilistic model of the exteroceptive sensor.
+
+Having calibrated a sensor and understood the uncertainty in its measurements, we can build a probabilistic measurement model for how it works:
+\[
+  P(z \mid x_i)
+\]
+This is a probability distribution (a likelihood function), often with a Gaussian shape.
 
 \end{document}
 
