@@ -1,0 +1,52 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amsthm}
+\usepackage{amsmath} \usepackage{amssymb}
+\usepackage{graphicx}
+
+\graphicspath{ {./imgs/} }
+
+\setlength{\parindent}{0pt}
+
+\title{Information and Coding Theory (CO349) - CodingTheory}
+\author{Michael Tsang}
+
+\newtheorem{defn}{Definition}
+\newtheorem{eg}{Example}
+\newtheorem{theo}{Theorem}
+\newtheorem{lem}{Lemma}
+
+\begin{document}
+
+\maketitle
+
+\section{Error Correcting Codes}
+\begin{itemize}
+  \item Without loss of generality, a \textbf{message} can be thought of as an integer between $1$ and some parameter $M$.
+  \item To transmit a message over a channel, it is encoded using an \textbf{encoder} ($Enc$) associated with a code $C$.
+  \item Encoder - any invertible mapping from $[M]$ to $C$, where $[M] = \{ 1, 2, \ldots, M\}$.
+  \item Message $x \in [M]$ is encoded to $Enc(x) \in C$.
+  \item We assume $\lvert C \rvert = M$.
+  \item We use a \textbf{decoder} ($Dec$) to get $x$ back.
+  \item $\forall x \in [M] : Dec(Enc(x)) = x$.
+\end{itemize}
+
+\subsection{Closest Codeword Decoder}
+The \textbf{closest codeword} decoder (\textbf{minimum distance rule}):
+\begin{itemize}
+  \item Given a received word $y = (y_1, y_2, \ldots, y_n)$, $Dec(y)$ examines every codeword of $C$ and finds the codeword $c = (c_1, c_2, \ldots, c_n)$ that is closest to $y$ in Hamming distance.
+  \item $c$ is the error-correction of $y$.
+  \item The decoder outputs the (unique) message $x$ that is mapped by the encoder to $c$.
+\end{itemize}
+
+This corresponds to the \textbf{maximum likelihood} decoder if the codeword is transmitted over and corrupted by the channel $BSC(p)$.
+
+We expect $BSC(p)$ to corrupt $pn$ transmitted symbols; the actual fraction is concentrated around $pn$.
+
+\textbf{Adversarial channel}: controlled by an ``adversary'' who can see the entire codeword and can corrupt up to $t$ positions, of their choice.
+The closest codeword decoder is also the best strategy against adversarial channels.
+
+\subsection{Error Correction up to Half Minimum Distance}
+
+
+\end{document}
