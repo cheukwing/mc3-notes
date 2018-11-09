@@ -614,7 +614,7 @@ What is my state and that of the world around me?
   \item The robot stores and updates a probability distribution representing its uncertain position estimate.
 \end{itemize}
 
-\subsection{Monte Carlo Localisation (Particle Filter)}
+\subsection{Particle Filter}
 A cloud of particles represent uncertain robot states; the more particles in a region, the higher the probability the robot is there.
 
 A particle is a point estimate $x_i$ of the state of the robot with weight $w_i$:
@@ -637,6 +637,51 @@ All weights should add up to 1, if so the distribution is \textbf{normalised}:
   \sum_{i = 1}^N w_i = 1
 \]
 
+Interpretation: the probability the robot is within any region of the state space is the sum of all the particles within that region.
+
+\section{Monte Carlo Localisation (MCL)}
+A cloud of weighted particles represent the uncertain position of a robot.
+We can think of how MCL works in two ways:
+\begin{itemize}
+  \item A Bayesian probabilistic filter.
+  \item ``\textbf{Survival of the fittest}'' - when a measurement is made, the likelihood of each particle is assigned according to how well it fits the measurement, we normalise and resample then allow the strong particles to reproduce, while the weak particles die out. 
+\end{itemize}
+
+\subsection{Continuous vs. Global Localisation}
+\textbf{Continuous}: a tracking problem, given a good estimate of where the robot was at the last time-step and some new measurements, estimate its new position.
+
+\textbf{Global}: the ``kidnapped robot problem'', the environment is known, but the robot's position within it is completely uncertain.
+
+MCL can tackle both problems, the difference is in the initialisation of the particle set.
+
+\begin{itemize}
+  \item In continuous localisation, we assume a perfectly known start robot position: we set the state of all particles to be the same value, and the weights to be equal.
+    \[
+      x_1 = x_2 = \ldots = x_N = x_{init}
+    \]
+    \[
+      w_1 = w_2 = \ldots = w_N = \frac{1}{N}
+    \]
+  \item In global localisation, we start only knowing the robot is somewhere within a certain region, the state of each particle is sampled randomly from all possible positions within that region, all weight are equal.
+    \[
+      x_i = Random
+    \]
+    \[
+      w_1 = w_2 = \ldots = w_N = \frac{1}{N}
+    \]
+\end{itemize}
+
+Global localisation is only practical with more than one sensor.
+
+\subsection{Inferring an Estimate and Position-Based Navigation}
+At any point, our uncertain estimate of the robot location is represented by the whole particle set.
+We make a point estimate by taking the mean of all particles:
+\[
+  \bar{x} = \sum_{i = 1}^N w_i x_i
+\]
+
+The robot could use this to plan $A \rightarrow B$ waypoint navigation.
+
 \subsection{Displaying a Particle Set}
 \begin{figure}[h]
   \caption{Particle set representation}
@@ -647,7 +692,7 @@ All weights should add up to 1, if so the distribution is \textbf{normalised}:
 We visualise by plotting the $x$ and $y$ coordinates as a set of dots.
 It is more difficult to visualise the $\theta$, but we can get the main idea from just the linear components.
 
-\subsection{Steps in Particle Filtering}
+\subsection{Steps in MCL/Particle Filtering}
 \begin{enumerate}
   \item Motion Prediction based on Proprioceptive Sensors.
   \item Measurement Update based on Extereoceptive Sensors.
@@ -711,12 +756,121 @@ $P(z \mid x_i)$ is the likelihood of particle $i$, the probability of getting me
 
 \subsection{Likelihood Function}
 The form of a likelihood function comes from a probabilistic model of the exteroceptive sensor.
+It fully describes a sensor's performance.
 
-Having calibrated a sensor and understood the uncertainty in its measurements, we can build a probabilistic measurement model for how it works:
+Having calibrated a sensor and understood the uncertainty in its measurements (via repeated experiments), we can build a probabilistic measurement model for how it works:
 \[
   P(z \mid x_i)
 \]
+where $z$ is a measurement variable and $v$ the ground truth.
+
 This is a probability distribution (a likelihood function), often with a Gaussian shape.
+
+\subsection{Measurement Update: How do we get the Ground Truth Value?}
+\begin{figure}[h]
+  \caption{Robot facing a wall.}
+  \includegraphics[scale=0.4]{measurementupdate}
+  \centering
+\end{figure}
+If a robot is at pose $(x, y, \theta)$, then its forward distance to an infinite wall passing through $(A_x, A_y)$ and $(B_x, B_y)$ is:
+\[
+  m = \frac{(B_y - A_y)(A_x - x) - (B_x - A_x)(A_y - y)}{(B_y - A_Y)\cos \theta - (B_x - A_x) \sin \theta}
+\]
+
+\subsection{Measurement Update: Sonar}
+The world coordinates at which the forward vector from the robot meet the wall are:
+\[
+  \begin{pmatrix}
+    x + m \cos \theta \\
+    y + m \sin \theta
+  \end{pmatrix}
+\]
+This can be used to check if the sonar should hit between the endpoint limits of the wall.
+
+If the sonar independently hits several of these walls, then the closest is the one it will actually respond to.
+
+\subsection{Likelihood for Sonar Update}
+The likelihood should depend on the difference $z - m$: if this is small, the particle is validated, else it is weakened.
+
+The further away the measurement is from the prediction, the less likely it is to occur - the Gaussian function is a good model for this.
+\[
+  p(z \mid m) \propto e^{\frac{-(z - m)^2}{2 \sigma^2_s}}
+\]
+where $\sigma_s$ is the standard eviation based on our model of how uncertain the sensor is, and may depend on $z$ or be constant.
+
+In the motion prediction step, we \textbf{sampled} randomly from a Gaussian distribution to move each particle by a slightly different amount.
+Here we just \textbf{read off} a value from a Gaussian function to obtain a likelihood for each particle.
+
+\subsection{Robust Likelihood for Sonar Update}
+A \textbf{robust} likelihood function models the fact that garbage values are sometimes reported by real sensors.
+
+These functions have ``heavy tails'', achieved by simply adding a constant to the likelihood function.
+This means that there is some constant probability that the sensor will return a garbage value, uniformly distributed across the range of the sensor:
+
+\begin{figure}[h]
+  \caption{A robust likelhood function}
+  \includegraphics[scale=0.4]{robust}
+  \centering
+\end{figure}
+
+\[
+  p(z \mid m) \propto e^{\frac{-(z - m)^2}{2 \sigma^2_s}} + K
+\]
+
+The effect is that the filter is less aggressive in killing particles which are far from agreeing with measurements.
+An occasional garbage measurement does not kill all particles in good positions.
+
+\subsection{Likelihood for Sonar Update: Angle}
+\begin{figure}[h]
+  \caption{Robot facing a wall with angle shown.}
+  \includegraphics[scale=0.4]{sonarangle}
+  \centering
+\end{figure}
+
+If the angle between the sonar direction and the normal to the wall is too great, the sonar is less likely to give a sensible reading and should be ignored.
+\[
+  \beta = \cos^{-1} \left( \frac{\cos \theta (A_y - B_y) + \sin \theta (B_x - A_x)}{\sqrt{(A_y - B_y)^2 + (B_x - A_x)^2}} \right)
+\]
+
+\subsection{Normalisation}
+\begin{itemize}
+  \item The weights of all particles should be scaled so that they add up to 1.
+  \item Calculate $\sum_{i = 1}^N w_i$ and divide all existing weights by this:
+    \[
+      w_{i(new)} = \frac{w_i}{\sum_{i = 1}{N} w_i}
+    \]
+\end{itemize}
+
+\subsection{Resampling}
+Generating a new set of $N$ particles which all have equal weights $\frac{1}{N}$, but whose spatial distribution now reflects the probability distribution.
+
+We generate each of $N$ new particles by:
+\begin{itemize}
+  \item Copy the state of one of the previous set of particles with probability according to its weight.
+  \item We do this by generating the \textbf{cumulative probability distribution} of the particles, generating a number between $0$ and $1$, then picking the particle whose cumulative probability intersects.
+\end{itemize}
+
+For efficiency, we can skip the normalisation step and resample directly from an unnormalised distribution.
+
+\subsection{Compass Sensor}
+A digital compass gives the robot the ability to estimate its rotation without drift:
+\begin{itemize}
+  \item A digital compass and a single sonar sensor puts us in a position close to having a full sonar ring.
+  \item The robot could stop and rotate on the sport every so often to simulate the ing.
+  \item The compass would be monitored as the robot continuously moves, and this is fed into the filter.
+\end{itemize}
+
+\subsection{Compass Sensor: $P(\beta, x_i)$}
+The compass measures bearing $\beta$ relative to north.
+The likelihood depends only on the $\theta$ part of the particle.
+If the compass is working perfectly:
+\[
+  \beta = \gamma - \theta
+\]
+where $\gamma$ is the magnetic bearing of the $x$ coordinate axis frame $W$.
+
+We should assess the uncertainty in the compass and set a likelihood which depends on the difference between $\beta$ and $\gamma - \theta$.
+Particles far from the right orientation will get low weights.
 
 \end{document}
 
