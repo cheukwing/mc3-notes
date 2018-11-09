@@ -1,8 +1,10 @@
 \documentclass[11pt]{article}
 \usepackage{fullpage}
 \usepackage{amsthm}
-\usepackage{amsmath} \usepackage{amssymb}
+\usepackage{amsmath} 
+\usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{mathtools}
 
 \graphicspath{ {./imgs/} }
 
@@ -15,6 +17,9 @@
 \newtheorem{eg}{Example}
 \newtheorem{theo}{Theorem}
 \newtheorem{lem}{Lemma}
+
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
 \begin{document}
 
@@ -47,6 +52,179 @@ We expect $BSC(p)$ to corrupt $pn$ transmitted symbols; the actual fraction is c
 The closest codeword decoder is also the best strategy against adversarial channels.
 
 \subsection{Error Correction up to Half Minimum Distance}
+Using closest codeword decoder, any code with minimum distance $d$ can be corrected up to $\ceil*{\frac{d - 1}{2}}$ errors (and in general, no more).
 
+We can therefore say that \textbf{Hamming balls} of radius $\ceil*{\frac{d - 1}{2}}$ around codewords are disjoint:
+\[
+  B(x, r) := \{ y \in B^n : d_H (x, y) \leq r \}
+\]
+
+This reduces the error correction problem to a combinatorial packing problem.
+
+Any code with minimum distance $d$ can \textbf{detect} up to $d - 1$ errors (and in general, no more).
+If the received word is valid, then no error, otherwise there has been an error.
+
+\subsection{Erasure Correction}
+The channel takes a transmitted sequence and erases some of the symbols, such as in packet networks.
+
+\textbf{Binary erasure channel} ($BEC(p)$): independently at random, erase each bit with probablity $p$.
+
+The expected number of erasures is $pn$, and the number of erasures concentrates around $pn$.
+
+\textbf{Adversarial erasure model}: given an ``erasure budget'' of $t$ (say $t = (p + \epsilon)n$), an adversary erases any up to $t$ symbols.
+
+A code with minimum distance $d$ can tolerate any up to $d - 1$ erasures (and in general, no more):
+\begin{itemize}
+  \item Output any codeword that matches the received pattern. (In the erasure model, symbols which are not erased are correct).
+  \item If two codewords match the pattern then they must differ in less than $d$ positions (only up to $d - 1$ can be recovered) which is a contradiction.
+\end{itemize}
+
+\section{Linear Codes}
+To represent codes, we could list all the codewords, but this would be impractical for large codes.
+Instead, we describe an \textbf{encoder} for the code in the form of a \textbf{linear function}.
+
+\begin{itemize}
+  \item The encoder interprets $x$ as a vector $(x_1, x_2, \ldots, x_k)$ and multiplies it by a matrix to get the encoding $(y_1, y_2, \ldots, y_n)$.
+  \item $(y_1, y_2, \ldots, y_n) = Enc(x_1, x_2, \ldots, x_k) := x \cdot G$, where $G$ is a $k \times x$ (fat) matrix called the generator matrix for the code.
+  \item The code can be described by only listing the $kn$ entries of $G$.
+\end{itemize}
+
+\subsection{Fields}
+A \textbf{field} is a set $F$ equipped with addition and multiplication operations.
+It has the required properties/axioms:
+\begin{itemize}
+  \item $a, b \in F \implies a + b \in F, a \cdot b \in F$ (Closure of addition and multiplication)
+  \item $a + (b + c) = (a + b) + c$ (Associativity of addition)
+  \item $a \cdot (b \cdot c) = (a \cdot b) \cdot c$ (Associativity of multiplication)
+  \item $a + b = b + a$ (Commutativity of addition)
+  \item $a \cdot b = b \cdot a$ (Commutativity of multiplication)
+  \item $\exists 0 \in F \text{ s.t. } a + 0 = a$ (Neutral element of addition)
+  \item $\exists 1 \in F \text{ s.t. } a \cdot 1 = a$(Neutral element of multiplication)
+  \item $\forall a \in F, \exists (-a) \in F \text{ s.t. } a + (-a) = 0$ (Additive inverse)
+  \item $\forall a \in F \setminus \{ 0 \}, \exists (a^{-1}) \in F \text{ s.t. } a \cdot (a^{-1}) = 1$ (Multiplicative inverse)
+  \item $a \cdot (b + c) = (a \cdot b) + (a \cdot c)$ (Distributivity)
+\end{itemize}
+
+If F is finite, its \textbf{size} must be a \textbf{power} of a prime: $2, 3, 4, 5, 7, 8, 9, 11, 13 \ldots$
+
+\subsection{Finite Fields}
+When $q$ is a prime power, we use the notation $GF(q)$ for the finite field with $q$ elements (sometimes $\mathbb{F}_q$).
+
+\textbf{Prime field}: $\lvert F \rvert$ is \textbf{prime}.
+
+In the prime case, \textbf{modular arithmetic} can be used to realise operations:
+\begin{itemize}
+  \item $F = \{ 0, 1, 2, \ldots, q - 1 \}$
+  \item $a \pm b = (a \pm b) \bmod q$
+  \item $a \cdot b = (a \cdot b) \bmod q$
+  \item $(a^{-1}) = a^{q - 2} \bmod q$
+  \item $\frac{a}{b} = a \cdot (b^{-1})$
+\end{itemize}
+
+\subsection{Finite/Galois Field: $GF(q)$}
+\begin{itemize}
+  \item Finite field with $q$ elements.
+  \item From Galois theory, $q$ must be a power of a prime.
+  \item When $q$ is even, we always have $x = -x$ and $x + y = x - y$.
+  \item When $q = 2$, addition is XOR, multiplication is AND.
+  \item Over $GF(2)$, $x_1 + x_2 + \ldots + x_n = 1$ if the number of $1$s is odd, else 0 (parity).
+\end{itemize}
+
+Useful:
+\begin{align*}
+  (a + b) \bmod q = ((a \bmod q) + (b \bmod q)) \bmod q \\
+  (a \cdot b) \bmod q = ((a \bmod q) \cdot (b \bmod q)) \bmod q
+\end{align*}
+
+\subsection{Linear Codes}
+Alphabet $B$ is a finite field $F$ (if alphabet size is a prime power).
+
+The code is the \textbf{row span} of a $k \times n$ generator matrix ($k \leq n$):
+\[
+  G = 
+  \begin{pmatrix}
+    c_{11} & c_{12} & c_{13} & \dots  & c_{1n} \\
+    c_{21} & c_{22} & c_{23} & \dots  & c_{2n} \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    c_{k1} & c_{k2} & c_{k3} & \dots  & c_{kn}
+  \end{pmatrix}
+\]
+
+That is, $C = \{ x \cdot G : x \in F^k \}$, $Enc(x) = x \cdot G$. 
+
+\begin{itemize}
+  \item The rows of $G$ must be \textbf{linearly independent} ($rank(G) = k$), otherwise $Enc$ would not be invertible.
+  \item A linear code is the \textbf{left image} of the generator matrix $G$.
+  \item The choice of $G$ is not unique, elementary row operations on $G$ do not change the code.
+  \item The choice of linear encoder for a linear code is not unique either.
+  \item Each row of $G$ must be a codeword.
+  \item The zero vector must be a codeword.
+  \item If $\overrightarrow{c} and \overrightarrow{c'}$ are codewords, then so are $\overrightarrow{c} + \overrightarrow{c'}$ and $\overrightarrow{c} - \overrightarrow{c'}$.
+  \item If $\overrightarrow{c}$ is a codeword, then for any scalar $\lambda \in GF(q), \lambda \cdot \overrightarrow{c}$ must be a codeword.
+\end{itemize}
+
+An equivalent definition of a linear code: a \textbf{linear subspace} of $F^n$.
+\begin{itemize}
+  \item A code $C$ is linear iff $\forall c, c' \in C, \forall \lambda \lambda' \in F : \lambda c + \lambda c' \in C$.
+  \item A generator matrix is any matrix whose row span is the code (linear combination of the rows generate all possible codewords).
+  \item Rows of $G$ form a \textbf{basis} for the code.
+  \item Dimension (message length) of a linear code = $k$.
+  \item Size of a linear code over a field of size $q$ is $\lvert C \rvert = q^k$.
+  \item Dimension is sometimes extended to non-linear codes as $\log_q(\lvert C \rvert)$, rate is therefore:
+    \[
+      R(C) = \frac{\log (\lvert C \rvert)}{n (\log q)} = \frac{k (\log q)}{n (\log q)} = \frac{k}{n}
+    \]
+\end{itemize}
+
+\subsection{Notation: $[n, k, d]$ Codes}
+$[n, k, d]$ stands for a linear code of length $n$, generator matrix with $k$ rows, and minimum distance $d$.
+To emphasise an alphabet size $q$, we can use the notation $[n, k, d]_q$.
+
+An $[n, k, d]_q$ is thus an $(n, q^k, d)_q$ code because the number of possible messages is $q^k$.
+
+\subsection{Minimum Weight Codewords}
+For a vector $c = (c_1, c_2, \ldots, c_n)$ over a field $F$, the \textbf{Hamming weight} is the number of non-zero positions in c:
+\[
+  wgt(c) := \lvert \{ i \in [n] : c_i \neq 0 \} \rvert
+\]
+
+For two codewords $c, c'$:
+\[
+  d_H(c, c') = wgt(c - c')
+\]
+
+For any linear code $C$, minimum distance is equal to the minimum non-zero weight:
+\[
+  d(C) = \min \{ w > 0 : \exists c \in C \text{ s.t. } wgt(c) = w \}
+\]
+
+\subsection{Erasure Correction of Linear Codes}
+The codeword $y$ is given by:
+\[
+  \begin{pmatrix}
+    y_1 & y_2 & \dots & y_n
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x_1 & x_2 & \dots & x_n
+  \end{pmatrix}
+  \begin{pmatrix}
+    c_{11} & c_{12} & c_{13} & \dots  & c_{1n} \\
+    c_{21} & c_{22} & c_{23} & \dots  & c_{2n} \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    c_{k1} & c_{k2} & c_{k3} & \dots  & c_{kn}
+  \end{pmatrix}
+\]
+
+We solve this as a system of linear equations (e.g.\ using Gaussian elimination) to find $x$.
+\begin{itemize}
+  \item We don't know some of the $y_i$.
+  \item If $t$ of the symbols in $y$ are erased, we get a system of $n - t$ linear equations in $k$ unknowns.
+  \item Necessary (but not sufficient) to have $t < n - k + 1$.
+  \item Sufficient to have $t < d$.
+  \item Necessary and sufficient to have rank of the columns that are \textbf{not} erased $= k$.
+  \item Corollary 1: $d(C) = 1 + \max \{ t : \text{rank of every } n - t \text{ columns of } G \text{ is } = k\}$.
+  \item Corollary 2: $d(C) \leq n - k + 1$, \textbf{singleton bound} for linear codes.
+\end{itemize}
 
 \end{document}
