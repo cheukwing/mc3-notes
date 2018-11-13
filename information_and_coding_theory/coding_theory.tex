@@ -21,6 +21,8 @@
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 
+\newcommand\aug{\fboxsep=-\fboxrule\!\!\!\fbox{\strut}\!\!\!}
+
 \begin{document}
 
 \maketitle
@@ -206,7 +208,7 @@ The codeword $y$ is given by:
   \end{pmatrix}
   =
   \begin{pmatrix}
-    x_1 & x_2 & \dots & x_n
+    x_1 & x_2 & \dots & x_k
   \end{pmatrix}
   \begin{pmatrix}
     c_{11} & c_{12} & c_{13} & \dots  & c_{1n} \\
@@ -226,5 +228,219 @@ We solve this as a system of linear equations (e.g.\ using Gaussian elimination)
   \item Corollary 1: $d(C) = 1 + \max \{ t : \text{rank of every } n - t \text{ columns of } G \text{ is } = k\}$.
   \item Corollary 2: $d(C) \leq n - k + 1$, \textbf{singleton bound} for linear codes.
 \end{itemize}
+
+\section{Systematic Encoder}
+An encoder is \textbf{systematic} if it copies the (entire) message intact somewhere in the codeword.
+\begin{itemize}
+  \item Through the channel, if no errors or erasures occur then it is trivial to decode.
+  \item Errors that do occur are easy to detect: call the encoder and see if a consistent result is obtained with the existing checksum.
+\end{itemize}
+
+For a linear code, a systematic encoder corresponds to a generator matrix that contains the $k \times k$ identity matrix as a sub-matrix.
+\begin{itemize}
+  \item $G$ can be made systematic by Gaussian elimination.
+  \item Any linear code has a systematic encoder.
+  \item For a set of systematic symbol positions (the $k$ positions among the $n$ codeword symbols where the message is copied), a systematic encoder exists iff the corresponding columns of $G$ are linearly independent.
+\end{itemize}
+
+\subsection{MDS Codes}
+Some linear codes have the maximal number $\binom{n}{k}$ of systematic encoders, these are \textbf{maximum distance seperable} codes.
+\begin{itemize}
+  \item For an MDS code, every $k \times k$ submatrix of $G$ has rank $k$ (every $k$ columns of G are linearly independent).
+  \item Minimum distance of an MDS code is (thus) $n - k + 1$ (singleton bound).
+\end{itemize}
+
+Examples include the identity code, repetition code, and parity code.
+
+\subsection{Parity Check Matrix}
+Any code can be represented in two ways:
+\begin{enumerate}
+  \item By the encoder: given a message $x$, what is the encoding of $x$?
+  \item By the error detection function: given a received word $(y_1, y_2, \ldots, y_n)$, is it a codeword?
+\end{enumerate}
+
+In the case of linear codes, the linear function is specified by a generator matrix: 
+\[
+  Enc(x) = x \cdot G
+\]
+
+Since a linear code is just a $k$-dimensional subspace, the error detection function can always be specified by a system of linear equations (i.e.\ the code is the solution set of a system of linear equations in $n$ unknowns).
+For a matrix $H$:
+\[
+  \mathcal{C} = \{ (c_1, \cdots, c_n) \text{ s.t.\ } H \cdot (c_1, \cdots, c_n)^\intercal = (0, 0, \cdots, 0)^\intercal \}
+\]
+
+\begin{itemize}
+  \item $H$ is a $r \times n$ matrix over $GF(q)$ which is called a \textbf{parity check matrix} for the code.
+  \item The code is the \textbf{right kernel} of $H$, the solution set of the system of $r$ equations in $n$ unknowns ($H \cdot \overrightarrow{c} = \overrightarrow{0}$) specified by $H$.
+  \item $r = n - k$ equations are needed, $r$ is called the \textbf{co-dimension}.
+  \item Similar to $G$, row operations on $H$ do not change the code.
+\end{itemize}
+
+\subsection{Finding a Parity Check Matrix}
+When $G$ is in systematic form:
+\[
+  Enc(x_1, \ldots, x_k) = (x_1, \ldots, x_k, c_{k + 1}, \ldots, c_n)
+\]
+Given a received word $(y_1, \ldots, y_k, y_{k + 1}, \ldots, y_n)$, compute:
+\[
+	Enc(y_1, \ldots, y_k) = (y_1, \ldots, y_k, y'_{k + 1}, \ldots, y'_n)
+\]
+and check whether:
+\[
+	(y'_{k + 1}, \ldots, y'_n) =  (y_{k + 1}, \ldots, y_n)
+\]
+
+In matrix terms, suppose a systematic $G$ is in the form:
+\[
+  G = 
+  \left( \begin{array}{@{}c|c@{}}
+     \begin{matrix}
+        1 & & & \\
+        & 1 & & \\
+        & & \ddots & \\
+        & & & & 1
+     \end{matrix} 
+        & A
+  \end{array} \right)
+\]
+for some $k \times (n - k)$ checksum part $A$.
+In a non-systematic $G$, $A$ is also what remains after reducing $G$ to systematic form.
+
+Then any codeword $\overrightarrow{c} = (c_1, \ldots, c_n)$ must satisfy $(c_{k + 1}, \ldots, c_n) = (c_1, \ldots, c_k) \cdot A$.
+
+\[
+  G = 
+  \left( \begin{array}{@{}c|c@{}}
+    A^\intercal &
+     \begin{matrix}
+        1 & & & \\
+        & 1 & & \\
+        & & \ddots & \\
+        & & & & 1
+     \end{matrix} 
+  \end{array} \right)
+  \begin{pmatrix}
+    c_1 \\
+    c_2 \\
+    \vdots \\
+    c_n
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    0 \\
+    0 \\
+    \vdots \\
+    0
+  \end{pmatrix}
+\]
+
+\subsection{Minimum Distance and Parity Checks}
+Minimum distance $d(C)$ is equal to:
+\begin{align*}
+  d(C) &= 1 + \max \{ t : \text{every } t \text{ columns of } H \text{ are linearly independent}\} \\
+  &= \min\{t : \text{there are } t \text{ linearly dependent columns of } H\}
+\end{align*}
+
+This is because if $d(C) = t + 1$, then:
+\begin{itemize}
+  \item Every $t$ columns of $H$ must be linearly independent, otherwise there would be a non-zero vector $\overrightarrow{c}$ of weight at most $t$ such that $H \cdot \overrightarrow{c} = 0$.
+    Then $\overrightarrow{c}$ would be a non-zero codeword of weight less than $d(C)$, a contradiction.
+  \item There is a non-zero codeword $\overrightarrow{c}$ of Hamming weight $t + 1$, since $H \cdot \overrightarrow{c} = 0$, this defines a linear dependence between $t + 1$ of the columns of H.
+\end{itemize}
+
+\begin{eg}
+  What is the best (largest) binary linear code of length $n$ that can \textbf{detect} any one-bit error? ($d(C) \geq 2$)
+
+  Every $2 - 1 = 1$ column of $H$ must be linearly dependent.
+  Then every column of $H$ must be non-zero.
+
+  $H$with the smallest number of rows (to make $C$ largest) is:
+  \[
+    H = 
+    \begin{pmatrix}
+      1 & 1 & \dots & 1
+    \end{pmatrix}
+  \]
+  The dimension is $k = n - 1$, giving a $[n, n - 1, 2]$ code.
+  The parity code is of length $n$.
+
+  (Recall we are using $GF(2)$).
+\end{eg}
+
+This leads us to the \textbf{Hamming code}.
+
+\section{Hamming Code}
+What is the best (largest) binary code of length $n$ that can \textbf{correct} any one-bit error? ($d(C) \geq 3$)
+
+Every $3 - 1 = 2$ columns of $H$ must be linearly dependent.
+Then every column of $H$ must be non-zero and no two columns can be equal.
+
+Suppose $n = 2^r - 1$.
+
+$H$ with the smallest number of rows (to make $C$ largest) is such that the columns enumerate all non-zero $r$-bit strings.
+
+For $n = 7$:
+\[
+  H =
+  \begin{pmatrix}
+    0 & 0 & 0 & 1 & 1 & 1 & 1 \\
+    0 & 1 & 1 & 0 & 0 & 1 & 1 \\
+    1 & 0 & 1 & 0 & 1 & 0 & 1
+  \end{pmatrix}
+\]
+
+The code is $[7, 4, 3]$.
+
+In general, it is \textbf{$[2^r - 1, 2^r - r - 1, 3]$}.
+
+\subsection{Error Correction of Hamming Codes}
+Suppose:
+\[
+  H =
+  \begin{pmatrix}
+    0 & 0 & 0 & 1 & 1 & 1 & 1 \\
+    0 & 1 & 1 & 0 & 0 & 1 & 1 \\
+    1 & 0 & 1 & 0 & 1 & 0 & 1
+  \end{pmatrix}
+\]
+
+\begin{itemize}
+  \item Let $\overrightarrow{c} = x \cdot G$ be the sent codeword.
+  \item Recipient receives $\overrightarrow{y} = \overrightarrow{c} + \overrightarrow{e}$, where $\overrightarrow{e}$ is the \textbf{error vector}.
+  \item The decoder calculates:
+    \begin{align*}
+      \overrightarrow{s} &= H \cdot \overrightarrow{y} \\
+      &= H \cdot (\overrightarrow{c} + \overrightarrow{e}) \\
+      &= H \cdot \overrightarrow{c} + H \cdot \overrightarrow{e} \\
+      &= H \cdot \overrightarrow{e} \text{ (as applying $H$ on the codeword is $0$)}
+    \end{align*}
+  \item If no errors, then $\overrightarrow{s} = \overrightarrow{0}$.
+  \item Otherwise, $\overrightarrow{e} = \begin{pmatrix} 0 & 0 & \dots & 1 & \dots & 0 \end{pmatrix}$ (a bit flip), where the $1$ is at the $i$th position.
+    \item We can see that $H \cdot \overrightarrow{e} = \overrightarrow{s}$ is the $i$th column of $H$, which is the binary expansion of the integer $i$.
+\end{itemize}
+
+\subsection{Syndrome Decoding}
+For any linear code with parity check matrix $H$, the \textbf{syndrome} of a received word $\overrightarrow{y}$ is the $(n - k)$-dimensional vector $\overrightarrow{s} = H \cdot \overrightarrow{y}$. \\
+
+If $\overrightarrow{y} = \overrightarrow{c} + \overrightarrow{e}$ for some codeword $\overrightarrow{c}$ and error vector $\overrightarrow{e}$, it is \textbf{always} possible to uniquely identify $\overrightarrow{e}$ (and therefore the correct message $\overrightarrow{c}$), as long as the Hamming weight of $\overrightarrow{e}$ is at most $\floor{\frac{d(C) - 1}{2}}$. \\
+
+\textbf{Proof:}
+Suppose there are two distinct $\overrightarrow{e}, \overrightarrow{e'}$, each of weight $\floor{\frac{d(C) - 1}{2}}$, such that $H \cdot \overrightarrow{e} = H \cdot \overrightarrow{e'}$.
+Then $H \cdot (\overrightarrow{e} - \overrightarrow{e'}) = 0$, but $(\overrightarrow{e} - \overrightarrow{e'})$ is a non-zero vector of Hamming weight less than $d(C)$, contradiction. 
+
+\subsection{Orthogonality of $G$ and $H$}
+Any choice of $G$ and $H$ must be orthogonal:
+\[
+  G \cdot H^\intercal = 0
+\]
+That is, the inner product of every row of $G$ and every row of $H$ must be zero.
+
+This is because every row of $G$ is a codeword, then it must satisfy $H$. \\
+
+In linear-algebraic terms, rows of $H$ span the orthogonal space of the code: the orthogonal space of a linear space is the set of vectors that are orthogonal to \textbf{every vector} in the linear space. \\
+
+This orthogonal space is the \textbf{dual code} $\mathcal{C}^\bot$.
+The dual of $\mathcal{C}^\bot$ is $\mathcal{C}$.
 
 \end{document}
