@@ -796,7 +796,7 @@ The further away the measurement is from the prediction, the less likely it is t
 \[
   p(z \mid m) \propto e^{\frac{-(z - m)^2}{2 \sigma^2_s}}
 \]
-where $\sigma_s$ is the standard eviation based on our model of how uncertain the sensor is, and may depend on $z$ or be constant.
+where $\sigma_s$ is the standard deviation based on our model of how uncertain the sensor is, and may depend on $z$ or be constant.
 
 In the motion prediction step, we \textbf{sampled} randomly from a Gaussian distribution to move each particle by a slightly different amount.
 Here we just \textbf{read off} a value from a Gaussian function to obtain a likelihood for each particle.
@@ -871,6 +871,161 @@ where $\gamma$ is the magnetic bearing of the $x$ coordinate axis frame $W$.
 
 We should assess the uncertainty in the compass and set a likelihood which depends on the difference between $\beta$ and $\gamma - \theta$.
 Particles far from the right orientation will get low weights.
+
+\section{Place Recognition}
+\subsection{Kidnapped Robot}
+In MCL, global localisation can be attempted but requires many particles and may take many movements and measurements to find the right location.
+
+We would expect better performance with more informative sensing, e.g.\ a ring of sonar sensors making measurements at the same time rather than just one.
+
+\begin{figure}[h]
+  \caption{After one measurement with only one sonar, the weights of consistent particles will increase; further measurements and movement are required to lock down position and ambiguities may still arise.}
+  \includegraphics[scale=0.4]{onesonar}
+  \centering
+\end{figure}
+
+\begin{figure}[h]
+  \caption{With one compass and one sonar, ambiguity is reduced.}
+  \includegraphics[scale=0.4]{compasssonar}
+  \centering
+\end{figure}
+
+\subsection{Global Localisation via Recognition}
+An alternative relocalisation technique involves making a lot of measurements at a number of chosen locations and learning their characteristics.
+\begin{itemize}
+  \item This requires \textbf{training}, but no prior map.
+  \item The robot can only recognise learned locations.
+\end{itemize}
+An example of this is spinning the robot and taking a regularly spaced set of sonar measurements.
+
+\subsection{Measuring to Learn a Location}
+The robot is placed in each target location to learn its appearance.
+The raw measurements are stored to describe the location, this is called a place descriptor or \textbf{signature}.
+
+\begin{figure}[h]
+  \caption{Histogram of depth measurements at a location.}
+  \includegraphics[scale=0.4]{locationdepth}
+  \centering
+\end{figure}
+
+\subsection{Place Recognition}
+When placed in one of the locations, it must take a set of measurements and compare with saved signatures to see which best matches the measurements.
+
+Two histograms can be compared with a correlation test, measuring the sum of the squared differences.
+\[
+  D_k = \sum_i (H_m(i) - H_k(i))^2
+\]
+where $D_k$ is the difference between the new measurement histogram $H_m(i)$ and the saved signature histogram $H_k(i)$.
+
+The saved location with the lowest $D_k$ is the most likely candidate, but we should also check if $D_k$ is below a threshold in case it is in a new location.
+
+\subsection{Estimating Orientation}
+If the test histogram and one of the signatures can be brought into close agreement by only a shift, the robot is in the same place but rotated.
+
+The amount of \textbf{shift} to get the best agreement is a measurement of rotation.
+
+\subsection{Depth Measurement Histogram}
+\begin{figure}[h]
+  \caption{Frequency of depth measurements.}
+  \includegraphics[scale=0.4]{freqdepth}
+  \centering
+\end{figure}
+To save computation cost of trying every shift, we can build a signature which is invariant to robot rotation, such as a histogram of occurences of certain depth measurements.
+
+Once the correct location has been found, the shifting procedure only needs to occur for that one location.
+
+\section{Probabilistic Occupancy Grid Mapping}
+In the case that a robot's localisation is known, the goal is to infer which parts of the environment around a robot are naviagable free-space, and which contain obstacles.
+
+\begin{itemize}
+  \item Rather than building a parametric grid of the positions of walls, we use a regular grid representation.
+  \item Occupancy grids accumulate the uncertainty from the sensors to solidify towards precise maps.
+\end{itemize}
+
+\subsection{Occupancy Grid Map Representation}
+\begin{itemize}
+  \item We define an area on the ground we would like to map, and choose a square grid cell size.
+  \item For each cell $i$, we store and update a \textbf{probability of occupancy} $P(O_i)$.
+  \item $P(E_i)$ is the corresponding probability that the cell is empty, with $P(O_i) + P(E_i) = 1$.
+  \item We initialise the occupancy probabilities for unexplored space to a constant prior value.
+\end{itemize}
+Occupancy maps are often visualised with a greyscale value for each cell, black for $P(O_i) = 1$ and white for $P(O_i) = 0$.
+
+\subsection{Update after Sonar Measurement}
+\begin{figure}[h]
+  \caption{Sonar beam on an occupancy grid.}
+  \includegraphics[scale=0.4]{sonarbeam}
+  \centering
+\end{figure}
+
+For each cell we want to update the occupancy probability to take account of the new measurement $Z$.
+
+Suppose that $Z = d$, this provides evidence that cells around distance $d$ in front of the robot are more likely to be occupied.
+Cells in front of the robot $< d$ are more likely to be empty.
+
+A sonar beam is not a perfect ray, it has a width as it spreads out so we must take account of this.
+
+For each cell, we test if it lies within the beam.
+We learn nothing about cells beyond the beam width or beyond the measured depth.
+
+\subsection{Bayesian Update of Occupancy}
+For each cell, we apply Bayes rule to get a posterior probability for each cell:
+\[
+  P(O_i \mid Z) = \frac{P(Z \mid O_i) P(O_i)}{P(Z)}
+\]
+
+As in MCL, we can avoid calculating $P(Z)$ by also calculating $P(E_i \mid Z)$ and normalising as we know $P(O_i \mid Z) + P(E_i \mid Z) = 1$.
+\[
+  P(E_i \mid Z) = \frac{P(Z \mid E_i) P(E_i)}{P(Z)}
+\]
+
+\subsection{Log Odds Representation}
+If we take the ratio of the two Bayes rule expressions:
+\[
+  \left( \frac{P(O_i \mid Z)}{P(E_i \mid Z)}\right) = 
+  \left( \frac{P(Z \mid O_i)}{P(Z \mid E_i)}\right)
+  \times
+  \left( \frac{O_i}{E_i}\right)
+\]
+
+We can use the odds notation: $o(A) = \frac{P(A)}{P(\bar{A})}$
+\[
+  o(O_i \mid Z) = 
+  \left( \frac{P(Z \mid O_i)}{P(Z \mid E_i)}\right)
+  \times
+  o(O_i)
+\]
+
+Taking logs:
+\[
+  \ln o(O_i \mid Z) = 
+  \ln \left( \frac{P(Z \mid O_i)}{P(Z \mid E_i)}\right)
+  \times
+  \ln o(O_i)
+\]
+
+In this form, we store $\ln o(O_i)$ and update it additively.
+Cells with occupancy probability $0.5$ will have log odds 0; positive log odds mean probability $> 0.5$; while negative mean $< 0.5$.
+
+We normally cap log odds at certain positive and negative limits.
+
+\subsection{Likelihood Model of Sensor}
+We need models for the likelihood function which models sensor performance.
+We can consider directly the ratio of likelihoods we need to update log odds.
+\begin{itemize}
+  \item Log odds update $U = \ln \frac{P(Z \mid O_i)}{P(Z \mid E_i)}$: for each cell $P(Z \mid O_i)$ is the probability of obtaining the sensor value given that the cell is occupied; $P(Z \mid E_i)$ is the probability of obtaining the value given it is empty.
+  \item For cells within the sonar beam but closer than $Z = d$: $\frac{P(Z \mid O_i)}{P(Z \mid E_i)} < 1$, we choose a constant negative value for $U$.
+  \item For cells within the sonar at around $Z = d$: $\frac{P(Z \mid O_i)}{P(Z \mid E_i)} > 1$, we can choose a constant positive value for $U$.
+\end{itemize}
+
+Note that we are oversimplifying by assuming occupancies for each cell are independent.
+
+\subsection{Occupancy Grid Mapping}
+Over time and robot motion, measurements accumulate and the map converges to black and white, indicating definite knowledge.
+
+An occupancy map's probability values must be thresholded if a decision is to be made about traversable areas.
+
+Large maps are very memory intensive and can drift due to localisation uncertainty.
 
 \end{document}
 
