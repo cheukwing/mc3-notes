@@ -535,6 +535,13 @@ In face the dual code is essential an RS code, it is called a \textbf{generalise
 \end{itemize}
 
 \subsection{Reed-Muller (RM) Codes}
+The problem with RS codes is that the alphabet size must be large, at least as large as the desired length.
 
+One solution is going from univariate to \textbf{multivariate polynomials}, giving ($q$-ary) Reed-Muller (RM) codes.
+
+\begin{itemize}
+  \item $RM(r, m)$: $m$-\textbf{variate} Reed-Muller code of \textbf{order} $r$.
+  \item The codewords are evaluation vectors of polynomials of $m$ variables of degree at most $r$ at \textbf{all points} of $(GF(q))^m$.
+\end{itemize}
 
 \end{document}
