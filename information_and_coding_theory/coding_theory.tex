@@ -270,6 +270,8 @@ For a matrix $H$:
   \mathcal{C} = \{ (c_1, \cdots, c_n) \text{ s.t.\ } H \cdot (c_1, \cdots, c_n)^\intercal = (0, 0, \cdots, 0)^\intercal \}
 \]
 
+($\mathcal{C}$ is the linear code).
+
 \begin{itemize}
   \item $H$ is a $r \times n$ matrix over $GF(q)$ which is called a \textbf{parity check matrix} for the code.
   \item The code is the \textbf{right kernel} of $H$, the solution set of the system of $r$ equations in $n$ unknowns ($H \cdot \overrightarrow{c} = \overrightarrow{0}$) specified by $H$.
@@ -310,7 +312,6 @@ In a non-systematic $G$, $A$ is also what remains after reducing $G$ to systemat
 Then any codeword $\overrightarrow{c} = (c_1, \ldots, c_n)$ must satisfy $(c_{k + 1}, \ldots, c_n) = (c_1, \ldots, c_k) \cdot A$.
 
 \[
-  G = 
   \left( \begin{array}{@{}c|c@{}}
     A^\intercal &
      \begin{matrix}
@@ -442,5 +443,98 @@ In linear-algebraic terms, rows of $H$ span the orthogonal space of the code: th
 
 This orthogonal space is the \textbf{dual code} $\mathcal{C}^\bot$.
 The dual of $\mathcal{C}^\bot$ is $\mathcal{C}$.
+
+\subsection{The Dual Code}
+If $\mathcal{C}$ is determined by a generator matrix $G$ and parity check matrix $H$, then $\mathcal{C}^\intercal$ is determined by a generator matrix $H$ and a partity check matrix $G$.
+
+\begin{itemize}
+  \item The dual code is of length $n$ and dimension $r = n - k$.
+  \item The dual code of an MDS code must also be an MDS Code:
+    If $\mathcal{C}$ is MDS, then every $k \times k$ submatrix of G must have rank $k$; therefore the minimum distance of $\mathcal{C}^\bot$ must be at least (in fact, exactly) $k + 1 = n - r + 1$; therefore $\mathcal{C}^\bot$ is MDS.
+\end{itemize}
+
+\section{Algebraic Codes}
+\subsection{Reed-Solomon (RS) Code}
+A Reed-Solomon code over $GF(q)$ is determined by a set of \textbf{distinct evaluation points} $\alpha_1, \alpha_2, \ldots, \alpha_n \in GF(q)$.
+
+It is possible to define polynomials over $GF(q)$:
+\[
+  f(x) = c_0 + c_1x + c_2x^2 + \ldots + c_{k - 1}x^{k - 1}
+\]
+
+\begin{itemize}
+  \item Given $f$, the \textbf{evaluation vector} of $f(x)$ is:
+    \[
+      \begin{pmatrix}
+        f(\alpha_1) & f(\alpha_2) & \dots & f(\alpha_n)
+      \end{pmatrix}
+    \]
+    \item The codewords of a RS code of dimension $k$ is the set of evaluation vectors of all polynomials of degree $< k$.
+    \item It is required that $q \geq n$.
+\end{itemize}
+
+The RS code is \textbf{linear}:
+\begin{itemize}
+  \item Adding two polynomials of degree $< k$ gives a polynomial of degree $< k$.
+  \item Multiplying a polynomial of degree $< k$ by a scalar in $GF(q)$ gives a polynomial of degree $< k$.
+  \item The code is a \textbf{vector space} and thus linear.
+\end{itemize}
+
+\subsection{Reed-Solomon Code: Natural Encoder}
+\[
+  Enc(b_0, b_1, \ldots, b_{k - 1}) :=
+  \begin{pmatrix}
+    f(\alpha_1) & f(\alpha_2) & \dots & f(\alpha_n)
+  \end{pmatrix}
+\]
+where $f(x) = b_0 + b_1x + b_2x^2 + \ldots + b_{k - 1}x^{k - 1}$.
+
+The generator matrix for this encoder is the \textbf{Vandermonde matrix}:
+\[
+  G = 
+  \begin{pmatrix}
+    1 & 1 & \dots & 1 \\
+    \alpha_1 & \alpha_2 & \dots & \alpha_n \\
+    \vdots & \vdots & \ddots & \vdots \\
+    \alpha_1^{k-1} & \alpha_2^{k-1} & \dots & \alpha_n^{k-1}
+  \end{pmatrix}
+\]
+
+If $\alpha_1, \alpha_2, \dots, \alpha_n$ are distinct, the rank of the matrix is $k$.
+
+\subsection{Reed-Solomon Code: Minimum Distance}
+The weight of $
+  \begin{pmatrix}
+    f(\alpha_1) & f(\alpha_2) & \dots & f(\alpha_n)
+  \end{pmatrix}
+$ is at least $n - \lvert \{ \text{roots of $f$ over $GF(q)$} \} \rvert$.
+\begin{itemize}
+  \item As with real polynomials, a non-zero polynomial $f(x)$ of degree $k - 1$ over $GF(q)$ has less than $k$ roots.
+  \item $d(C) \geq n - (k - 1) = n - k + 1$.
+  \item Due to the Singleton bound, $d(C) \leq n - k + 1$.
+  \item Then it must that $d(C) = n - k + 1$, and the code is thus MDS.
+\end{itemize}
+
+A polynomial of degree $\leq d$ can be uniquely interpolated from any set of $d$ known evaluations (e.g.\ given $3$ points, we can find the polynomial of degree $3$).
+
+\subsection{Generalised RS Codes}
+Being MDS, a RS code of rate $R$ can correct up to $\frac{1 - R}{2}$ fraction of errors (half the minimum distance).
+
+As RS is MDS, the dual is also MDS.
+In face the dual code is essential an RS code, it is called a \textbf{generalised RS code}.
+
+\begin{itemize}
+  \item A generalised RS code is defined by $\alpha_1, \alpha_2, \dots, \alpha_n \in GF(q)$, and non-zero scalars $\gamma_1, \gamma_2, \ldots, \gamma_n \in GF(q)$, \textbf{not necessarily distinct}.
+  \item Codewords are of the form:
+    \[
+      \begin{pmatrix}
+        \gamma_1f(\alpha_1) & \gamma_2f(\alpha_2) & \dots & \gamma_nf(\alpha_n)
+      \end{pmatrix}
+    \]
+  \item This gives the same properties as ordinary RS codes, (where $\gamma_1 = \gamma_2 = \ldots = \gamma_n = 1$).
+\end{itemize}
+
+\subsection{Reed-Muller (RM) Codes}
+
 
 \end{document}
