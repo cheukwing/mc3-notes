@@ -1027,5 +1027,229 @@ An occupancy map's probability values must be thresholded if a decision is to be
 
 Large maps are very memory intensive and can drift due to localisation uncertainty.
 
+\section{Simultaneous Localisation and Mapping}
+\textit{A body with quantitive sensors moves through a previously unknown, static environment, mapping it and calculating its egomotion.}
+
+Why do we need SLAM?
+\begin{itemize}
+  \item Fully autonomous robot.
+  \item Little or nothing known in advance about environment.
+  \item Unable to place aritificial beacons, or use GPS.
+  \item Allow robot to know where it is.
+\end{itemize}
+
+SLAM builds a map incrementally, and localises it with respect to that map as it grows and is gradually refined.
+
+\subsection{Features for SLAM}
+(Most algorithms) make maps of natural scene features.
+\begin{itemize}
+  \item Laser/sonar: wall segments, planes, corners, etc.\
+  \item Vision: salient point features, lines, textured surfaces.
+\end{itemize}
+
+Features should be distinctive and easily recognisable from different viewpoints to enable reliable matching (\textbf{correspondence} or \textbf{data association}).
+
+\subsection{Propagating Uncertainty}
+We assume the robot is the only thing that moves - \textbf{the world is static}.
+
+With this assumption, we can extend probabilistic estimation (from just the robot state as in MCL) to the features of the map as well.
+We store and update a joint distribution over the states of both the robot and the mapped world.
+When we re-measure known features, the uncertainty of the estimation of all other features also decreases.
+
+New features are gradually discovered, so the dimension of the joint estimation problem grows.
+
+\subsection{SLAM with Joint Gaussian Uncertainty}
+The most common and efficient way to represent the high-dimensional probability distributions we need to propagate in SLAM is as a joint Gaussian distribution.
+We make updates via the \textbf{Extended Kalman Filter}.
+
+We represent the PDF with state vector and covariance matrix:
+\begin{align*}
+  \hat{x} &= 
+  \begin{pmatrix}
+    \hat{x}_v \\
+    \hat{y}_1 \\
+    \hat{y}_2 \\
+    \vdots
+  \end{pmatrix}
+  & P &=
+  \begin{pmatrix}
+    P_{xx} & P_{xy_1} & P_{xy_2} & \dots \\
+    P_{y_1x} & P_{y_1y_1} & P_{y_1y_2} & \dots \\
+    P_{y_2x} & P_{y_2y_1} & P_{y_2y_2} & \dots \\
+    \vdots & \vdots & \vdots & \ddots
+  \end{pmatrix}
+\end{align*}
+
+The state vector contains the robot state and all the feature states.
+$x_v$ is the robot state (e.g.\ $(x, y, \theta)$ in 2D); $y_i$ is a feature state (e.g.\ $(X, Y)$ in 2D).
+
+\subsection{SLAM using Active Vision}
+\begin{figure}[h]
+  \caption{Active vision on a 3-wheel robot base.}
+  \includegraphics[scale=0.4]{activevision}
+  \centering
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Stereo active vision}.
+  \item Automatic fixated \textbf{active mapping and measurement} of arbitrary scene features.
+  \item Sparse mapping.
+\end{itemize}
+
+\subsection{SLAM with Ring of Sonars}
+\begin{figure}[h]
+  \caption{Visualisation of a robot using a ring of sonars.}
+  \includegraphics[scale=0.4]{ringofsonars}
+  \centering
+\end{figure}
+
+\subsection{SLAM with a Single Camera}
+\begin{figure}[h]
+  \caption{Keypoints detected using MonoSLAM.}
+  \includegraphics[scale=0.4]{monoslam}
+  \centering
+\end{figure}
+Frontend: keypoints are detected in successive images and associated with 3D point in the world.
+
+Backend: the pose of the camera(s) and 3D points that best explain these keypoint measurements are estimated.
+
+\subsection{Limits of Metric SLAM}
+Purely metric probabilistic SLAM is limited to small domains:
+\begin{itemize}
+  \item Poor computational scaling of probabilistic filters.
+  \item Growth in uncertainty at large distances from map origin - inaccurate representation of uncertainty.
+  \item Data association difficult at high uncertainty.
+\end{itemize}
+
+\subsection{Large Scale Localisation and Mapping}
+A metric/topological approach which approximates full metric SLAM is used in practical modern solutions.
+They need the following elements:
+\begin{itemize}
+  \item Local metric mapping to estimate trajectory and make local maps.
+  \item Place recognition to perform \textbf{loop closure} or relocalise the robot when lost.
+  \item Map optimisation/relaxation to optimise a map when loops are closed.
+\end{itemize}
+
+One very effective way to detect loop closures is to save images at regular intervals and use an image retrieval approach (where each image is represented using a Visual Bag of Words).
+
+\subsection{Pure Topological SLAM}
+\begin{figure}[h]
+  \caption{Topological graph.}
+  \includegraphics[scale=0.4]{toplogical}
+  \centering
+\end{figure}
+
+We can make a SLAM system using \textbf{only} place recognition, this is topological SLAM with a graph-based representation.
+
+We keep a record of places we have visited and how they connect together, without any explicit geometry information.
+
+\subsection{Adding Metric Information to Graph Edges}
+\begin{figure}[h]
+  \caption{Applying relaxation when loop closure detected.}
+  \includegraphics[scale=0.4]{relaxation}
+  \centering
+\end{figure}
+
+\begin{itemize}
+  \item Edges between linked nodes are annotated with relative motion information - from local mapping or incemental information from odometry.
+  \item Apply the \textbf{pose graph optimisation (relaxation)} algorithm - compute the set of node positions maximally probable given both the metric and topological constraints.
+    (This only has an effect when there are loops).
+\end{itemize}
+
+\subsection{Simple Large Scale SLAM: RATSLAM}
+\begin{itemize}
+  \item Very simple visual odometry gives rough trajectory.
+  \item Simple visual place recognition - many loop closures.
+  \item Map relaxation/optimisation to build global map.
+\end{itemize}
+
+\subsection{More Accurate Large-Scale Monocular SLAM: ORB-SLAM}
+Tracking and mapping recognisable features:
+\begin{itemize}
+  \item Very accurate visual odometry trajectory.
+  \item Visual place recognition based on 2D image features with binary descriptors for very fast matching.
+  \item Pose graph/map optimisation for global consistency.
+\end{itemize}
+
+\subsection{ElasticFusion}
+\begin{itemize}
+  \item Reliable room-scale dense mapping.
+  \item Maps a scene with millions of surfels and corrects loop closures.
+  \item Relies on depth camera and GPU processing.
+\end{itemize}
+
+\section{Planning}
+If a robot has a map of the environment, how can it plan to get from one place to another?
+
+How can it plan a path around a complicated set of obstacles?
+
+\subsection{Local Planning}
+In the \textbf{Dynamic Window Approach}:
+\begin{enumerate}
+  \item Consider robot dynamics and possible changes in motion it can make within small time $dt$.
+  \item For each possible motion look ahead a longer time $\tau$, calculate the benefit/cost based on distance from target and obstacles.
+  \item Choose best and execute for $dt$.
+  \item Repeat.
+\end{enumerate}
+
+\subsection{Dynamic Window Approach for Differential Drive Robot}
+\begin{itemize}
+  \item The robot can control $v_L, v_R$ up to maximum values.
+  \item The max acceleration $\times dt$ is the maximum change we can make to $v_L$ or $v_R$ in time $dt$.
+  \item There are nine possible actions in each step, either of $v_L$ or $v_R$ can go up, go down, or stay the same.
+  \item After longer time $\tau$, we know in the general case the robot moves on a circular arc:
+    \[
+      \begin{pmatrix}
+        x_{new} \\
+        y_{new} \\
+        \theta_{new}
+      \end{pmatrix}
+      =
+      \begin{pmatrix}
+        x + R(\sin(\Delta\theta + \theta) - \sin\theta) \\
+        y - R(\cos(\Delta\theta + \theta) - \cos\theta) \\
+        \theta + \Delta\theta
+      \end{pmatrix}
+    \]
+  \item For each motion calculate the benefit and cost.
+    Benefit is one weight times the amount the robot would be moved closer to its target at $(T_x, T_y)$:
+    \[
+      D_F = \sqrt{(T_x - x)^2 + (T_y - y)^2} - \sqrt{(T_x - x_{new})^2 + (T_y - y_{new})^2} 
+    \]
+    \[
+      B = W_B \times D_F
+    \]
+  \item Subtract from this a cost based on the distance the robot would be from the closest obstacle $(O_x, O_y)$:
+    \[
+      C = W_C \times (D_{safe} - (\sqrt{(O_x - x_{new})^2 + (O_y - y_{new})^2A} - r_{robot} - r_{obstacle}))
+    \]
+    We find the closest by searching through obstacles; $D_{safe}$ is some distance we would ideally like to stay from contact; $r_{robot}$ and $r_{obstacle}$ are the robot and obstacle radii.
+  \item Choose the path with maximum $B - C$, execute for $dt$.
+\end{itemize}
+
+\subsection{Global Planning: Wavefront Method}
+\begin{figure}[h]
+  \caption{Wavefront visualisation.}
+  \includegraphics[scale=0.4]{wavefront}
+  \centering
+\end{figure}
+
+\begin{itemize}
+  \item Brute force \textbf{flood fill} breadth first search of whole environment.
+  \item Slow, but guaranteed to find shortest route.
+\end{itemize}
+
+\subsection{Global Planning: Rapidly Exploring Randomised Trees (RRT) Method}
+\begin{figure}[h]
+  \caption{RRT visualisation.}
+  \includegraphics[scale=0.4]{rrt}
+  \centering
+\end{figure}
+
+\begin{itemize}
+  \item Algorithm grows a tree of connected nodes by randomly sampling points and extending the tree a short step from the closest node.
+  \item Expands rapidly into new areas, but without the same guarantees.
+\end{itemize}
+
 \end{document}
 
