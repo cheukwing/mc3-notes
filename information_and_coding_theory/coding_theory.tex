@@ -10,7 +10,7 @@
 
 \setlength{\parindent}{0pt}
 
-\title{Information and Coding Theory (CO349) - CodingTheory}
+\title{Information and Coding Theory (CO349) - Coding Theory}
 \author{Michael Tsang}
 
 \newtheorem{defn}{Definition}
@@ -20,8 +20,6 @@
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
-
-\newcommand\aug{\fboxsep=-\fboxrule\!\!\!\fbox{\strut}\!\!\!}
 
 \begin{document}
 
@@ -87,7 +85,7 @@ Instead, we describe an \textbf{encoder} for the code in the form of a \textbf{l
 
 \begin{itemize}
   \item The encoder interprets $x$ as a vector $(x_1, x_2, \ldots, x_k)$ and multiplies it by a matrix to get the encoding $(y_1, y_2, \ldots, y_n)$.
-  \item $(y_1, y_2, \ldots, y_n) = Enc(x_1, x_2, \ldots, x_k) := x \cdot G$, where $G$ is a $k \times x$ (fat) matrix called the generator matrix for the code.
+  \item $(y_1, y_2, \ldots, y_n) = Enc(x_1, x_2, \ldots, x_k) := x \cdot G$, where $G$ is a $k \times n$ (fat) matrix called the generator matrix for the code.
   \item The code can be described by only listing the $kn$ entries of $G$.
 \end{itemize}
 
@@ -521,7 +519,7 @@ A polynomial of degree $\leq d$ can be uniquely interpolated from any set of $d$
 Being MDS, a RS code of rate $R$ can correct up to $\frac{1 - R}{2}$ fraction of errors (half the minimum distance).
 
 As RS is MDS, the dual is also MDS.
-In face the dual code is essential an RS code, it is called a \textbf{generalised RS code}.
+In fact the dual code is essentially an RS code, it is called a \textbf{generalised RS code}.
 
 \begin{itemize}
   \item A generalised RS code is defined by $\alpha_1, \alpha_2, \dots, \alpha_n \in GF(q)$, and non-zero scalars $\gamma_1, \gamma_2, \ldots, \gamma_n \in GF(q)$, \textbf{not necessarily distinct}.
@@ -543,5 +541,74 @@ One solution is going from univariate to \textbf{multivariate polynomials}, givi
   \item $RM(r, m)$: $m$-\textbf{variate} Reed-Muller code of \textbf{order} $r$.
   \item The codewords are evaluation vectors of polynomials of $m$ variables of degree at most $r$ at \textbf{all points} of $(GF(q))^m$.
 \end{itemize}
+
+\subsection{Reed-Muller Code: Degree}
+The degree of a polynomial is the maximum degree of its monomials (individual terms):
+\[
+  \alpha \cdot x_1^{d_1} \cdot x_2^{d_2} \cdot \ldots \cdot x_m^{d_m} \text{ has degree }
+  d_1 + d_2 + \ldots + d_m
+\]
+where $x_i$ are distinct variables.
+
+\subsection{Reed-Muller Code: Encoder}
+The standard encoder of $RM(r, m)$ interprets the message as a coefficient vector of a polynomial in $m$ variables and degree at most $r$, outputting the vector consisting of evaluations of these polynomials at all points of $(GF(q))^m$.
+\begin{eg}
+  For $RM(2, 3)$:
+  \[
+    Enc(b_0, \ldots, b_9) = (\text{evaluations of } f(x, y, z) \text{ everywhere})
+  \]
+  where
+  \[
+    f(x, y, z) = b_0 + b_1x + b_2y + b_3z + b_4x^2 + b_5y^2 +b_6z^2 + b_7xy + b_8xz + b_9yz
+  \]
+
+  Dimension $k = 10$, length $n = q^3$.
+\end{eg}
+
+\begin{itemize}
+  \item The alphabet size can be as small as $2$.
+  \item In general, the length is $n = q^m$ as we evaluate $f$ everywhere.
+  \item The dimension is $k = \binom{m + r}{m} = \binom{m + r}{r}$.
+\end{itemize}
+
+The dimension is the number of monomials of polynomial $f(x_1, \ldots, x_m)$ of degree at most $r$.
+To find $k$, we want the number of combinations of non-negative integers $d_1, d_2, \ldots, d_m$ such that $d_1 + d_2 + \ldots + d_m \leq r$, which is $k = \binom{m + r}{m}$.
+This is only valid if $q > r$, otherwise we may count some monomials several times.
+
+\subsection{Minimum Distance of $RM(r, m)$}
+\textbf{Schwartz-Zippel Lemma} states that any polynomial (possibly multivariate) of degree at most $r$, is zero on at most $\frac{r}{q}$ fraction of all possible points.
+
+Then the minimum distance of $RM(r, m)$ is:
+\[
+  \min \{ \text{Hamming weight of codewords}\} = \min \{ n - \text{ number of zeroes}\} \geq q^m - rq^{m-1}
+\]
+(This is non-trivial only when $r < q$).
+
+The relative distance (the minimum distance divided by length) of $RM(r, m)$ is:
+\[
+  \geq (q - \frac{r}{q})
+\]
+
+An important special case is $r = 1$.
+
+\subsection{First Order Reed-Muller Codes}
+Special case when $q = 2$ and $r = 1$, also know as the \textbf{Hadamard Code}.
+\begin{itemize}
+  \item Length: $n = 2^m$.
+  \item Dimension: $k = \binom{m + r}{r} = m + 1$.
+  \item Distance $\geq n(1 - \frac{r}{q}) = 2^{m - 1}$ (actually exact).
+\end{itemize}
+
+The encoder:
+\[
+  Enc(a_0, \ldots, a_m) = (f(0, 0, \ldots, 0), \ldots, f(1, 1, \ldots, 1))
+\]
+where
+\[
+  f(x_1, \ldots, x_m) := a_0 + a_1x_1 + \ldots + a_mx_m
+\]
+
+In general, the first order RM code is the dual of extended Hamming code.
+This gives it amazing error tolerance but it quickly becomes inefficient.
 
 \end{document}
