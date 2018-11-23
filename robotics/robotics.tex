@@ -132,7 +132,7 @@ To find radius $R$ of a curved path, consider a period of motion $\Delta t$ wher
 
 Single steerable and drivable wheel at back, front wheels are free running.
 
-Assuming no sideways wheel slip, we intersect the axes of the front and back wheels to forma right-angle triangle:
+Assuming no sideways wheel slip, we intersect the axes of the front and back wheels to form a right-angle triangle:
 \[
   R = \frac{L}{\tan s}
 \]
@@ -166,7 +166,7 @@ on Gear 2; the torque in Gear 2 is therefore:
   t_2 = r_2F = \frac{r_2}{r_1}t_1
 \]
 
-The change in angular velocity between Gear 1 and Gear 2 is calcualted by considering velocity at the point where they meet:
+The change in angular velocity between Gear 1 and Gear 2 is calculated by considering velocity at the point where they meet:
 \[
   v = \omega_1 r_1 = \omega_2 r_2
 \]
@@ -204,7 +204,7 @@ Qualitative open-loop response on input (voltage) step: input $V$ leads to outpu
 Let $C$ be a controller possibly with internal states:
 \begin{itemize}
   \item $r$ is a reference (desired) output.
-  \item $e$ is the e  rror between reference and actual output.
+  \item $e$ is the error between reference and actual output.
 \end{itemize}
 
 The controller runs at a high frequency, at each iteration it checks the current error and calculates a control value to the motor which aims to reduce the error.
@@ -233,13 +233,13 @@ A simple (heuristic) tuning rule is the \textbf{Ziegler-Nichols}:
 \subsection{Motor Control - Additional Tweaks}
 \begin{itemize}
   \item Reference filtering - respect physical limits already in reference.
-  \item Anti-Reset-Windup - stops integrating the effor for the I-part, when $u$ is at its physical limit.
+  \item Anti-Reset-Windup - stops integrating the error for the I-part, when $u$ is at its physical limit.
   \item Dead-band compensation - add offset to $u$ to compensate friction.
   \item Feed-forward controller - $C_f : u_f(t) = k_f \frac{dr(t)}{dt}$, reduces ``work'' for the feedback controller
 \end{itemize}
 
 \subsection{Mapping Wheel Rotation Speed to Velocity}
-In principle, we could emasure the radius of each wheel $r_W$ to turn angular into linear motion.
+In principle, we could measure the radius of each wheel $r_W$ to turn angular into linear motion.
 However in practice, due to hard to model factors, it is better to calibrate empirically, i.e.\ work out the scaling between the motor reference angle and the distance travelled over the ground via experiments.
 
 \subsection{Motion and State on a 2D Plane}
@@ -572,7 +572,7 @@ A probabilistic approach acknowledges uncertainty and uses models to abstract us
 \begin{itemize}
   \item Every robot action is uncertain.
   \item Every sensor measurement is uncertain.
-  \item When we combine actions adn measurements to estimate state, the state estimate will be uncertain.
+  \item When we combine actions and measurements to estimate state, the state estimate will be uncertain.
 \end{itemize}
 
 Usually, we start with an uncertain state estimate, take some action, receive new sensor information, then must update the uncertain state estimate in response.
@@ -604,7 +604,7 @@ What is my state and that of the world around me?
   \item Explicit Gaussian distributions often represent uncertainty in sensor measurements well.
   \item The Gaussian prior multiplied by the Gaussian likelihood produce a Gaussian posterior which is tighter than either.
   \item Particles are a finite set of weighted samples of the state.
-  \item With a high number of particles, they can represent the shape of distribution in ambigiuous situations.
+  \item With a high number of particles, they can represent the shape of distribution in ambiguous situations.
 \end{itemize}
 
 \subsection{Probabilistic Localisation}
@@ -808,7 +808,7 @@ These functions have ``heavy tails'', achieved by simply adding a constant to th
 This means that there is some constant probability that the sensor will return a garbage value, uniformly distributed across the range of the sensor:
 
 \begin{figure}[h]
-  \caption{A robust likelhood function}
+  \caption{A robust likelihood function}
   \includegraphics[scale=0.4]{robust}
   \centering
 \end{figure}
@@ -856,7 +856,7 @@ For efficiency, we can skip the normalisation step and resample directly from an
 A digital compass gives the robot the ability to estimate its rotation without drift:
 \begin{itemize}
   \item A digital compass and a single sonar sensor puts us in a position close to having a full sonar ring.
-  \item The robot could stop and rotate on the sport every so often to simulate the ing.
+  \item The robot could stop and rotate on the sport every so often to simulate the ring.
   \item The compass would be monitored as the robot continuously moves, and this is fed into the filter.
 \end{itemize}
 
@@ -930,12 +930,12 @@ The amount of \textbf{shift} to get the best agreement is a measurement of rotat
   \includegraphics[scale=0.4]{freqdepth}
   \centering
 \end{figure}
-To save computation cost of trying every shift, we can build a signature which is invariant to robot rotation, such as a histogram of occurences of certain depth measurements.
+To save computation cost of trying every shift, we can build a signature which is invariant to robot rotation, such as a histogram of occurrences of certain depth measurements.
 
 Once the correct location has been found, the shifting procedure only needs to occur for that one location.
 
 \section{Probabilistic Occupancy Grid Mapping}
-In the case that a robot's localisation is known, the goal is to infer which parts of the environment around a robot are naviagable free-space, and which contain obstacles.
+In the case that a robot's localisation is known, the goal is to infer which parts of the environment around a robot are navigable free-space, and which contain obstacles.
 
 \begin{itemize}
   \item Rather than building a parametric grid of the positions of walls, we use a regular grid representation.
@@ -1028,13 +1028,13 @@ An occupancy map's probability values must be thresholded if a decision is to be
 Large maps are very memory intensive and can drift due to localisation uncertainty.
 
 \section{Simultaneous Localisation and Mapping}
-\textit{A body with quantitive sensors moves through a previously unknown, static environment, mapping it and calculating its egomotion.}
+\textit{A body with quantitative sensors moves through a previously unknown, static environment, mapping it and calculating its egomotion.}
 
 Why do we need SLAM?
 \begin{itemize}
   \item Fully autonomous robot.
   \item Little or nothing known in advance about environment.
-  \item Unable to place aritificial beacons, or use GPS.
+  \item Unable to place artificial beacons, or use GPS.
   \item Allow robot to know where it is.
 \end{itemize}
 

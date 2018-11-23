@@ -29,7 +29,7 @@ How much information about the secret key is revealed?
 \\ \\
 \textbf{Differential Privacy:}
 In large statistical databases an attacker can try to reveal information (de-anonymise) individuals.
-Suppose there are three individuals under 25 with hair loss registred and two individuals are getting hair loss treatment in SW7.
+Suppose there are three individuals under 25 with hair loss registered and two individuals are getting hair loss treatment in SW7.
 Kim is on the database, is 21, and lives at 170 Queen's Gate. \\
 How much information about individuals is revealed?
 
@@ -143,7 +143,7 @@ We repeat this to cover all of $c(x) = c(y)$.
 
 \subsection{Strings and Codes in Trees}
 If we concentrate on binary codes with $T = \mathbb{B}$, any codeword in $C$ can be seen as a finite path in a binary tree.
-Moreover, the codewords in $C$ can be represented as the end-points of the corresponding paths: if a code $c$ is PF then none of its decendents can represent a codeword in $C$.
+Moreover, the codewords in $C$ can be represented as the end-points of the corresponding paths: if a code $c$ is PF then none of its descendants can represent a codeword in $C$.
 
 \begin{eg}
   The code $C = \{ 0, 10, 110, 111 \}$ is PF, its corresponding tree is shown in figure \ref{fig:treepath}.
@@ -297,13 +297,13 @@ Then the following are equivalent for codes $c : S \rightarrow T^*$:
 \section{Probability}
 Probability theory is concerned with quantifying or measuring the chances that certain events can happen.
 
-We consider an event space, i.e.\ a finite set $\Omega$ and a set $\mathcal{B} \subseteq \mathcal{P}(\Omega)$ of measureable sets in $\Omega$ which form a Boolean algebra.
+We consider an event space, i.e.\ a finite set $\Omega$ and a set $\mathcal{B} \subseteq \mathcal{P}(\Omega)$ of measurable sets in $\Omega$ which form a Boolean algebra.
 For finite sets we can use the power set $\mathcal{B} = \mathcal{P}(\Omega)$.
 
 Probabilities are assigned via a \textbf{measure}, i.e.\ a function $Pr : \mathcal{B} \rightarrow \mathbb{R}$ or $m : \mathcal{B} \rightarrow \mathbb{R}$.
 
 \subsection{Finite Probability Spaces}
-Consider finite measureable spaces $(\Omega, \mathcal{B})$ with $\lvert \Omega \rvert = n$.
+Consider finite measurable spaces $(\Omega, \mathcal{B})$ with $\lvert \Omega \rvert = n$.
 
 \begin{defn}
   A probability measure $Pr : \mathcal{B}$ on $(\Omega, \mathcal{B})$ has to fulfil:
@@ -322,7 +322,7 @@ Some further rules:
 \end{itemize}
 
 \subsection{Random Distributions}
-For finite measureable spaces $(\Omega, \mathcal{B}, Pr)$ with $\lvert \Omega \rvert = n$, we can define a probability measure via atoms in $\omega \in \Omega$.
+For finite measurable spaces $(\Omega, \mathcal{B}, Pr)$ with $\lvert \Omega \rvert = n$, we can define a probability measure via atoms in $\omega \in \Omega$.
 
 \begin{defn}
   A probability distribution is a function $\textbf{p} : \Omega \rightarrow [0, 1]$, with:
@@ -380,7 +380,7 @@ or
 \]
 
 \subsection{Products and Probability}
-Given two probability spaces $(\Omega_1, Pr_1)$ and $(\Omega_2, Pr_2)$, to keep things simple use $\mathcal{B_i} = \mathcal{P}(\Omega_i)$, we can define a probability $Pr$ on the cartesian product $\Omega = \Omega_1 \times \Omega_2$ via:
+Given two probability spaces $(\Omega_1, Pr_1)$ and $(\Omega_2, Pr_2)$, to keep things simple use $\mathcal{B_i} = \mathcal{P}(\Omega_i)$, we can define a probability $Pr$ on the Cartesian product $\Omega = \Omega_1 \times \Omega_2$ via:
 \[
   Pr(\langle \omega_1, \omega_2 \rangle) = Pr_1(\omega_1)Pr_2(\omega_2)
 \]
@@ -458,7 +458,7 @@ Using the logarithm we get an additive information measure which fulfills:
     Pr(\sigma_k = s_i) = p_i^{(k)}
   \]
 
-Assume identitcal $\textbf{p}^{(k)} = \textbf{p}$, but not necessarily independent.
+Assume identical $\textbf{p}^{(k)} = \textbf{p}$, but not necessarily independent.
 \end{defn}
 
 \begin{defn}
@@ -606,9 +606,9 @@ For a UD code $K \leq 1$, it follows that $\log_b(K) \leq 0$.
 \subsection{Shannon-Fano Rule}
 To get $L = \textbf{H}_b(\textbf{p})$ we would need $b^{y_i} = \frac{1}{p_i}$ for all $1 \leq i \leq m$.
 \textbf{Shannon-Fano (SF) Rule:}
-Select the word length $y_i$ for a symbol $s_i$ the least positve integer such that $b^{y_i} \geq \frac{1}{p_i}$.
+Select the word length $y_i$ for a symbol $s_i$ the least positive integer such that $b^{y_i} \geq \frac{1}{p_i}$.
 \begin{theo}
-  There exists a PF code $c : S \rightarrow T^*$ with $\lvert T \rvert = b$ for the source $(S, \textbf{p})$ which satisifies $L < \textbf{H}_b(\textbf{p}) + 1$.
+  There exists a PF code $c : S \rightarrow T^*$ with $\lvert T \rvert = b$ for the source $(S, \textbf{p})$ which satisfies $L < \textbf{H}_b(\textbf{p}) + 1$.
 \end{theo}
 
 \textbf{Proof:}
@@ -708,7 +708,7 @@ Consider two sets/alphabets:
 \begin{align*}
   S' = \{ s'_1, s'_2, \ldots, s'_m \} & S'' = \{ s''_1, s''_2, \ldots, s''_n \}
 \end{align*}
-and a probability distribution $\textbf{p}$ on their cartesian product $S$:
+and a probability distribution $\textbf{p}$ on their Cartesian product $S$:
 \[
   S' \times S'' = \{ \langle s', s'' \rangle \mid s' \in S', s'' \in S'' \} = \{ s's'' \mid s' \in S', s'' \in S'' \}
 \]
@@ -808,7 +808,7 @@ Thus $\inf \frac{\textbf{H}(\textbf{p}^r)}{r} = \frac{r \textbf{H}(\textbf{p}^1)
 \end{lem}
 
 \subsection{Algorithms for Data Compression}
-We cannot use Huffman's rule for data compression as we need to know the probabilites of symbols or blocks in advance.
+We cannot use Huffman's rule for data compression as we need to know the probabilities of symbols or blocks in advance.
 
 Data compression makes particular sense if based on blocks (not symbols), there are two approaches:
 \begin{itemize}
@@ -1239,7 +1239,7 @@ Instead of single symbols, use blocks in channel transmission:
 
 \subsection{Capacity of Extended BSC}
 \begin{theo}
-  If the capacity of the BSC $\Gamma$ is $\gamma(\Gamma) = 1 - \textbf{h}(e)$ then the capcity of the extended BSC $\Gamma^n$ is $\gamma(\Gamma^n) = n \cdot \gamma(\Gamma) = n \cdot \gamma$.
+  If the capacity of the BSC $\Gamma$ is $\gamma(\Gamma) = 1 - \textbf{h}(e)$ then the capacity of the extended BSC $\Gamma^n$ is $\gamma(\Gamma^n) = n \cdot \gamma(\Gamma) = n \cdot \gamma$.
 \end{theo}
 
 \textbf{Proof:}
