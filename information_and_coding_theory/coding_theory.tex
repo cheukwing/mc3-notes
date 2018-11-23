@@ -67,7 +67,7 @@ If the received word is valid, then no error, otherwise there has been an error.
 \subsection{Erasure Correction}
 The channel takes a transmitted sequence and erases some of the symbols, such as in packet networks.
 
-\textbf{Binary erasure channel} ($BEC(p)$): independently at random, erase each bit with probablity $p$.
+\textbf{Binary erasure channel} ($BEC(p)$): independently at random, erase each bit with probability $p$.
 
 The expected number of erasures is $pn$, and the number of erasures concentrates around $pn$.
 
@@ -242,7 +242,7 @@ For a linear code, a systematic encoder corresponds to a generator matrix that c
 \end{itemize}
 
 \subsection{MDS Codes}
-Some linear codes have the maximal number $\binom{n}{k}$ of systematic encoders, these are \textbf{maximum distance seperable} codes.
+Some linear codes have the maximal number $\binom{n}{k}$ of systematic encoders, these are \textbf{maximum distance separable} codes.
 \begin{itemize}
   \item For an MDS code, every $k \times k$ submatrix of $G$ has rank $k$ (every $k$ columns of G are linearly independent).
   \item Minimum distance of an MDS code is (thus) $n - k + 1$ (singleton bound).
@@ -443,7 +443,7 @@ This orthogonal space is the \textbf{dual code} $\mathcal{C}^\bot$.
 The dual of $\mathcal{C}^\bot$ is $\mathcal{C}$.
 
 \subsection{The Dual Code}
-If $\mathcal{C}$ is determined by a generator matrix $G$ and parity check matrix $H$, then $\mathcal{C}^\intercal$ is determined by a generator matrix $H$ and a partity check matrix $G$.
+If $\mathcal{C}$ is determined by a generator matrix $G$ and parity check matrix $H$, then $\mathcal{C}^\intercal$ is determined by a generator matrix $H$ and a parity check matrix $G$.
 
 \begin{itemize}
   \item The dual code is of length $n$ and dimension $r = n - k$.
@@ -596,7 +596,7 @@ Special case when $q = 2$ and $r = 1$, also know as the \textbf{Hadamard Code}.
 \begin{itemize}
   \item Length: $n = 2^m$.
   \item Dimension: $k = \binom{m + r}{r} = m + 1$.
-  \item Distance $\geq n(1 - \frac{r}{q}) = 2^{m - 1}$ (actually exact).
+  \item Distance $\geq n\left(1 - \frac{r}{q}\right) = 2^{m - 1}$ (actually exact).
 \end{itemize}
 
 The encoder:
@@ -610,5 +610,227 @@ where
 
 In general, the first order RM code is the dual of extended Hamming code.
 This gives it amazing error tolerance but it quickly becomes inefficient.
+
+\section{How Good can a Code be?}
+\begin{itemize}
+  \item $A(n, d)$: maximum possible size of a binary code of length $n$, minimum distance $/geq d$.
+  \item $A_q(n, d)$: same, over $q$-ary alphabet.
+  \item In general, we do not know much about the exact values of these.
+  \item We know that increasing $d$ decreases $A$, and increasing $n$ or $q$ increases $A$.
+  \item We fix $q$ (say $q = 2$), omit $n$, and look at the asymptotic situation:
+    \[
+      R_q(\delta) := \limsup_{n \rightarrow \infty} \frac{\log_q A_q(n, \floor{\delta n})}{n}
+    \]
+  \item We find the maximum possible \textbf{rate} for a given \textbf{relative distance} $\delta$.
+\end{itemize}
+
+
+\begin{figure}[h]
+  \caption{Graph of the rate.}
+  \includegraphics[scale=0.4]{rategraph}
+  \centering
+\end{figure}
+
+\begin{itemize}
+  \item The pink region is impossible, the blue region is possible.
+  \item We know the Singleton bound:
+    \[
+      k \leq n - d + 1
+    \]
+  \item We divide by $n$, and making $n$ tend to infinity:
+    \[
+      R_q(\delta) \leq 1 - \delta
+    \]
+  \item For a fixed $q$, better bounds are known.
+  \item \textbf{Plotkin bound}:
+    \begin{itemize}
+      \item If $\delta \geq \frac{q - 1}{q}$, $R_q(\delta) = 0$.
+      \item Else, $R_q(\delta) \leq 1 - \frac{\delta q}{q - 1}$.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Major Known Bounds for $q = 2$}
+\begin{figure}[h]
+  \caption{Known bounds.}
+  \includegraphics[scale=0.4]{bounds}
+  \centering
+\end{figure}
+
+Upper bounds on $R_q(\delta)$:
+\begin{itemize}
+    \item Singleton, Plotkin, Hamming, MRRW.
+    \item \textbf{Hamming (or Sphere packing/Packing) bound}:
+      \[
+        R_q(\delta) \leq 1 - h_q\left(\frac{\delta}{2}\right)
+      \]
+    \item \textbf{MRRW}:
+      \[
+        R_q(\delta) \leq h\left(\frac{1}{2} - \sqrt{\delta (1 - \delta)}\right)
+      \]
+\end{itemize}
+
+Lower bound on $R_q(\delta)$:
+\begin{itemize}
+  \item \textbf{GV (Gilbert-Varshamov Bound)}:
+    \[
+      R_q(\delta) \geq 1 - h_q(\delta)
+    \]
+\end{itemize}
+
+The $q$-ary entropy function:
+\[
+  h_q(x) := -x\log_q(x) - (1 - x)\log_q(1 - x) + x\log_q(q - 1)
+\]
+
+The binary entropy function:
+\[
+  h(x) := -x\log_2(x) - (1 - x)\log_2(1 - x)
+\]
+
+\section{Hamming Bound}
+Recall the Hamming ball:
+\[
+  B(x, r) := \{ y \in (GF(q))^n : d_H(x, y) \leq r \}
+\]
+
+In any $(n, M, d)$ code, Hamming balls of radius $r = \floor{\frac{d - 1}{2}}$ centered around the $M$ codewords must not collide.
+
+We can say that each codeword $c$ eats up (at least) $\lvert B(c, r) \rvert$ points in the space $(GF(q))^n$ that cannot be assigned to any other codewords.
+This volume does not depend on the center $c$.
+
+Then $Vol_q(n, r)$ is the volume of an $n$-dimensional Hamming ball at radius $r$ over alphabet size $q$.
+
+Any $(n, M, d)_q$ code must satisfy:
+\[
+  M \leq \frac{q^n}{Vol_q(n, r)}
+\]
+Taking $\log$ from both sides:
+\[
+  k \leq n - \log_q(Vol_q(n, r))
+\]
+
+Then the \textbf{Hamming bound} for any $(n, M, d)_q$ code is:
+\[
+  \frac{k}{n} \leq 1 - \log_q\left(Vol_q \left(n, \floor{\frac{d - 1}{2}}\right)\right) / n
+\]
+
+\subsection{Hamming Bound: $Vol_q{n, r}$}
+\[
+  Vol_q(n, r) = 1 + (q - 1)\binom{n}{1} + (q - 1)^2 \binom{n}{2} + \ldots + (q - 1)^r \binom{n}{r}
+\]
+
+\begin{itemize}
+  \item When $q = 2$:
+    \[
+      Vol(n, r) = \sum_{i = 0}^r \binom{n}{r}
+    \]
+  \item Recall:
+    \[
+      \binom{n}{i} = \frac{n!}{i!(n - i)!}
+    \]
+  \item \textbf{Stirling's approximation}:
+    \[
+      n! \approx \sqrt{2\pi n}\binom{n}{e}^n
+    \]
+  \item Useful to know:
+    \[
+      \binom{n}{i}^i \leq \binom{n}{i} \leq \binom{ne}{i}^i
+    \]
+  \item Then, when $r$ is constant, we have $Vol(n, r) = O(n^r)$.
+\end{itemize}
+
+\subsection{Hamming Bound: Stirling's Approximation}
+Using Stirling's Approximation and assuming $r \leq \frac{q - 1}{q}$:
+\[
+  q^{nh_q \left(\frac{r}{n}\right) - o(n)} \leq Vol_q(n, r) \leq q^{nh_q \left(\frac{r}{n}\right)}
+\]
+Which means:
+\[
+  \frac{\log_q(Vol_q(n, r))}{n} \geq h_q \left(\frac{r}{n}\right) - o(1)
+\]
+Recalling $o(1)$ meaning that something tends to $0$ as $n$ grows.
+
+Plugging in the Hamming bound, when $d := \delta n$:
+\[
+  \frac{k}{n} \leq 1 - \log_q\left(Vol_q \left(n, \floor{\frac{d - 1}{2}}\right)\right) / n
+  \leq 1 - h_q \left(\frac{\delta}{2}\right) + o(1)
+\]
+
+If we tend $n$ to infinity:
+\[
+  R_q(\delta) \leq 1 - h_q \left(\frac{\delta}{2}\right)
+\]
+
+\section{Gilbert-Varshamov (GV) Bound}
+A simple greedy algorithm to construct a non-linear $(n, M, d)_q$ code:
+\begin{enumerate}
+  \item Start with the whole space $S := (GF(q))^n$ and the empty code $C$.
+  \item Pick any $c \in S$ and add $c$ as a codeword to $C$.
+  \item Remove the Hamming ball of radius $d - 1$ around $c$ from $S$.
+  \item Go back to step $2$ if $S \neq \emptyset$.
+\end{enumerate}
+
+This gives a code with minimum distance at least $d$.
+
+Each codeword added to $C$ eats up at most $Vol_q(n, d - 1)$ of the space.
+
+The number of steps until the algorithm runs out of codewords to add is at least $\frac{q^n}{Vol_q(n, d - 1)}$.
+
+\[
+  M \geq \frac{q^n}{Vol_q(n, d - 1)}
+\]
+\[
+  \text{rate } = \frac{\log_q(M)}{n} \geq \frac{n - \log_q(Vol_q(n, d - 1))}{n} \geq 1 - h_q \left(\frac{d - 1}{n}\right)
+\]
+
+If $d = \delta n$ and $n \rightarrow \infty$, then $R_q(\delta) \geq 1 - h_q(\delta)$.
+
+\subsection{Hamming vs.\ Gilbert-Varshamov}:
+\[
+  1 - h_q(\delta) \leq R_q(\delta) \leq 1 - h_q \left(\frac{\delta}{2}\right)
+\]
+
+\subsection{GV Bound for Linear Codes}
+Most linear codes achieve the GV bound.
+
+We count how many codes there are, and for a given parameter $d$ split into sets containing codes that contain a non-zero codeword of weight $< d$ (call them the \textbf{bad codes}), and those which do not.
+
+The number of codes is much more than the number of bad codes.
+
+\subsection{Valid Generator Matrices}
+The number of valid $k \times n$ generator matrices is:
+\begin{align*}
+  (q^n - 1)(q^n - q)(q^n - q^2) \ldots (q^n - q^{k - 1})
+  &= q^{nk} \left(1 - \frac{1}{q^n}\right)\left(1 - \frac{1}{q^{n - 1}}\right)\left(1 - \frac{1}{q^{n - 1}}\right)\ldots\left(1 - \frac{1}{q^{n - k + 1}}\right) \\
+  &\geq q^{nk}\left(1 - \frac{1}{q^n}\right)\left(1 - \frac{1}{q^{n - 1}}\right)\left(1 - \frac{1}{q^{n - 2}}\right)\ldots\left(1 - \frac{1}{q^2}\right) \\
+  &\geq q^{nk} \left(1 - \frac{1}{q^n} - \frac{1}{q^{n - 1} - \ldots - \frac{1}{q^2}}\right) \\
+  &\geq q^{nk} \left(1 - \frac{1}{q^2 - 1}\right) \\
+  &> \frac{1}{2}q^{nk}
+\end{align*}
+
+It then follows that more than half of the $q^{n(n - k)}$ choices of an $(n - k) \times n$ matrix $H$ are valid parity matrices of length $n$, dimension $k$.
+
+\subsection{Codes containing $c$}
+The number of linear codes of dimension $k$ that can contain $c$ as a codeword is at most $q^{(n - k)n - (n - k)}$.
+This is equivalent to the number of parity check matrices which satisfy $H \cdot c = \overrightarrow{0}$, which we can get from recalling that $c$ defines a linear dependence on the columns of $H$, which determines one column of $H$ given the rest of $H$.
+
+The fraction of all possible choices of $H$ (valid or not) corresponding to the codes containing $c$ is at most $\frac{1}{q^{n - k}}$.
+
+\subsection{Codes containing a codeword of weight $< d$}
+We know that it is at most $\frac{Vol_q(n, d)}{q^{n - k}}$.
+
+We are therefore left with a code of distance at least $d$, provided that:
+\begin{align*}
+  \frac{Vol_q(n, d)}{q^{n - k}} &< \frac{1}{2} \\
+  \frac{q^{nh_q\left(\frac{d}{n}\right)}}{q^{n - k}} &< \frac{1}{2}
+\end{align*}
+
+Let $d = \delta n, R = \frac{k}{n}$, it suffices to have:
+\[
+  \frac{1}{q^{n(1 - R - h_q(\delta))}} < \frac{1}{2}
+\]
+
+If $n$ is large, this means it suffices to have $R < 1 - h_q(\delta)$.
+This is the GV bound.
 
 \end{document}
