@@ -43,7 +43,7 @@ We first find out the pixel coordinates of the window:
   GetWindowPixelCoords(Vxmin, Vymin, Vxmax, Vymax);
 \end{verbatim}
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{World coordinate window against viewport on the screen.}
   \includegraphics[scale=0.4]{normalisation}
   \centering
@@ -77,7 +77,7 @@ To describe objects made of polygons, we need the \textbf{locations} of the vert
   \item Topological Data - what is connected to what.
 \end{itemize}
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Data for a polygon.}
   \includegraphics[scale=0.3]{polygon}
   \centering
@@ -122,7 +122,7 @@ This means:
   \end{pmatrix}
 \]
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Parallel projection.}
   \includegraphics[scale=0.3]{parallel}
   \centering
@@ -150,7 +150,7 @@ In \textbf{perspective projection}, all the projectors pass through one point in
 If the centre of projection is on the opposite side of the plane of projection compared to the 3D object, the orientation of the image is the same as the object.
 Otherwise if thecentre is between the plane and the object, the image is inverted.
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Perspective projection where the viewpoint is on the opposite side of the object.}
   \includegraphics[scale=0.3]{perspective}
   \centering
@@ -281,7 +281,7 @@ The inverse is:
 \subsubsection{Combining Transformations}
 To combine transformations, we can multiply out their matrices and apply the transformation with the resultant matrix.
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Importance of the order of transformations.}
   \includegraphics[scale=0.2]{combining}
   \centering
@@ -316,7 +316,7 @@ Matrices for rotation around the three cartesian axes are:
   \end{pmatrix}
 \end{align*}
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Rotation of a coordinate ($z$-axis goes into the page).}
   \includegraphics[scale=0.3]{deriverotate}
   \centering
@@ -404,7 +404,7 @@ The required transformation is split into three parts:
 
 \subsubsection{Translation of the Origin}
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Translation of the origin.}
   \includegraphics[scale=0.2]{transorigin}
   \centering
@@ -422,7 +422,7 @@ We apply the transformation matrix:
 \]
 
 \subsubsection{Rotation about the $y$-axis}
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Rotation about the $y$-axis.}
   \includegraphics[scale=0.2]{roty}
   \centering
@@ -451,7 +451,7 @@ We rotate about $y$ until $d$ is in the $y-z$ plane ($x = 0$):
 \]
 
 \subsubsection{Rotation about the $x$-axis}
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Rotation about the $x$-axis.}
   \includegraphics[scale=0.2]{rotx}
   \centering
@@ -490,7 +490,7 @@ Then for every point $\textbf{P}$ in the scene, we calculate:
 The view is now in canonical form, and we can apply the standard perspective or othographic projection.
 
 \subsubsection{Verticals}
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Order of rotation affecting inversion.}
   \includegraphics[scale=0.2]{invert}
   \centering
@@ -698,7 +698,7 @@ This means that the columns are the original axis system after transforming to t
 \end{itemize}
 
 \subsubsection{Effect of a Transformation Matrix}
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Effect of a transformation matrix.}
   \includegraphics[scale=0.2]{effecttransform}
   \centering
@@ -721,13 +721,13 @@ Normally, we are not given the transformation matrix, but the view direction $\t
 
 \subsubsection{Dot Product}
 \begin{defn}
-  The dot product is defined:
+  The \textbf{dot product} is defined:
   \[
     P \cdot u = \lvert P \rvert \lvert u \rvert \cos \theta  
   \]
 \end{defn}
 
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{The dot product as an ordinate of $P$.}
   \includegraphics[scale=0.2]{dotproduct}
   \centering
@@ -739,7 +739,7 @@ Normally, we are not given the transformation matrix, but the view direction $\t
 \end{itemize}
 
 \subsubsection{Changing Axes by Projection}
-\begin{figure}[h]
+\begin{figure}[htb!]
   \caption{Transforming a point $\textbf{P}$ to a different axes.}
   \includegraphics[scale=0.2]{changingaxes}
   \centering
@@ -834,5 +834,168 @@ which we use to write down:
   \end{pmatrix}
 \]
 
+\section{Clipping}
+\begin{defn}
+  \textbf{Clipping} is the process of eliminating portions of objects outside the viewing frustum to avoid degeneracy and improve efficiency.
+\end{defn}
+
+\begin{figure}[htb!]
+  \caption{The view frustum.}
+  \includegraphics[scale=0.3]{frustum}
+  \centering
+\end{figure}
+
+The view frustum is the boundaries of the image plane projected in 3D, consisting of a near and far clipping plane, with additional user defined clipping planes.
+
+When do we clip?
+\begin{itemize}
+  \item Before perspective transform in 3D space (natural).
+  \item In homogeneous coordinates after perspective transform (simple).
+  \item In the transformed 3D screen space after perspective division (messy).
+\end{itemize}
+
+\subsection{Halfspace}
+\begin{figure}[htb!]
+  \caption{The concept of a halfspace.}
+  \includegraphics[scale=0.3]{halfspace}
+  \centering
+\end{figure}
+We can use halfspaces to perform a test on all the points in the scene, to determine if they should be discarded or drawn.
+
+In planes, we use the general equations:
+\[
+  f(x, y, z) = 0 \text{ or } Ax + By + Cz + D = 0
+\]
+
+\subsection{Homogeneous Coordinates}
+We can link the plane equation to homogeneous coordinates:
+\[
+  \textbf{H} = \begin{pmatrix} A \\ B \\ C \\ D \end{pmatrix}  
+\]
+However, each point has an infinite number of equivalent homogenous coordinates as they can be scaled, $\begin{pmatrix} sx & sy & sz & sw \end{pmatrix}$.
+
+We solve this by scaling $\textbf{H}$ so that $\begin{pmatrix} A & B & C \end{pmatrix}$ becomes normalized:
+\[
+  A^2 + B^2 + C^2 = 1  
+\]
+
+\begin{figure}[htb!]
+  \caption{Using $\textbf{H}$ to find the distance to a point $\textbf{p}$.}
+  \includegraphics[scale=0.3]{signeddistance}
+  \centering
+\end{figure}
+
+Then the distance is calculated:
+\[
+  d = \textbf{H} \cdot \textbf{p} = \textbf{H}^\intercal \textbf{p} 
+\]
+since $\textbf{H}$ is the normal of the plane.
+
+$d$ is a \textbf{signed distance}:
+\begin{itemize}
+  \item Positive $\rightarrow$ inside the plane, pass through.
+  \item Negative $\rightarrow$ outside the plane, clip (or cull or reject).
+\end{itemize}
+
+We do not actually need to normalize as we test only the sign of $\textbf{H} \cdot \textbf{p}$.
+
+\subsection{Clipping with respect to View Frustum}
+We test a point $\textbf{p}$ against each of the 6 planes, where each normal $\textbf{H}$ is oriented towards the interior.
+
+\begin{align*}
+  \textbf{H}_{near} &= \begin{pmatrix} 0 & 0 & 1 & -near \end{pmatrix}^\intercal \\
+  \textbf{H}_{far} &= \begin{pmatrix} 0 & 0 & -1 & far \end{pmatrix}^\intercal \\
+  \textbf{H}_{bottom} &= \begin{pmatrix} 0 &  near & -bottom & 0 \end{pmatrix}^\intercal \\
+  \textbf{H}_{top} &= \begin{pmatrix} 0 & -near & top & 0 \end{pmatrix}^\intercal \\
+  \textbf{H}_{left} &= \begin{pmatrix} -near  & 0 & left & 0 \end{pmatrix}^\intercal \\
+  \textbf{H}_{right} &= \begin{pmatrix} near & 0 & -right & 0 \end{pmatrix}^\intercal
+\end{align*}
+
+We can derive the first two from observing the frustum and recalling that that the viewpoint looks along the $z$-axis.
+
+The rest can be derived by taking points from the frustum corners:
+\[
+  \begin{pmatrix} l \\ b \\ n \end{pmatrix}
+  \times
+  \begin{pmatrix} b \\ b \\ n \end{pmatrix}
+  =
+  \begin{vmatrix}
+    \hat{i} & \hat{j} & \hat{k} \\
+    l & b & n \\
+    r & b & n
+  \end{vmatrix}
+  =
+  \begin{pmatrix} 0 & n & -b \end{pmatrix}
+\]
+
+\begin{alignat*}{2}
+  \quad & (\textbf{P} - \textbf{P}_1) \cdot \textbf{n} &&= 0 \\
+  \implies & ny - bz &&= 0 \\
+  \implies & \textbf{H}_{bottom} &&= \begin{pmatrix} 0 & n & -b & 0 \end{pmatrix}^\intercal
+\end{alignat*}
+
+\subsection{Line-Plane Intersection}
+Explicit (parametric) line equation:
+\[
+  \textbf{L}(\mu) = \textbf{p}_0 + \mu(\textbf{p}_1 - \textbf{p}_0) = \mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0
+\]
+
+To compute the intersection point, we use the fact that $(\textbf{P} - \textbf{P}_1) \cdot \textbf{n} = 0$:
+\begin{enumerate}
+  \item Let the intersection point be $\mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0$.
+  \item Choose $\textbf{v}$ to be any point on the plane.
+  \item A vector in the plane is given by $\mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0 - \textbf{v}$.
+  \item Then $\textbf{n} \cdot (\mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0 - \textbf{v}) = 0$
+  \item Solve for $\mu$ to find the point of intersection.
+\end{enumerate}
+
+\subsubsection{Segment Clipping}
+\begin{itemize}
+  \item If $\textbf{H} \cdot \textbf{p} > 0$ and $\textbf{H} \cdot \textbf{q} < 0$: clip $\textbf{q}$ to plane.
+  \item If $\textbf{H} \cdot \textbf{p} < 0$ and $\textbf{H} \cdot \textbf{q} > 0$: clip $\textbf{p}$ to plane.
+  \item If $\textbf{H} \cdot \textbf{p} > 0$ and $\textbf{H} \cdot \textbf{q} > 0$: pass through.
+  \item If $\textbf{H} \cdot \textbf{p} < 0$ and $\textbf{H} \cdot \textbf{q} < 0$: clipped out.
+\end{itemize}
+
+\subsubsection{Clipping against the Frustum}
+For each frustum plane $\textbf{H}$, we apply segment clipping.
+This results in a single segment.
+
+\subsection{Clipping and Containment}
+Clipping can be carried out against any object.
+We to develop a test for containment, to determine if a point is inside or outside the object, namely for convex and concave objects.
+
+\subsubsection{Convex Objects}
+Convex objects are defined by:
+\begin{enumerate}
+  \item A line joining any two points on the boundary lies inside the object.
+  \item The object is the intersection of planar halfspaces.
+\end{enumerate}
+All points of the object must lie entirely to one side of each face - we use this to check if a shape is convex, and to check if a point is contained within the object.
+
+\begin{figure}[htb!]
+  \caption{Vector test for containment on a convex shape.}
+  \includegraphics[scale=0.5]{containmentvector}
+  \label{fig:vectortest}
+  \centering
+\end{figure}
+
+The vector formulation (figure \ref{fig:vectortest}) does not require finding the plane equation of a face, but does require finding the normal vector to the plane.
+This involves finding the cross product of two vectors on the plane, say two edge vectors.
+
+\begin{figure}[htb!]
+  \caption{Finding a normal vector using two edge vectors.}
+  \includegraphics[scale=0.5]{edgenormal}
+  \centering
+\end{figure}
+
+Care must be taken to ensure the normal found is an \textbf{inner normal}, see figure \ref{fig:innernormalcheck}.
+
+\begin{figure}[htb!]
+  \caption{Finding a normal vector using two edge vectors.}
+  \includegraphics[scale=0.4]{innernormal}
+  \label{fig:innernormalcheck}
+  \centering
+\end{figure}
 
 \end{document}
