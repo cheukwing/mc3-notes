@@ -384,4 +384,455 @@ Then for example:
   \end{pmatrix}
 \]
 
+\section{Transformations for Animation}
+In a viewer-centred application, we wish to view the scene from a moving position.
+When the viewpoint changes, we need to transform all the coordinates of the scene.
+
+\subsection{Flying Sequences}
+Each moved viewpoint is a change of origin:
+\begin{itemize}
+  \item Let the required viewpoint be $C = (C_x, C_y, C_z)$.
+  \item Let the required direction be $d = \begin{pmatrix} d_x \\ d_y \\ d_z \end{pmatrix}$.
+\end{itemize}
+
+The required transformation is split into three parts:
+\begin{enumerate}
+  \item Translation of the origin.
+  \item Rotation about the $y$-axis.
+  \item Rotation about the $x$-axis.
+\end{enumerate}
+
+\subsubsection{Translation of the Origin}
+
+\begin{figure}[h]
+  \caption{Translation of the origin.}
+  \includegraphics[scale=0.2]{transorigin}
+  \centering
+\end{figure}
+
+We apply the transformation matrix:
+\[
+  \mathcal{A} =
+  \begin{pmatrix}
+    1 & 0 & 0 & -C_x \\
+    0 & 1 & 0 & -C_y \\
+    0 & 0 & 1 & -C_z \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\]
+
+\subsubsection{Rotation about the $y$-axis}
+\begin{figure}[h]
+  \caption{Rotation about the $y$-axis.}
+  \includegraphics[scale=0.2]{roty}
+  \centering
+\end{figure}
+
+We rotate about $y$ until $d$ is in the $y-z$ plane ($x = 0$):
+\begin{align*}
+  \lVert \textbf{v} \lVert = v = \sqrt{d_x^2 + d_z^2} && \cos \theta = d_z / v && \sin \theta = d_x / v
+\end{align*}
+
+\[
+  \mathcal{B} =
+  \begin{pmatrix}
+    \cos \theta & 0 & -\sin \theta & 0 \\
+    0 & 1 & 0 & 0 \\
+    \sin \theta & 0 & \cos \theta & 0 \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    d_z / v & 0 & -d_x / v & 0 \\
+    0 & 1 & 0 & 0 \\
+    d_x / v & 0 & d_z / v & 0 \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\]
+
+\subsubsection{Rotation about the $x$-axis}
+\begin{figure}[h]
+  \caption{Rotation about the $x$-axis.}
+  \includegraphics[scale=0.2]{rotx}
+  \centering
+\end{figure}
+
+We then rotate about $x$ until $d$ points along the $z$-axis:
+\begin{align*}
+  v = \sqrt{d_x^2 + d_z^2} && \cos \phi = v / \lvert d \rvert && \sin \phi = d_y / \lvert d \rvert
+\end{align*}
+
+\[
+  \mathcal{C} =
+  \begin{pmatrix}
+    1 & 0 & 0 & 0 \\
+    0 & \cos \phi & -\sin \phi & 0 \\
+    0 & \sin \phi & \cos \phi & 0 \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    1 & 0 & 0 & 0 \\
+    0 & v / \lvert d \rvert & -d_y / \lvert d \rvert & 0 \\
+    0 & d_y / \lvert d \rvert & v / \lvert d \rvert & 0 \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\]
+
+\subsubsection{Combining the Matrices}
+\[
+  \mathcal{T} = \mathcal{CBA}  
+\]
+Then for every point $\textbf{P}$ in the scene, we calculate:
+\[
+  \textbf{P}_t = \mathcal{T}\textbf{P}  
+\]
+The view is now in canonical form, and we can apply the standard perspective or othographic projection.
+
+\subsubsection{Verticals}
+\begin{figure}[h]
+  \caption{Order of rotation affecting inversion.}
+  \includegraphics[scale=0.2]{invert}
+  \centering
+\end{figure}
+
+Usually the $y$ direction is treated as vertical, by doing the $R_y$ transformation first, things will work out correctly.
+
+However if we do the $R_x$ first, we could end up inverting the vertical.
+
+\subsection{Rotation about a General Line}
+To perform this transformation, we:
+\begin{enumerate}
+  \item Make the line of rotation one of the Cartesian axes.
+  \item Rotate about the chosen axis.
+  \item \textbf{Restore} the line to its original place.
+\end{enumerate}
+
+We achieve the first part through the same method as for \textit{flying sequences}: $\mathcal{CBA}$.
+
+We then rotate about the $z$-axis, which is aligned with the general line.
+
+Finally, we invert the initial matrices.
+
+\[
+  \mathcal{T} = \mathcal{A}^{-1} \mathcal{B}^{-1} \mathcal{C}^{-1} \mathcal{R}_z \mathcal{CBA}  
+\]
+
+\subsubsection{Other Effects}
+Similar effects can be created using this approach.
+\begin{eg}
+  To make an object shrink (and stay in place):
+  \begin{enumerate}
+    \item Move the object to the origin.
+    \item Apply a scaling matrix.
+    \item Restore (move) the object to its place.
+  \end{enumerate}
+\end{eg}
+
+\subsection{Projection by Matrix Multiplication}
+\subsection{Orthographic Projection Matrix}
+\[
+  \mathcal{M}_o =
+  \begin{pmatrix}
+    1 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\]
+\[
+  \mathcal{M}_o
+  \begin{pmatrix}
+    x \\ y \\ z \\ 1
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x \\ y \\ 0 \\ 1
+  \end{pmatrix}
+\]
+
+\subsection{Perspective Projection Matrix}
+\[
+  \mathcal{M}_p =
+  \begin{pmatrix}
+    1 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 \\
+    0 & 0 & 1 / f & 0
+  \end{pmatrix}
+\]
+\[
+  \mathcal{M}_p
+  \begin{pmatrix}
+    x \\ y \\ z \\ 1
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    x \\ y \\ z \\ z / f
+  \end{pmatrix}
+\]
+
+We then normalise the result to get:
+\[
+  \begin{pmatrix} xf/z \\ yf/z \\ f \\ 1 \end{pmatrix}  
+\]
+as required.
+
+\subsection{Singular}
+Both projection matricies are singular, notice each has a column of zeroes.
+This means they cannot be inverted: we cannot reconstruct the original 3D scene from a 2D image.
+
+\subsection{Homogeneous Coordinates and Vectors}
+\begin{itemize}
+  \item \textbf{Position vectors} - $\begin{pmatrix} x \\ y \\ z \\ s \end{pmatrix}$.
+    \begin{itemize}
+      \item Non-zero final ordinate ($s$).
+      \item Can be normalised into Cartesian form.
+      \item \textit{Fixed point in space.}
+    \end{itemize}
+  \item \textbf{Direction vectors} - $\begin{pmatrix} x \\ y \\ z \\ 0 \end{pmatrix}$.
+    \begin{itemize}
+      \item Zero final ordinate.
+      \item Have direction and magnitude.
+      \item \textit{Not associated with a particular point.}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Addition of Vectors}
+Adding \textbf{two direction vectors} results in a direction vector (notice the zero final ordinate):
+\[
+  \begin{pmatrix} x_i \\ y_i \\ z_i \\ 0 \end{pmatrix} 
+  +
+  \begin{pmatrix} x_j \\ y_j \\ z_j \\ 0 \end{pmatrix} 
+  =
+  \begin{pmatrix} x_i + x_j \\ y_i + y_j \\ z_i + z_j \\ 0 \end{pmatrix} 
+\]
+
+Adding a \textbf{direction vector to a position vector} results in a position vector:
+\[
+  \begin{pmatrix} X \\ Y \\ Z \\ 1 \end{pmatrix} 
+  +
+  \begin{pmatrix} x \\ y \\ z \\ 0 \end{pmatrix} 
+  =
+  \begin{pmatrix} X + x \\ Y + y \\ Z + z \\ 1 \end{pmatrix} 
+\]
+
+Adding \textbf{two position vectors} results in their mid-point:
+\[
+  \begin{pmatrix} X_a \\ Y_a \\ Z_a \\ 1 \end{pmatrix} 
+  +
+  \begin{pmatrix} X_b \\ Y_b \\ Z_b \\ 1 \end{pmatrix} 
+  =
+  \begin{pmatrix} X_a + X_b \\ Y_a + Y_b \\ Z_a + Z_b \\ 2 \end{pmatrix} 
+  =
+  \begin{pmatrix} (X_a + X_b) / 2 \\ (Y_a + Y_b) / 2 \\ (Z_a + Z_b) / 2 \\ 1 \end{pmatrix} 
+\]
+
+\subsection{Transformation Matrices}
+\subsubsection{Structure}
+\[
+  \begin{pmatrix}
+    q_x & r_x & s_x & C_x \\
+    q_y & r_y & s_y & C_y \\
+    q_z & r_z & s_z & C_z \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\]
+\begin{itemize}
+  \item The bottom row is always $\begin{matrix}0&0&0&1\end{matrix}$.
+  \item The columns comprise of three direction vectors and one position vector.
+\end{itemize}
+
+\subsubsection{Characteristics}
+When we multiply a direction vector, the last ordinate ensures it is not affected by translation:
+\[
+  \begin{pmatrix}
+    q_x & r_x & s_x & C_x \\
+    q_y & r_y & s_y & C_y \\
+    q_z & r_z & s_z & C_z \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix} * \\ * \\ * \\ 0 \end{pmatrix}
+  =
+  \begin{pmatrix} * \\ * \\ * \\ 0 \end{pmatrix}
+\]
+
+When we multiply a position vector, the last ordinate ensures all vectors have the same displacement:
+\[
+  \begin{pmatrix}
+    q_x & r_x & s_x & C_x \\
+    q_y & r_y & s_y & C_y \\
+    q_z & r_z & s_z & C_z \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix} * \\ * \\ * \\ 1 \end{pmatrix}
+  =
+  \begin{pmatrix} * + C_x \\ * + C_y \\ * + C_z \\ 1 \end{pmatrix}
+\]
+
+If we do not shear the object, $q$, $r$, $s$ will remain orthogonal:
+\[
+  q \cdot r = r \cdot s = q \cdot s = 0  
+\]
+
+\subsubsection{Meaning of the Individual Columns}
+When we multiply the matrix by unit vectors, we get the individual columns of the matrix:
+\[
+  \begin{pmatrix}
+    q_x & r_x & s_x & C_x \\
+    q_y & r_y & s_y & C_y \\
+    q_z & r_z & s_z & C_z \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix} 1 & 0 & 0 & 0 \end{pmatrix}
+  =
+  \begin{pmatrix} q_x & q_y & q_z & 0 \end{pmatrix}
+\]
+
+This means that the columns are the original axis system after transforming to the new coordinate system:
+\begin{itemize}
+  \item \textbf{q} is the transformed $x$-axis.
+  \item \textbf{r} is the transformed $y$-axis.
+  \item \textbf{s} is the transformed $z$-axis.
+  \item \textbf{C} is the transformed origin.
+\end{itemize}
+
+\subsubsection{Effect of a Transformation Matrix}
+\begin{figure}[h]
+  \caption{Effect of a transformation matrix.}
+  \includegraphics[scale=0.2]{effecttransform}
+  \centering
+\end{figure}
+
+We get the old axes and origin in the new coordinate system:
+\[
+  \begin{pmatrix}
+    q_x & r_x & s_x & C_x \\
+    q_y & r_y & s_y & C_y \\
+    q_z & r_z & s_z & C_z \\
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  =
+  \begin{bmatrix} \textbf{q} & \textbf{r} & \textbf{s} & \textbf{C} \end{bmatrix}
+\]
+
+\subsection{General Viewing Matrix Transformation}
+Normally, we are not given the transformation matrix, but the view direction $\textbf{d}$ and location $\textbf{C}$ instead.
+
+\subsubsection{Dot Product}
+\begin{defn}
+  The dot product is defined:
+  \[
+    P \cdot u = \lvert P \rvert \lvert u \rvert \cos \theta  
+  \]
+\end{defn}
+
+\begin{figure}[h]
+  \caption{The dot product as an ordinate of $P$.}
+  \includegraphics[scale=0.2]{dotproduct}
+  \centering
+\end{figure}
+
+\begin{itemize}
+  \item If $u$ is a unit vector, then $P \cdot u = \lvert P \rvert \cos \theta$.
+  \item If $u$ is along a coordinate axis, then $P \cdot u$ is the ordinate of $P$ in the direction of $u$.
+\end{itemize}
+
+\subsubsection{Changing Axes by Projection}
+\begin{figure}[h]
+  \caption{Transforming a point $\textbf{P}$ to a different axes.}
+  \includegraphics[scale=0.2]{changingaxes}
+  \centering
+\end{figure}
+
+We can express projections using the dot product:
+\begin{alignat*}{2}
+  P_x^t &= (\textbf{P} - \textbf{C}) \cdot \textbf{u} &&= \textbf{P} \cdot \textbf{u} - \textbf{C} \cdot \textbf{u} \\
+  P_y^t &= (\textbf{P} - \textbf{C}) \cdot \textbf{v} &&= \textbf{P} \cdot \textbf{v} - \textbf{C} \cdot \textbf{v} \\
+  P_z^t &= (\textbf{P} - \textbf{C}) \cdot \textbf{w} &&= \textbf{P} \cdot \textbf{w} - \textbf{C} \cdot \textbf{w}
+\end{alignat*}
+
+In matrix notation:
+\[
+  \begin{pmatrix} P_x^t \\ P_y^t \\ P_z^t \\ 1 \end{pmatrix}
+  =
+  \begin{pmatrix}
+    u_x & u_y & u_z & -\textbf{C} \cdot \textbf{u} \\ 
+    v_x & v_y & v_z & -\textbf{C} \cdot \textbf{v} \\ 
+    w_x & w_y & w_z & -\textbf{C} \cdot \textbf{w} \\ 
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+  \begin{pmatrix} P_x \\ P_y \\ P_z \\ 1 \end{pmatrix}
+\]
+
+By maintaining values of $\textbf{C}, \textbf{u}, \textbf{v}, \textbf{w}$ throughout an animation sequence, we can write down the correct scene transformation matrix.
+
+\subsubsection{Returning to Flying Sequences}
+As we know $\textbf{d}$ is the direction of the new axis, then
+\[
+  \textbf{w} = \frac{\textbf{d}}{\lvert \textbf{d} \rvert}
+\]
+
+We can write $\textbf{u}$ in terms of some vector $\textbf{p}$ in the horizontal direction:
+\[
+  \textbf{u} = \frac{\textbf{p}}{\lvert \textbf{p} \rvert}
+\]
+and set $p_y = 0$ to ensure it has no vertical component.
+
+We can write $\textbf{v}$ in terms of some vector $\textbf{q}$ in the vertical direction:
+\[
+  \textbf{v} = \frac{\textbf{q}}{\lvert \textbf{q} \rvert}
+\]
+and force $q_y = 1$ to ensure it has a positive $y$ component.
+
+We now have:
+\begin{align*}
+  \textbf{p} &= \begin{pmatrix} p_x \\ 0 \\ p_z \end{pmatrix}
+  & \textbf{q} &= \begin{pmatrix} q_x \\ 1 \\ q_z \end{pmatrix}
+\end{align*}
+
+It must be that:
+\[
+  \textbf{d} = \textbf{p} \times \textbf{q} 
+\]
+since $\textbf{d}$ is orthogonal to both, and the magnitude of the new vectors has not been set.
+
+Evaluating the cross products results in:
+\begin{align*}
+  d_x &= -p_z \\
+  d_y &= p_zq_x - p_xq_z \\
+  d_z &= p_x
+\end{align*}
+
+Which means:
+\[
+  \textbf{p} = \begin{pmatrix} d_z \\ 0 \\ -d_x \end{pmatrix} 
+\]
+
+Using the dot product with $\textbf{p}$ and $\textbf{q}$, then:
+\[
+  \textbf{p} \cdot \textbf{q} = p_xq_x + p_zq_z = 0
+\]
+which we solve with the result from the cross product:
+\[
+  d_y = p_zq_x - p_xq_z
+\]
+
+Once we have expressions for $\textbf{p}$ and $\textbf{q}$ in terms of given vector $\textbf{d}$, then we have obtained:
+\begin{align*}
+  \textbf{u} &= \frac{\textbf{p}}{\lvert \textbf{p} \rvert} &
+  \textbf{v} &= \frac{\textbf{q}}{\lvert \textbf{q} \rvert} &
+  \textbf{w} &= \frac{\textbf{d}}{\lvert \textbf{d} \rvert}
+\end{align*}
+which we use to write down:
+\[
+  \begin{pmatrix}
+    u_x & u_y & u_z & -\textbf{C} \cdot \textbf{u} \\ 
+    v_x & v_y & v_z & -\textbf{C} \cdot \textbf{v} \\ 
+    w_x & w_y & w_z & -\textbf{C} \cdot \textbf{w} \\ 
+    0 & 0 & 0 & 1
+  \end{pmatrix}
+\]
+
+
 \end{document}
