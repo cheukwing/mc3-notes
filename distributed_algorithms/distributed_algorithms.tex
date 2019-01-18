@@ -19,5 +19,124 @@
 \begin{document}
 
 \maketitle
+\section{Motivation}
+\subsection{Why a Distributed System?}
+\begin{itemize}
+  \item Computation and data distribution.
+  \item Performance through parallelisation and distribution.
+  \item Reliability and availability through replication, fault-tolerance, security.
+  \item Scalability, modularity, evolvability.
+  \item Heterogenity of hardware and software.
+\end{itemize}
+
+\subsection{What is a Distributed System?}
+\begin{itemize}
+  \item A set of processes connected by a network.
+    \begin{itemize}
+      \item Machines can be located across the planet.
+      \item Communicate via message passing, no shared memory.
+    \end{itemize}
+  \item No common physical clock.
+    \begin{itemize}
+      \item No total order on events by time.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Assumptions}
+When designing distributed systems, we have to consider different assumptions.
+
+\subsubsection{Timing}
+\begin{itemize}
+  \item \textbf{Synchronous systems}:
+    \begin{itemize}
+      \item Upper bound on process delays.
+      \item Upper bound on time for a message to be delivered.
+      \item Can translate results to asynchronous models.
+    \end{itemize}
+  \item \textbf{Asynchronous systems}:
+    \begin{itemize}
+      \item Processes and communication take arbitrary time.
+      \item No assumption that processes have physical clocks, but can be useful to use logical clocks.
+    \end{itemize}
+  \item \textbf{Partially synchronous systems}:
+    \begin{itemize}
+      \item Real-world systems are mostly synchronous with asynchronous periods.
+      \item Assume the system is eventutally synchronous.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Failures}
+\begin{itemize}
+  \item \textbf{No failures}:
+    \begin{itemize}
+      \item Unrealistic.
+    \end{itemize}
+  \item \textbf{Process failure}:
+    \begin{itemize}
+      \item e.g.\ software bugs; OS/user termination; OS failure.
+      \item Process stops sending messages it is supposed to send.
+      \item Process sends messages it is not supposed to send.
+    \end{itemize}
+  \item \textbf{Link failure}:
+    \begin{itemize}
+      \item e.g.\ cable, router, wireless, adversary.
+      \item Inter-process communication failure, e.g.\ non-delivery of messages; corrupt messages; duplicates.
+      \item Need for reliable protocols and secure channels.
+      \item Partitioned networks.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Failure Classes}
+\begin{itemize}
+  \item \textbf{Process crash failure} (crash-stop failure):
+    \begin{itemize}
+      \item Process halts and does not perform further action.
+      \item Different types:
+        \begin{itemize}
+          \item \textbf{Fail-stop} - can be reliably detected by other processes.
+          \item \textbf{Fail-silent} - cannot be reliably detected.
+          \item \textbf{Fail-noisy} - detection takes time.
+          \item \textbf{Fail-recovery} - crashed processes can recover
+        \end{itemize}
+      \item Non-faulty processes are a \textbf{correct process}.
+    \end{itemize}
+  \item \textbf{Link failure}:
+    \begin{itemize}
+      \item Link goes down and stays down.
+      \item Network may partition or remain connected.
+    \end{itemize}
+  \item \textbf{Omission failure}:
+    \begin{itemize}
+      \item Two types:
+        \begin{itemize}
+          \item \textbf{Send omission} - does not send all required messages.
+          \item \textbf{Receive omission} - does not receive all require messages.
+        \end{itemize}
+    \end{itemize}
+  \item \textbf{Byzantine failure} (fail-arbitrary):
+    \begin{itemize}
+      \item Arbitrary (or malicious) behaviour.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Communication}
+\begin{itemize}
+  \item \textbf{Asynchronous message passing}:
+    \begin{itemize}
+      \item The process sending a message continues after sending.
+      \item We can build a \textbf{synchronous message passing} mechanism, e.g.\ process waits until message is delivered to the receiving process.
+      \item We can build a \textbf{shared memory abstraction}.
+    \end{itemize}
+  \item \textbf{Reliable message communication}:
+    \begin{itemize}
+      \item Assume that messages sent using reliable protocol.
+      \item Communications can still fail.
+      \item Use TCP to send messages, simulate network failure by dropping messages in software.
+    \end{itemize}
+  \item \textbf{Message delays are bounded}:
+    \begin{itemize}
+      \item Processes timeout if message is delayed too long.
+    \end{itemize}
+\end{itemize}
 
 \end{document}
