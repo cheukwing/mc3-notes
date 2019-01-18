@@ -20,4 +20,170 @@
 
 \maketitle
 
+\section{Motivation}
+\textit{Performance engineering encompasses the techniques applied during a systems development life cycle to ensure the \textbf{non-functional requirements for performance} will be met.}
+
+\subsection{System}
+\begin{defn}
+  A regularly interacting or independent group of items forming a unified whole.
+\end{defn}
+
+\begin{itemize}
+  \item Made up from \textbf{components} that interact to achieve a \textbf{greater goal}.
+  \item Applicable to many situations (generic).
+  \item Goal is domain-agnostic.
+  \item Components serve a data-management purpose, not a domain purpose.
+\end{itemize}
+
+\subsection{Success}
+To define success, we need to define a \textbf{metric} and a \textbf{threshold}.
+
+The metric could be throughput, latency, scalability, memory usage, energy consumption, TCO, elasticity, efficiency\dots.
+
+We have two options when declaring success:
+\begin{itemize}
+  \item Setting an optimization \textbf{budget}.
+  \item Setting an optimization \textbf{target}.
+\end{itemize}
+
+\subsection{Defining the Target}
+
+\subsubsection{\textit{SMART} Requirements}
+\begin{itemize}
+  \item \textbf{Specific} - state exactly what is acceptable in numeric terms.
+  \item \textbf{Measureable} - make sure what is stated can be measured.
+  \item \textbf{Acceptable} - rigorous enough to guarantee success in reality.
+  \item \textbf{Realizable} - lenient enough to allow implementation.
+  \item \textbf{Thorough} - all necessary aspects of the system are specified.
+\end{itemize}
+
+\subsubsection{Quality-of-Service (QoS) Objectives}
+\begin{defn}
+  Statistical properties of a metric that shall hold for the system.
+\end{defn}
+\begin{itemize}
+  \item Can include pre-conditions.
+  \item Could conflict with functional requirements.
+\end{itemize}
+
+\begin{eg}
+  The framerate of the game will, on average, be higher than 60 frames/s if run on a GPU with 50 GFlops or more.
+\end{eg}
+
+\subsubsection{Service-Level Agreements (SLA)}
+\begin{defn}
+  Formal, legal contracts specifying QoS objectives, as well as penalities for violations.
+\end{defn}
+\begin{itemize}
+  \item Needs enforcement through monitoring.
+\end{itemize}
+
+\begin{eg}
+  Trading orders shall not exceed 1ms response time. 
+  In case of violation, the user is eligible for a 10\% credit towards fees.
+\end{eg}
+
+
+\subsubsection{Monitoring}
+\begin{itemize}
+  \item Constant monitoring is required to enforce SLAs.
+    \begin{itemize}
+      \item Observe system performance.
+      \item Collect statistics.
+      \item Analyze data.
+      \item Report SLA violations.
+    \end{itemize}
+  \item Monitoring can incur costs $\rightarrow$ often not continuous.
+\end{itemize}
+
+\subsection{Fulfilling Performance Requirements}
+Examples of performance evaluation techniques are:
+\begin{itemize}
+  \item Simulation.
+  \item Measuring.
+  \item Analytical modeling.
+  \item Hybrids, e.g.\ measure then model; model and simulate\dots
+\end{itemize}
+
+\subsubsection{Measuring}
+\begin{itemize}
+  \item Performed on a prototype or on the final system.
+  \item Closely related to monitoring, promises good accuracy.
+  \item Often based on instrumentation.
+  \item Costly, and can be difficult.
+\end{itemize}
+
+\subsubsection{Benchmark}
+Two step process:
+\begin{enumerate}
+  \item Get the system into a predefined state.
+  \item Perform a series of operations (the workload) while measuring performance.
+\end{enumerate}
+
+\subsubsection{Workloads}
+\begin{itemize}
+  \item \textbf{Batch} workloads:
+    \begin{itemize}
+      \item Program has access to entire batch at start.
+      \item Useful when metric is throughput.
+      \item Simple, generator performance does not matter.
+    \end{itemize}
+  \item \textbf{Interactive} workloads:
+    \begin{itemize}
+      \item Work generated piece by piece (randomly).
+      \item Useful when metric is latency.
+      \item Generator should be at least as fast as system under evaluation.
+    \end{itemize}
+  \item \textbf{Hybrids}:
+    \begin{itemize}
+      \item Sample random queries from a predefined work set.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Parameters}
+\begin{itemize}
+  \item \textbf{System Parameters} - generally do not change (e.g.\ caches; CPU instruction costs).
+  \item \textbf{Workload Parameters} - may change, even while system is running (e.g.\ users; available memory).
+\end{itemize}
+
+\subsection{Interpreting Performance Metrics}
+\begin{itemize}
+  \item A single number is generally meaningless, there is too much noise in modern computer systems.
+  \item We aggregate multiple runs and report some measure of variance - \textbf{statistics}.
+  \item We can represent statistics with charts, e.g.\ box and whisker charts.
+\end{itemize}
+
+\begin{defn}
+  \textbf{Utilization} is the percentage of a resource that is used to perform a service.
+\end{defn}
+
+\begin{defn}
+  \textbf A {bottleneck} is the resource with the highest utilization.
+\end{defn}
+
+\subsection{Improving Performance}
+We compare alternative designs (\textbf{development}) or select a close-to-optimal value for a parameter (\textbf{tuning}).
+
+\subsubsection{Analytical Modeling}
+\begin{defn}
+  A set of equations describing the mathematical relationship between performance parameters and performance metrics.
+\end{defn}
+
+We model a dynamic system using \textbf{static equations}.
+This is the key distinction to simulation, which is dynamic.
+
+Analytical models are fast and allow what-if analysis, which simplifies tuning.
+If we can build an analytical model, we have understood the system.
+
+\subsubsection{Parameter Tuning}
+Workload parameters are not usually under our control.
+\begin{defn}
+  \textbf{Parameter tuning} involves finding the vector in the parameter space that either \textbf{minimizes the resource consumption} or \textbf{maximizes a performance metric}. 
+\end{defn}
+We need to explore the parameter space, which is expensive.
+Analytical models help to accelerate this process immensely.
+
+\subsubsection{Tradeoffs}
+Sometimes consumption of an expensive or non-scalable resource can be reduced by using more of a cheaper one - this may require changes to the system.
+
 \end{document}
