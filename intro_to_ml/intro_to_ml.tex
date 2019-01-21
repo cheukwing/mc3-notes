@@ -207,5 +207,82 @@ Examples of this are in artifical neural networks and decision trees.
   \item Generally unable to provide good local approximations in the target function.
 \end{itemize}
 
+\section{Decision Trees}
+Decision tree learning is a method for approximating discrete classification functions in a tree-based representation.
+A learned decision tree can be represented as a set of if-else rules.
+
+The algorithm is as follows:
+\begin{enumerate}
+  \item Search for a split point using a statistical test of each attribute to determine how well it classifies the training examples when considered alone.
+  \item Split the dataset according to the split point.
+  \item Repeat on each of the created subsets.
+\end{enumerate}
+
+We choose the split point best on \textbf{information gain}, by quantifying the reduction of the information entropy.
+
+\subsection{Information Entropy}
+\begin{defn}
+  \textbf{Entropy} is a measure of the uncertainty of a random variable, or the averaged quantity of information required to fully define a random state.
+\end{defn}
+
+\[
+  H(V) = - \sum_k P(v_k) \log_2 (P(v_k))
+\]
+
+For a probability density function $f(x)$, we can define the \textbf{continuous entropy}:
+\[
+  H(V) = - \int_x f(x) \log_2 (f(x))
+\]
+$f(x)$ is usually unknown, but can be approximated with density estimation algorithms.
+
+\subsection{Information Gain}
+The most informative question in the decision tree maximises the information gain - the difference between the initial entropy and the weighted average entropy of the produce subsets.
+
+\[
+  G(q) = H(\text{dataset}) - \left( \frac{\lvert \text{subsetA} \rvert}{\lvert \text{dataset} \rvert} H(\text{subsetA}) + \frac{\lvert \text{subsetB} \rvert}{\lvert \text{dataset} \rvert} H(\text{subsetB}) \right)
+\]
+where $\lvert \text{dataset} \rvert  = \lvert \text{subsetA} \rvert + \lvert \text{subsetB} \rvert$.
+
+\subsection{Types of Input}
+\begin{itemize}
+  \item \textbf{Ordered values} (like real-values):
+    \begin{enumerate}
+      \item For each feature, start by sorting the values of the attribute.
+      \item Consider only split points that are between two examples in sorted order that have different classifications.
+    \end{enumerate}
+  \item \textbf{Symbolic values}:
+    \begin{enumerate}
+      \item Search for the most informative feature.
+      \item Create as many branches as there are different values for this feature.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Overfitting}
+\begin{figure}[htb!]
+  \centering
+  \caption{ML algorithm with differing amounts of fit to the data.}
+  \includegraphics[scale=0.3]{overfitted}
+\end{figure}
+
+We can deal with overfitting by splitting the dataset into two parts: \textbf{training} and \textbf{validation}.
+
+We use the training dataset to train the model and the validation dataset to stop the training when performance on the validation test degrades.
+
+\subsubsection{Pruning}
+The most common approach with decision trees is \textbf{pruning}.
+\begin{enumerate}
+  \item Go through all the nodes that are connected to leaves.
+  \item Check if the accuracy on the validation dataset would increase if this node is turned into a leaf.
+\end{enumerate}
+This may need to be done recursively.
+
+\subsection{Regression}
+Decision trees can be used for classification and regression, though the former is much more common.
+We call a decision tree used for regression a \textbf{regression tree}.
+
+Instead of a single class in each leaf, there is a linear function of some subset of the numerical features.
+This requires that the learning algorithm decide when to stop splitting and begin applying linear regression over the features.
+
+
 
 \end{document}
