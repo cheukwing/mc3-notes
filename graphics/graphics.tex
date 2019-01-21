@@ -557,7 +557,7 @@ Similar effects can be created using this approach.
   \begin{pmatrix}
     1 & 0 & 0 & 0 \\
     0 & 1 & 0 & 0 \\
-    0 & 0 & 0 & 0 \\
+    0 & 0 & 1 & 0 \\
     0 & 0 & 1 / f & 0
   \end{pmatrix}
 \]
@@ -997,5 +997,209 @@ Care must be taken to ensure the normal found is an \textbf{inner normal}, see f
   \label{fig:innernormalcheck}
   \centering
 \end{figure}
+
+\section{Graphics Pipeline}
+
+\begin{figure}[htb!]
+  \caption{The graphics pipeline.}
+  \centering
+  \includegraphics[scale=0.3]{pipeline}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Modelling Transformations}:
+    \begin{itemize}
+      \item 3D models are defined in their own coordinate system.
+      \item These models are oriented within the common (world) coordinate frame.
+    \end{itemize}
+  \item \textbf{Illumination (Shading)}:
+    \begin{itemize}
+      \item Vertices are lit according to material properties, surface properties, and light sources.
+      \item Local lighting model used.
+    \end{itemize}
+  \item \textbf{Viewing Transformation (Perspective/Orthographic)}:
+    \begin{itemize}
+      \item World space is mapped to camera space (matrix evaluation).
+      \item Viewing position is transformed to origin and viewing direction oriented along some axis (usually $z$).
+    \end{itemize}
+  \item \textbf{Clipping}:
+    \begin{itemize}
+      \item Portions of the scene outside the view frustum are removed.
+      \item Transform to \textit{Normalized Device Coordinates}.
+    \end{itemize}
+  \item \textbf{Projection (to Screen Space)}:
+    \begin{itemize}
+      \item Objects projected to the 2D imaging plane.
+    \end{itemize}
+  \item \textbf{Rasterizaton}
+    \begin{itemize}
+      \item Objects rasterized to pixels.
+      \item Interpolate values inside objects.
+    \end{itemize}
+  \item \textbf{Visibility/Display}:
+    \begin{itemize}
+      \item Occulsions and transparency blending.
+      \item Determines which objects closest, and therefore visible.
+      \item Depth buffer.
+    \end{itemize}
+\end{itemize}
+
+Real-time CGI is very computationally demanding.
+Therefore we use specialized hardware - \textit{graphics processing units} (GPUs).
+Most real-time graphics is based on rasterization of graphic primitives and implemented in hardware, controlled through an API such as \textit{OpenGL}.
+
+\begin{defn}
+  A \textbf{vertex} is a point in space defining geometry.
+\end{defn}
+
+\begin{defn}
+  A \textbf{fragment} is a sample produced during rasterization; multiple fragments are merged into pixels.
+\end{defn}
+
+The pipeline is split into three main stages: application, geometry, and rasterization.
+
+\subsection{Application Stage}
+This is executed in software, so it cannot be divided into individual steps that are executed in a pipeline.
+
+Changes are made to the scene as required, perhaps due to user interaction or in an animation.
+The new scene with all its primitives is then forwarded to the next step of the pipeline.
+
+The most important task performed is data management.
+This includes acceleration techniques using spatial subdivision schemes that optimize the data currently stored in memory.
+A modern day computer game's world and textures are much bigger than what could be loaded into the available RAM or graphics memory.
+
+\subsection{Geometry Stage}
+\begin{figure}[htb!]
+  \centering
+  \caption{The geometry stage.}
+  \includegraphics[scale=0.3]{geometrystage}
+\end{figure}
+
+This is responsible for the majority of operations with polygons and their vertices
+
+\subsubsection{Vertex Processing}
+The input vertex stream, composed of arbitrary vertex attributes, is transformed into a stream of vertices, composed of their clip space coordinates and additional user-define attributes, mapped onto the screen by the vertex shader.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Possible pre-combinations of transformation matrices and their common names.}
+  \includegraphics[scale=0.3]{inputvertextooutput}
+\end{figure}
+
+\subsubsection{Vertex Post-Processing}
+This involves clipping, projection, and viewport transformation, which could be implemented to occur in any order.
+
+\subsubsection{Geometry Shader}
+This is an optional stage between the vertex shader and the fragment shader.
+
+Unlike the vertex shader, the geometry shader has full knowledge of the primitive it is working on; it has access to each vertex of the primitive, including adjacency information.
+It can also be used to generate primitives dynamically, such as in growing plants with procedural geometry.
+
+\subsection{Rasterization Stage}
+\begin{figure}[htb!]
+  \centering
+  \caption{The rasterization stage.}
+  \includegraphics[scale=0.3]{rasterizationstage}
+\end{figure}
+
+Primitives are sampled into pixels on screen; discrete fragments are created from continuous surfaces.
+The raster points are also called fragments; each fragment corresponds to one pixel in the frame buffer, and this corresponds to one pixel of the screen.
+
+This involves:
+\begin{itemize}
+  \item \textbf{Primitive assembly} - backface culling and setup of the primitive for traversal.
+  \item \textbf{Primitive traversal} (scan conversion) - sampling and interpolation of vertex attributes (e.g.\ depth, colour).
+  \item \textbf{Fragment shading} - computing fragment colours based on textures, lighting calculations, etc.
+  \item \textbf{Fragment merging} - composing the final pixel values from fragments over the same pixel; depth tests; blending\dots.
+\end{itemize}
+
+Different rules for rasterization are applied for each primitive type, this is called a \textit{fill convention}.
+
+For polygons, we rasterize if the pixel centre is contained in the polygon, and if a pixel is on the edge, then only one is rasterized.
+
+\subsection{Display Stage}
+\begin{itemize}
+  \item Gamma correction.
+  \item Digital to analog conversion (historically).
+  \item Digital scan-out, HDMI encryption, etc.
+\end{itemize}
+
+\subsubsection{Display Format}
+The frame buffer pixel can be formatted as RGBA or as an index into a table of colours (obsolete).
+
+\subsubsection{Functionality vs. Frequency}
+\begin{itemize}
+  \item \textbf{Geometry processing} (per-vertex):
+    \begin{itemize}
+      \item Transformation and lighting (T\&L).
+      \item Historically floating point, complex operations.
+      \item Millions of vertices per second.
+      \item Today - \textbf{vertex shader}.
+    \end{itemize}
+  \item \textbf{Fragment processing} (per-fragment):
+    \begin{itemize}
+      \item Blending, texture combination.
+      \item Historically fixed point and limited operations.
+      \item Billions of fragments.
+      \item Today - \textbf{fragment shader}.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Architectural Overview}
+\begin{figure}[htb!]
+  \centering
+  \caption{Overview of the archiecture.}
+  \includegraphics[scale=0.3]{architecture}
+\end{figure}
+
+\begin{itemize}
+  \item The graphics hardware is a shared resource.
+  \item \textbf{User Mode Driver} (UMD) - prepares command buffers for the hardware.
+  \item \textbf{Graphics Kernel Subsystem} - schedules access to the hardware.
+  \item \textbf{Kernel Model Drive} (KMD) - submits command buffers to the hardware.
+\end{itemize}
+
+\section{Graphics APIs}
+\subsection{What is \textit{OpenGL}?}
+\begin{itemize}
+  \item Low-level graphics API specification.
+    \begin{itemize}
+      \item Interface is platform independent but the implementation is platform dependent.
+      \item Defines an abstract rendering device and functions to operate it.
+      \item Can draw, but no concept of permanent objects.
+    \end{itemize}
+  \item Platform provides the implementation, as part of the graphics driver or the runtime library on top of the driver.
+  \item Initialization through platform specific API.
+  \item State machine for high efficiency.
+\end{itemize}
+
+\subsection{\textit{GLSL}}
+\textit{GLSL} is the shader language for \textit{OpenGL} and is used to define parts of the pipeline using own programs.
+With the exception of rasterization, all processing steps of the graphics card can be programmed directly.
+
+The application developer passes the shader source code and all additional variables and constants for each shader type to the \textit{OpenGL} driver.
+The driver compiles and links the shaders to a shader program.
+
+Each primitive sent by the application will pass through the shaders contained in the shader program in the following order:
+\begin{enumerate}
+  \item \textbf{Vertex Shader}:
+    \begin{itemize}
+      \item Executed once for each vertex.
+      \item Shader only has access to vertex, but not neighbouring vertices or topology.
+    \end{itemize}
+  \item \textbf{Tessellation Shader}:
+    \begin{itemize}
+      \item An area (triangle or square) is divided into smaller areas.
+    \end{itemize}
+  \item \textbf{Geometry Shader}:
+    \begin{itemize}
+      \item Primitives can be created from an existing primitive (point, line, triangle).
+    \end{itemize}
+  \item \textbf{Fragment Shader}:
+    \begin{itemize}
+      \item Executed once for each fragment.
+      \item The colour for the corresponding fragment is calculated.
+    \end{itemize}
+\end{enumerate}
 
 \end{document}
