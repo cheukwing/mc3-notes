@@ -186,4 +186,227 @@ Analytical models help to accelerate this process immensely.
 \subsubsection{Tradeoffs}
 Sometimes consumption of an expensive or non-scalable resource can be reduced by using more of a cheaper one - this may require changes to the system.
 
+\section{Performance Profiling and Tracing}
+\begin{defn}
+  A \textbf{profile} is a graphical or other representation of information relating to particular chracteristics of something, recorded in quantified form.
+\end{defn}
+We characterize the system in terms of the time it spends in certain states.
+
+The system can be applied to any level: CPU, OS, distributed, application, etc.
+
+We profile in order to:
+\begin{itemize}
+  \item Identify the critical path.
+  \item Identify bottlenecks.
+  \item Tune.
+\end{itemize}
+
+\subsection{Events}
+An \textbf{event} is some change of the system state, this depends on what needs to be measured.
+There are two types:
+\begin{itemize}
+  \item \textbf{Simple/atomic events} - a package sent, instruction executed, address loaded from memory, a clock tick, etc.
+  \item \textbf{Complex events} - cache line evicted from L1 to L2 cache, instruction aborted due to misspeculation.
+\end{itemize}
+
+\subsubsection{Collecting Events}
+\begin{itemize}
+  \item \textbf{Event-based/event-counting}:
+    \begin{itemize}
+      \item Count events on occurence.
+      \item Little overhead, limited information.
+    \end{itemize}
+  \item \textbf{Tracing}:
+    \begin{itemize}
+      \item Keep state for every event.
+      \item Higher overhead, more information.
+    \end{itemize}
+  \item \textbf{Sampling}:
+    \begin{itemize}
+      \item Keep state in \textbf{intervals}.
+      \item Inaccurate and non-deterministic.
+      \item Interval size $1$ makes sampling equal to event-based profiling.
+    \end{itemize}
+  \item (\textbf{Indirect}:)
+    \begin{itemize}
+      \item Counting events that dominate (correlate with) others (if this event occurs, then other events will occur - we consider the \textit{other events}).
+      \item Can be used to reduce overhead.
+      \item Accuracy depends on the event and indirection.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Profile}
+An aggregrate over the events of a specific metric:
+\begin{itemize}
+  \item \textbf{Global aggregate} - total cache misses, total CPU cycles, etc.
+  \item \textbf{Broken down} by some other event - cycles per instruction, cache misses by line of code.
+\end{itemize}
+
+\subsection{Trace}
+A complete log of every state the system has ever been in (in a period of interest):
+\begin{itemize}
+  \item Characterized by the events.
+  \item There is a total order of events.
+  \item \textit{Stream of events}.
+\end{itemize}
+By aggregating, we can turn this into a profile.
+
+\subsection{Classification}
+\begin{itemize}
+  \item Sampling rate (interval) $=1$:
+    \begin{itemize}
+      \item With payload - \textbf{tracing}.
+      \item Without payload - \textbf{event-based profiling}.
+    \end{itemize}
+  \item Sampling rate (interval) $>1$:
+  \begin{itemize}
+    \item \textbf{Sampling}.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Collection Framework}
+Our framework consists of two components:
+\begin{itemize}
+  \item \textbf{Generator} - produces events; usually online, part of the runtime environment.
+  \item \textbf{Consumer} - producing visualisation or profile from trace; offline or online.
+\end{itemize}
+
+\subsection{Time}
+\begin{itemize}
+  \item Computer clocks are not very accurate.
+  \item We use reference cycles as a proxy metric.
+  \item Any event may be used to define intervals.
+\end{itemize}
+
+\subsection{Quantization Errors}
+\begin{itemize}
+  \item The interval resolution is limited.
+  \item However, time is continuous.
+  \item This introduces errors as costs may be attributed to the wrong instruction.
+\end{itemize}
+
+\subsection{Call Stack}
+\subsubsection{Call Stack Tracing}
+Recording the entire call stack is quite expensive:
+\begin{itemize}
+  \item Stack needs to be walked, pointers need chasing.
+  \item Call stacks can be deep.
+  \item Record must be written to memory.
+\end{itemize}
+
+\subsubsection{Call Stack Sampling}
+\begin{itemize}
+  \item Limited accuracy, but better performance.
+  \item Less pertubation.
+\end{itemize}
+
+\subsubsection{Flame Graphs}
+\begin{figure}[htb!]
+  \centering
+  \caption{A flame graph.}
+  \includegraphics[scale=0.4]{flamegraph}
+\end{figure}
+The $x$-axis shows the stack profile population, sorted alphabetically - it does not show the passage of time.
+The $y$-axis shows the stack depth, counting from zero at the bottom.
+
+Each rectangle is a stack frame; the wider the frame, the more often it was present in the stacks.
+The top edge shows what is on-CPU, beneath is its ancestry.
+
+\subsection{Event Sources}
+We require event sources to be:
+\begin{itemize}
+  \item \textbf{Detailed} - as much information as we need.
+  \item \textbf{Accurate} - reliable measurements.
+  \item \textbf{Little perturbation} - does not change the performance of the system during analysis (often inversely proportional to accuracy).
+\end{itemize}
+
+We can get events from:
+\begin{itemize}
+  \item \textbf{Software} - e.g.\ OS kernel counts, library logging, compiler instrumentation.
+  \item \textbf{Hardware} - e.g.\ performance counter.
+  \item \textbf{Emulator} - hybrid of software and hardware; minimal perturbation but not scalable.
+\end{itemize}
+
+\subsection{Instrumentation}
+We augment the program with event logging code.
+\begin{itemize}
+  \item Advantages:
+    \begin{itemize}
+      \item No need for hardware support.
+      \item Flexible.
+    \end{itemize}
+  \item Disadvantages:
+    \begin{itemize}
+      \item High overhead.
+      \item High perturbation.
+    \end{itemize}
+\end{itemize}
+We need to decide on what events we should collect.
+
+There are three approaches to instrumentation:
+\begin{itemize}
+  \item Manual instrumentation.
+  \item Automatic source-level instrumentation.
+  \item \textbf{Automatic binary instrumentation} - could be static (compile-time), dynamic (runtime), or as a hybrid.
+\end{itemize}
+
+\subsubsection{Manual Instrumentation}
+\texttt{printf} logging.
+\begin{itemize}
+  \item Advantages:
+    \begin{itemize}
+      \item Fine control.
+      \item No need for support from hardware or compiler.
+    \end{itemize}
+  \item Disadvantages:
+    \begin{itemize}
+      \item High overhead.
+      \item Disabled for release build.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Automatic Instrumentation}
+Usually supported by the compiler; source-to-source rewriting is possible.
+\begin{itemize}
+  \item Advantages:
+    \begin{itemize}
+      \item Delegating expertise of what needs to be logged to the compiler.
+    \end{itemize}
+  \item Disadvantages:
+    \begin{itemize}
+      \item Less control.
+      \item Need for compiler support.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Binary Instrumentation}
+\begin{itemize}
+  \item \textbf{Static}:
+    \begin{itemize}
+      \item No magic; simple and portable.
+      \item Instrumentation overhead can be accessed from binary.
+    \end{itemize}
+  \item \textbf{Dynamic}:
+    \begin{itemize}
+      \item No recompilation.
+      \item Can be performed on a running process.
+      \item Works with JiT-code.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Performance Counting}
+\begin{itemize}
+  \item \textbf{Software Performance Counters} (OS):
+    \begin{itemize}
+      \item e.g.\ network packages sent, virtual memory operations.
+      \item Only of secondary interest.
+    \end{itemize}
+  \item \textbf{Hardware Performance Counters}:
+    \begin{itemize}
+      \item Fixed number can be active at runtime.
+      \item Usually buggy, unmaintained, and poorly documented, with poor accuracy.
+      \item Common counters usually okay.
+    \end{itemize}
+\end{itemize}
+
 \end{document}
