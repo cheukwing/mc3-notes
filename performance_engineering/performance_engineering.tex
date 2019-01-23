@@ -206,7 +206,7 @@ An \textbf{event} is some change of the system state, this depends on what needs
 There are two types:
 \begin{itemize}
   \item \textbf{Simple/atomic events} - a package sent, instruction executed, address loaded from memory, a clock tick, etc.
-  \item \textbf{Complex events} - cache line evicted from L1 to L2 cache, instruction aborted due to misspeculation.
+  \item \textbf{Complex events} - cache line evicted from L1 to L2 cache, instruction aborted due to miss-speculation.
 \end{itemize}
 
 \subsubsection{Collecting Events}
@@ -304,7 +304,7 @@ Recording the entire call stack is quite expensive:
 \begin{figure}[htb!]
   \centering
   \caption{A flame graph.}
-  \includegraphics[scale=0.4]{flamegraph}
+  \includegraphics[width=\textwidth]{flamegraph}
 \end{figure}
 The $x$-axis shows the stack profile population, sorted alphabetically - it does not show the passage of time.
 The $y$-axis shows the stack depth, counting from zero at the bottom.
@@ -408,5 +408,89 @@ Usually supported by the compiler; source-to-source rewriting is possible.
       \item Common counters usually okay.
     \end{itemize}
 \end{itemize}
+
+\section{Top-down Microarchitecture Analysis Method (TMAM)}
+The TMAM identifies performance bottlenecks in out-of-order cores.
+Bottlenecks are classified correlating to major functional blocks of modern out-of-order microarchitectures, with four main categories of pipeline-slots:
+\begin{itemize}
+  \item \textbf{Front End Bound}.
+  \item \textbf{Back End Bound}.
+  \item \textbf{Bad Speculation}.
+  \item \textbf{Retiring}.
+\end{itemize}
+the latter two denoting non-stalled slots, while the former two stalled slots.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Decision tree for categorizing slots.}
+  \includegraphics[scale=0.3]{tmam}
+\end{figure}
+
+If a slot is being utilized, it is classified as either Retiring or Bad Speculation, depending on if it eventually retires.
+Otherwise they are classified as Back End Bound if the back-end is unable to accept more operations, or Front End Bound if there were no operations (uops) delivered while there was no back-end stall.
+
+\subsection{Front End Bound}
+\begin{defn}
+  The \textbf{front end} is the portion of the pipeline where the branch predictor predicts the next address to fetch, fetches, parses, and decodes into micro-ops that can be executed later by the back end.
+\end{defn}
+
+\begin{defn}
+  \textbf{Front End Bound} denotes when the fron end of the processor core undersupplies the back-end; there were fetch bubbles when the back-end was ready to accept micro-ops.
+\end{defn}
+
+As issues occur at the beginning of the long and buffered pipeline, brief issues will not dominate the actual performance.
+In many cases, the front-end supply bandwidth dominates the performance.
+
+TMAM further distinguishes front-end stalls into:
+\begin{itemize}
+  \item \textbf{Fetch Latency} - cache misses.
+  \item \textbf{Fetch Bandwidth} - inefficiency in the instruction decoders.
+\end{itemize}
+
+\subsection{Back End Bound}
+\begin{defn}
+  \textbf{Back End Bound} reflects slots where no micro-ops are being delivered at the issue pipeline, due to lack of required resources for accepting them in the back-end.
+\end{defn}
+
+These slots are further split into:
+\begin{itemize}
+  \item \textbf{Memory Bound} - stalls due to memory subsystem.
+  \item \textbf{Core Bound} - pressure on the execution units.
+\end{itemize}
+by breaking down stalls based on the execution units' occupation at every cycle.
+
+To sustain maximum IPC, the execution units must be kept busy.
+If in a four-slot-wide machine, three or less micro-ops are executed in a steady state of some code, then these cycles are Execution Stalls.
+
+\subsubsection{Memory Bound}
+These stalls usually manifest with execution units getting starved after a short while, e.g.\ a load missing all caches.
+
+Memory access latency exposure for data can be hidden by the out-of-order scheduler keeping execution units busy with useful micro-ops that do not depend on pending memory accesses.
+Thus the true penalty for a memory access is when the scheduler has nothing ready to feed the execution units - further micro-ops are either waiting for a pending memory access or depend on other unready micro-ops.
+
+\subsubsection{Core Bound}
+These stalls can manifest either with short execution starvation periods or with sub-optimal execution port utilization.
+
+Core Bound issues can be mitigated with better code generation, via better instruction scheduling.
+
+\subsection{Bad Speculation}
+\begin{defn}
+  \textbf{Bad Speculation} reflects slots wasted due to incorrect speculations, either slots used to issue micro-ops that do not eventually retire, or slots in which the issue pipeline was blocked due to recovery from earlier miss-speculations. 
+\end{defn}
+
+Having this as a Top-level category is a key principle in TMAM, it determines the fraction of the workload under analysis that is affected by incorrect execution paths, in turn dictating the accuracy of observations in other categories.
+Thus Bad Speculation should be investigated first, before looking at other categories.
+
+Minimizing Bad Speculation improves utilization of processor resources and increases confidence in the metrics reported.
+
+\subsection{Retiring}
+\begin{defn}
+  \textbf{Retiring} reflects slots utilized by \textit{good micro-ops}, micro-ops that get retired quickly without performance bottlenecks.
+\end{defn}
+Ideally, we want all slots to be Retiring, to hit the maximal micro-ops retired per cycle of the given microarchitecture - which maximizes IPC.
+
+A high Retiring value does not mean there is no room for performance; microcode sequences such as Floating Point (FP) assists typically hurt performance and can be avoided.
+
+
 
 \end{document}
