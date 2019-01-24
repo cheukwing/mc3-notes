@@ -1202,4 +1202,274 @@ Each primitive sent by the application will pass through the shaders contained i
     \end{itemize}
 \end{enumerate}
 
+\section{Illumination and Shading}
+When we look at a point on an object, the colour and shading intensity perceived depend on various characteristics of the object and light sources that illuminate it.
+\begin{itemize}
+  \item \textbf{Object properties}:
+    \begin{itemize}
+      \item Position relative to the light sources.
+      \item Surface normal vector.
+      \item Albedo (ability to absorb light energy) of the surface, or reflectivity of the surface.
+    \end{itemize}
+  \item \textbf{Light source properties}:
+    \begin{itemize}
+      \item Intensity of emitted light.
+      \item Distance to the point on the surface.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Radiometry}
+\begin{defn}
+  \textbf{Radiation flux} is the incident radiant energy over unit time.
+\end{defn}
+
+\begin{defn}
+  \textbf{Radiance} is the radiant flux per unit solid angle per unit projected area.
+  \[
+    L(\omega) = \frac{d^2 \Phi}{\cos \theta dAd\omega} 
+  \]
+\end{defn}
+
+\begin{defn}
+  \textbf{Irradiance} is the differential flux falling onto differential area.
+  \[
+    E = \frac{d\Phi}{dA}
+  \]
+\end{defn}
+
+\begin{defn}
+  \textbf{Reflection} is the process by which electromagnetic flux incident on a surface leaves the surface without a change in frequency.
+\end{defn}
+
+\begin{defn}
+  \textbf{Reflectance} is a fraction of the incident flux that is reflected.
+\end{defn}
+
+\subsection{Reflectance}
+\begin{figure}[htb!]
+  \centering
+  \caption{Irradiance and radiance.}
+  \includegraphics[scale=0.3]{brdf}
+\end{figure}
+\begin{defn}
+  The \textbf{Bidirectional Reflectance Distribution Function} (BRDF) defines how light is reflected:
+  \[
+    f_r(\theta_i, \phi_i, \theta_r, \phi_r) = \frac{dL_r (\theta_r, \phi_r)}{dE_i (\theta_i, \phi_i)}  
+  \]
+\end{defn}
+
+\subsubsection{Isotropic BRDFs}
+Rotation along the surface normal does not change reflectance, so:
+\[
+  f_r(\theta_i, \phi_i, \theta_r - \phi_r) = f_r(\theta_i, \theta_r, \phi_d) = \frac{dL_r (\theta_r, \phi_d)}{dE_i (\theta_i, \phi_d)}  
+\]
+
+\subsubsection{Anisotropic BRDFs}
+These are concerned with surfaces with strongly oriented microgeometry elements, e.g.\ brushed metals, hair, fur, cloth.
+
+\subsubsection{Properties}
+\begin{itemize}
+  \item \textbf{Non-negativity}: $f_r(\theta_i, \phi_i, \theta_r, \phi_r) \geq 0$.
+  \item \textbf{Energy Conservation}: $\int_\Omega f_r(\theta_i, \phi_i, \theta_r, \phi_r) d\mu(\theta_r, \phi_r) \leq 1 \text{ for all } (\theta_i, \phi_i)$.
+  \item \textbf{Reciprocity}: $f_r(\theta_i, \phi_i, \theta_r, \phi_r) = f_r(\theta_r, \phi_r, \theta_i, \phi_i)$.
+\end{itemize}
+
+\subsubsection{BSSRDF}
+The bidirectional scattering-surface distribution function is used with surfaces which have layers, e.g.\ skin.
+Light may be absorbed by one layer and reflected by another.
+
+\subsection{Ideal Diffuse Reflectance}
+We assume the surface reflects equally in all directions, an ideal diffuse surface would be a very rough surface at the microscopic level, e.g.\ chalk, clay.
+
+Then the value of the BRDF value would be constant throughout:
+\[
+  L_r(\omega_r) = \int_\Omega f_r(\omega_i, \omega_r) dE_i(\omega_i) = f_r \int_\Omega dE_i(\omega_i) = f_r E_i
+\]
+
+Ideal diffuse reflectors reflect light according to \textit{Lambert's cosine law} - this means that the greater the angle of the light direction to the surface normal (up to orthogonal), the less is reflected. 
+
+We further model the reflectance as:
+\[
+  L(\omega_r) = k_d (\textbf{n} \cdot \textbf{l}) \frac{\Phi_s}{4\pi d^2} 
+\]
+where
+\begin{itemize}
+  \item $k_d$ is the diffuse reflection coefficient.
+  \item $n$ is the surface normal.
+  \item $l$ is the light direction.
+\end{itemize}
+
+We use $\max ((\textbf{n} \cdot \textbf{l}), 0)$ to avoid a negative dot product value when the vectors are facing away from each other, and must normalize the vectors before applying the dot product.
+
+\subsection{Ideal Specular Reflectance}
+Here, reflection is only at a mirror angle.
+\begin{itemize}
+  \item View dependent.
+  \item Microscopic surface elements oriented in the same direction as the surface itself.
+\end{itemize}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Snell's Law.}
+  \includegraphics[scale=0.3]{snell}
+\end{figure}
+
+In \textit{Snell's Law}, the incoming ray, the surface normal, and the reflected ray all lie in a common plane.
+
+\subsection{Non-Ideal Reflectors}
+\textit{Snell's Law} only applies to ideal mirror reflectors, real materials tend to deviate significantly from ideal mirror reflectors and they are not ideal diffuse surfaces either.
+
+\subsubsection{Simple Empirical Model}
+\begin{itemize}
+  \item Most of the reflected light travels in the direction of the ideal ray.
+  \item We expect some to reflect slightly offset from the ideal.
+  \item As we move further away in the angular sense from the reflected ray, less light is reflected.
+\end{itemize}
+
+\subsubsection{Surface Characteristics}
+\begin{itemize}
+  \item \textbf{Perfectly matte surface} - reflected intensity same in all directions.
+  \item \textbf{Slightly specular (shiny) surface} - slightly higher intensity in the reflected direction.
+  \item \textbf{Highly specular (shiny) surface} - high intensity in the reflected direction.
+  \item \textbf{Perfect mirror} - all light is re-admitted in the reflected direction.
+\end{itemize}
+
+\subsection{Phong Model}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{The Phong model.}
+  \includegraphics[scale=0.3]{phong}
+\end{figure}
+The light reflected depends on the angle between the ideal reflection direction and the viewer direction $\alpha$.
+
+\[
+  L(\omega_r) = k_s(\cos \alpha)^q \frac{\Phi_s}{4\pi d^2} = k_s (\textbf{v} \cdot \textbf{r})^q \frac{\Phi_s}{4\pi d^2} 
+\]
+where:
+\begin{itemize}
+  \item $k_s$ is the specular reflection coefficient.
+  \item $q$ is the specular reflection exponent.
+  \item $\textbf{r} = 2(\textbf{n} \cdot \textbf{l}) \textbf{n} - \textbf{l}$.
+\end{itemize}
+
+Higher values of $q$ result in greater, more centred reflections.
+
+\subsubsection{Blinn-Phong Variation}
+\begin{figure}[htb!]
+  \centering
+  \caption{The Blinn-Phong variation.}
+  \includegraphics[scale=0.3]{blinnphong}
+\end{figure}
+We use the halfway vector $\textbf{h}$ between $\textbf{l}$ and $\textbf{v}$:
+\[
+  \textbf{h} = \frac{\textbf{l} + \textbf{v}}{\lVert \textbf{l} + \textbf{v} \rVert} 
+\]
+leading to:
+\[
+  L(\omega_r) = k_s(\cos \beta)^q \frac{\Phi_s}{4\pi d^2} = k_s (\textbf{n} \cdot \textbf{h})^q \frac{\Phi_s}{4\pi d^2} 
+\]
+
+\subsection{Ambient Illumination}
+This represents the reflection of all indirect illumination - a hack.
+\[
+  L(\omega_r) = k_a 
+\]
+where $k_a$ is the ambient coefficient.
+
+\subsection{Phong Illumination Model}
+We sum up the three components, diffuse reflection + specular reflection + ambient:
+\[
+  L(\omega_r) = k_a + (k_d (\textbf{n} \cdot \textbf{l}) + k_s (\textbf{v} \cdot \textbf{r})^q) \frac{\Phi_s}{4\pi d^2} 
+\]
+
+\subsubsection{Inverse Square Law and Heuristic Law}
+Since light falls off according to the inverse square law, we multiply by $\frac{\Phi_s}{4\pi d^2}$, where $d$ is the distance from the light source to the object.
+
+Although this is physically correct, it does not produce the best results.
+We often use $\frac{\Phi_s}{4\pi(d + s)}$, where $s$ is a heuristic constant.
+
+\subsection{Shading}
+There are three levels at which shading can be applied:
+\begin{itemize}
+  \item \textbf{Flat shading}.
+  \item \textbf{Gouraud shading}.
+  \item \textbf{Phong shading}.
+\end{itemize}
+where the latter are \textbf{interpolation shading}.
+
+\subsubsection{Flat Shading}
+
+\begin{itemize}
+  \item Each polygon is shaded uniformly over its surface.
+  \item Shade is computed by taking a point in the centre and the surface normal vector.
+  \item Usually only defuse and ambient components used.
+\end{itemize}
+
+\subsubsection{Interpolation Shading}
+\begin{figure}[htb!]
+  \centering
+  \caption{Calculating the shades at the edge.}
+  \includegraphics[scale=0.3]{interpolationedge}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Calculating the internal shades.}
+  \includegraphics[scale=0.3]{interpolationinternal}
+\end{figure}
+
+\begin{itemize}
+  \item Compute an independent shade value at each point.
+  \item Done quickly by interpolation:
+    \begin{enumerate}
+      \item Compute a shade value at each vertex.
+      \item Interpolate to find the shade value at the boundary.
+      \item Interpolate to find the shade values in the middle.
+    \end{enumerate}
+\end{itemize}
+
+
+\subsubsection{Interpolating over Polygons}
+We can interpolate over groups of polygons to create the impression of a smooth surface.
+The idea is to create at each vertex an averaged intensity from all the polygons that meet at that vertex.
+
+To compute an average normal vector at a vertex:
+\[
+  n_ave = (n_1 + n_2 + n_3 + n_4) / 4
+\]
+where $n_i$ are the normal vectors of the polygons that meet at the vertex.
+
+\subsubsection{Smooth Shading}
+This requires per-vertex normals.
+\begin{itemize}
+  \item \textbf{Gouraud Shading}:
+    \begin{itemize}
+      \item Interpolate colour across triangles.
+      \item Fast, supported by most graphics accelerator cards.
+      \item Cannot model specular components accurately as we do not have the normal vector at each point on a polygon.
+    \end{itemize}
+  \item \textbf{Phong Shading}:
+    \begin{itemize}
+      \item Interpolate normals across triangles.
+      \item More accurate specular modelling, but slower.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Interpolation of the 3D Normals}
+We may express any point in parametric form:
+\[
+  \textbf{P} = \textbf{V}_1 + \mu_1 (\textbf{V}_2 - \textbf{V}_1) + \mu_2 (\textbf{V}_3 - \textbf{V}_1)
+\]
+
+The average normal vector at the same point may be calculated as the vector $\textbf{a}$:
+\[
+  \textbf{a} = \textbf{n}_1 + \mu_1 (\textbf{n}_2 - \textbf{n}_1) + \mu_2 (\textbf{n}_3 - \textbf{n}_1)  
+\]
+then:
+\[
+  \textbf{n}_{average} = \textbf{a} / \lvert \textbf{a} \rvert 
+\]
+
+Interpolation calculations may be done in either 2D or 3D, but for specular reflections the calculation of the reflected vector and viewpoint vector must be done in 3D.
 \end{document}
