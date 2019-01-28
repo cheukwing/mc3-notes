@@ -283,6 +283,227 @@ We call a decision tree used for regression a \textbf{regression tree}.
 Instead of a single class in each leaf, there is a linear function of some subset of the numerical features.
 This requires that the learning algorithm decide when to stop splitting and begin applying linear regression over the features.
 
+\section{Evaluating Hypotheses}
+The ultimate goal in machine learning is to create models or algorithms that can generalize to unknown data.
 
+To ensure meaningful evaluation, we use a \textbf{test dataset}.
+This should \textbf{not} be used to train the model - it simulates unknown data.
+
+\subsection{Parameter Tuning}
+We want to find good parameter values that work with unknown data.
+
+\textbf{Incorrect} approaches:
+\begin{itemize}
+  \item Try different values on the training dataset, select the best according to the accuracy on the training dataset.
+    \begin{itemize}
+      \item May not generalize well.
+    \end{itemize}
+  \item Try different values on the training dataset, select the best according to the accuracy on the test dataset.
+    \begin{itemize}
+      \item The test dataset is now part of the training process.
+      \item Cannot evaluate how the algorithm generalizes to unknown data.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{The Correct Approach}
+\begin{itemize}
+  \item Split dataset into \textbf{training}, \textbf{validation}, and \textbf{test}.
+  \item Usually $60\%/20\%/20\%$ split.
+  \item Try different values on the training dataset, select the best according to accuracy on the validation dataset, and perform the final evaluation on the test dataset.
+  \item Parameter choice takes into account how the model would generalise, and final evaluation considers only unknown data.
+\end{itemize}
+
+\subsection{Holdout Method}
+\begin{enumerate}
+  \item Keep the classifier that leads to maximum performance on the validation set - \textbf{parameter optimization/tuning}.
+  \item Parameters are fixed, can choose to use the model trained on the training dataset, or combine the training and validation datasets to train a new model (with the same parameters).
+  \item Finally, evaluate on the test dataset.
+\end{enumerate}
+
+Once parameters are fixed and we have an estimation for the performance of the model, we retrain it on the \textbf{entire dataset} (including test) as we want the best model.
+
+\subsection{Cross Validation Method}
+With a small sample size, a better alternative is to use \textbf{cross validation}.
+
+\begin{enumerate}
+  \item Divide the dataset into $k$ (usually $10$) folds.
+  \item Use $k - 1$ for training and validation, $1$ for testing:
+    \begin{itemize}
+      \item Test data between different iterations should never overlap.  
+      \item Training/validation and test data in the same iteration should never overlap.
+    \end{itemize}
+  \item In each iteration, the error on the test set is estimated.
+  \item We calculate the average of the $k$ errors: $\frac{1}{N}\sum_{i = 1}{N} e_i$.
+\end{enumerate}
+
+\subsubsection{Parameter Tuning}
+\begin{enumerate}
+  \item Divide the $k-1$ folds into training and validation folds: $k - 2$ for training, $1$ for validation.
+  \item Train on the training set, optimize parameters on the validation set, test on the test set.
+\end{enumerate}
+We can only estimate the test set performance, we evaluate how our implementation generalizes on unknown test sets.
+
+We know nothing about the optimal parameters - we find a different set of optimal parameters in each fold.
+
+Once we know the average accuracy of the model, we use the entire dataset to estimate the optimal set of parameters:
+\begin{enumerate}
+  \item $k-1$ folds for training, $1$ for validation.
+  \item For each parameter, run the $k$ fold cross validation.
+  \item Select the parameters that result in the best average performance over all $k$ left out folds.
+\end{enumerate}
+
+\subsection{Metrics}
+\subsubsection{Confusion Matrix}
+\begin{center}
+  \begin{tabular}{c c c}
+    & Class 1 Predicted & Class 2 Predicted \\
+    Class 1 Actual & \textbf{TP} & \textbf{FN} \\
+    Class 2 Actual & \textbf{FP} & \textbf{TN}
+  \end{tabular}
+\end{center}
+We use the confusion matrix to visualize the performance of an algorithm and to calculate other performance measures.
+
+The table highlights the risk of each prediction - in some cases it may be more important to have low false negatives than low false positives.
+
+\subsubsection{Classification Rate}
+\[
+  \frac{TP + TN}{TP + TN + FP + FN}
+\]
+\begin{itemize}
+  \item The number of correctly classified examples divided by the total number of examples.
+  \item $\text{Classification Error } = 1 - \text{ Classification Rate}$.
+  \item The probability of a correct classification.
+\end{itemize}
+
+\subsubsection{Recall}
+\[
+  \frac{TP}{TP + FN}
+\]
+\begin{itemize}
+  \item The number of correctly classified positive examples divided by the total number of positive examples.
+  \item High recall - class is correctly recognized.
+  \item Probability of a positive example being classified as such.
+\end{itemize}
+
+\subsubsection{Precision}
+\[
+  \frac{TP}{TP + FN} 
+\]
+\begin{itemize}
+  \item The number of correctly classified positive examples divided by the total number of predicted positive examples.
+  \item High precision - a positively labeled example is positive.
+  \item Probability that a positively classified example is positive.
+\end{itemize}
+
+\subsubsection{Precision and Recall}
+\begin{itemize}
+  \item High recall, low precision - most positive examples are correctly recognized but there are a lot of false positives.
+  \item Low recall, high precision - lots of missed positive examples, but those predicted as positive are positive.
+\end{itemize}
+
+\subsubsection{Unweighted Average Recall}
+The mean of the recall of each class.
+
+\subsubsection{F-Measure/Score}
+\begin{align*}
+  F_\alpha &= (1 + \alpha^2)\frac{\text{Precision } \times \text{ Recall}}{(\alpha^2 \times \text{ Precision}) + \text{ Recall}} \\
+  F_1 &= 2\frac{\text{Precision } \times \text{ Recall}}{\text{Precision } + \text{ Recall}}
+\end{align*}
+
+\subsection{Imbalanced Test Set}
+In a balanced dataset, the number of examples in each class are similar - all measures result in similar performance.
+
+In an imbalanced dataset, the classes are not equally represented:
+\begin{itemize}
+  \item CR is affected a lot by the majority class.
+  \item Precision for minority classes are significantly affected - examples belonging to the majority are misclassified.
+  \item UAR can detect that one class is misclassified, but gives no information on false positives.
+  \item F1 can be useful, but also affected by the class imbalance problem.
+\end{itemize}
+
+It is important to look at the confusion matrix.
+
+\subsubsection{Solutions to the Imbalance Problem}
+\begin{itemize}
+  \item We can divide each value in the confusion matrix by the total number of examples.
+    \begin{itemize}
+      \item These would be the results if we had the same number of examples and the performance of the classifier remained the same.
+      \item There is no guarantee the performance would remain the same.
+    \end{itemize}
+  \item Upsample the minority class.
+  \item Downsample the majoirty class.
+\end{itemize}
+
+\subsection{Overfitting}
+\begin{defn}
+  \textbf{Overfitting} gives good performance on the training data but poor generalization to other data.
+\end{defn}
+
+\begin{defn}
+  \textbf{Underfitting} gives poor performance on the training data and poor generalization to other data.
+\end{defn}
+
+Overfitting could occur when:
+\begin{itemize}
+  \item Learning performed for too long.
+  \item Examples in the training set not representative of all possible situations.
+  \item Model too complex.
+\end{itemize}
+
+We can fight overfitting by:
+\begin{itemize}
+  \item Stopping training earlier - use validation set to know when.
+  \item Get more data.
+  \item Use the right level of complexity - validation set.
+\end{itemize}
+
+\subsection{Comparing Algorithms}
+\subsubsection{Error}
+\begin{defn}
+  The \textbf{true error} of the model $h$ is the probability that it will misclassify a randomly drawn example $x$ from distribution $D$:
+  \[
+    \text{error}_D(h) = P(f(x) \neq h(x)) 
+  \]
+\end{defn}
+
+\begin{defn}
+  The \textbf{sample error} of the model $h$ based on a data sample $S$ is:
+  \[
+    \text{error}_S(h) = \frac{1}{N} \sum_{x \in S} \delta(f(x), h(x))
+  \]
+  where:
+  \begin{align*}
+    N &= \text{ number of samples} \\
+    \delta(f(x), h(x)) &= 1 \text{ if } f(x) \neq h(x) \\
+    \delta(f(x), h(x)) &= 0 \text{ if } f(x) = h(x)
+  \end{align*}
+\end{defn}
+
+We want to know the true error but can only measure the sample error.
+
+\subsubsection{Confidence Interval}
+\begin{defn}
+  A $N\%$ \textbf{confidence interval} for some parameter $p$ is an interval that is expected with probability $N\%$ to contain $p$.
+\end{defn}
+
+Given a sample $S$, we can say with $N\%$ confidence, the true error lies in the interval:
+\[
+\text{error}_S(h) \pm Z_N \sqrt{\frac{\text{error}_S(h) \times (1 - \text{ error}_S(h))}{n}}
+\]
+
+\subsubsection{Comparing Two Algorithms}
+We run a statistical test to tell us if there is a difference between two distributions of classification errors, in order to see which is better.
+
+Our tests return a \textbf{p-value}.
+We make our \textbf{null hypothesis} the case that there is no performance difference between the two algorithms tested.
+If the performance difference is \textbf{statistically significant} ($p < 0.05$), then we reject the null hypothesis.
+
+A higher p-value does not mean the algorithms are similar, only that there is no observable statistical difference.
+
+Other notes:
+\begin{itemize}
+  \item The evaluation of a model represents what performance can be expected when applying the model on a similar data distribution.
+  \item If the model is stochastic, we should replicate the training several times to know the distribution of the performance.
+\end{itemize}
 
 \end{document}
