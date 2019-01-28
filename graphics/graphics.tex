@@ -1472,4 +1472,150 @@ then:
 \]
 
 Interpolation calculations may be done in either 2D or 3D, but for specular reflections the calculation of the reflected vector and viewpoint vector must be done in 3D.
+
+\section{Colour}
+Lasers are light sources that contain a single wavelength (or a narrow band of).
+In practice, light is made up of a mixture of many wavelengths with an energy distribution.
+
+Human colour vision is based on three cone cell types which respond to light energy in different bands of wavelength.
+These bands overlap, which implies that colours do have a unique energy distribution.
+Colours which are a distribution over all wavelengths can be matched by mixing three: \textbf{RGB}.
+
+\subsection{Colour Matching}
+Given any colour light source, we can try to match it with a mixture of three light sources:
+\[
+  X = rR + gG + bB 
+\]
+where $R, G, B$ are pure light sources, and $r, g, b$ are their intensities - for simplicity we drop $R, G, B$.
+
+\subsection{Subtractive Matching}
+Not all colours can be matched with a given set of light sources.
+We can add light to the colour we are trying to match:
+\[
+  X + r = g + b 
+\]
+
+With this, we can match all colours.
+
+\subsection{The CIE Diagram}
+\begin{figure}[htb!]
+  \centering
+  \caption{CIE diagram.}
+  \includegraphics[scale=0.3]{cie}
+\end{figure}
+The CIE diagram is a standard normalised representation of colour.
+Given three light sources, and allowing ourselves subtractive matching, we can mix them to match any given colour.
+
+\subsubsection{Normalized Colours}
+\begin{figure}[htb!]
+  \centering
+  \caption{Normalized colours.}
+  \includegraphics[scale=0.3]{normalizedcolours}
+\end{figure}
+We normalize the ranges found to $[0\dots1]$ to avoid the negative signs.
+We then normalize the colours so that the three components sum to $1$:
+\begin{align*}
+  x &= r / (r + g + b) \\
+  y &= g / (r + g + b) \\
+  z &= b / (r + g + b) = 1 - x - y
+\end{align*}
+
+\subsubsection{Convex Shape}
+The pure colours (coherent $\lambda$) are round the edge of the CIE diagram.
+The shape must be convex (convex set) since any blend (interpolation) of pure colours should create a colour in the visible region.
+
+Note that the line joining red and purple has no pure equivalent, the colours can only be created by blending.
+
+\subsubsection{Intensities}
+Since the colours are all normalized, there is no representation of intensity.
+By changing intensity, different colours can be seen.
+
+\subsubsection{White Point}
+When the three components are equal, the colour is white.
+This is seen at point $(0.33, 0.33)$.
+
+\subsubsection{Saturation}
+Pure colours are fully saturated, these correspond to the colours around the edge of the horseshoe.
+Saturation of an arbitrary point is the ratio of its distance to the white point over the distance of the white point to the edge.
+
+\subsubsection{Complement Colour}
+THe complement of a fully saturated colour is the point diametrically opposite through the white point.
+A colour added to its complement gives us white.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Using the CIE diagram to find properties of a colour.}
+  \includegraphics[scale=0.3]{cie2}
+\end{figure}
+
+\subsection{Subtractive Primaries}
+When printing colour, we use a subtractive representation.
+Inks absorb wavelengths from incident light so they subtract components to create colour.
+The subtractive primaries are magenta, cyan, and yellow.
+
+\subsection{Reproducible Colours}
+Colour monitors are based on the output of three different light emitting phosphors or diodes.
+The nominal position of these are:
+\begin{center}
+  \begin{tabular}{c c c c c}
+    & x & y & z \\
+    Red & 0.628 & 0.346 & 0.026 \\
+    Green & 0.268 & 0.588 & 0.144 \\
+    Blue & 0.150 & 0.07 & 0.780 
+  \end{tabular}
+\end{center}
+
+The monitor RGB representation is related to CIE colours by:
+\[
+  (x, y, z) =
+  \begin{pmatrix}
+    0.628 & 0.268 & 0.15 \\
+    0.346 & 0.588 & 0.07 \\
+    0.026 & 0.144 & 0.78
+  \end{pmatrix}
+  \begin{pmatrix}
+    R \\ G \\ B
+  \end{pmatrix}
+\]
+
+\subsection{HSV Colour Representation}
+RGB and CIE are practical representations and do not relate to how we perceive colours.
+\begin{itemize}
+  \item \textbf{Hue} - corresponds to pure colour.
+  \item \textbf{Saturation} - proportion of pure colour.
+  \item \textbf{Value} - the brightness (intensity).
+\end{itemize}
+
+\begin{align*}
+  r = g &= b & H &\text{ is undefined} \\
+  \min(r, g, b) &= b & H &= \frac{120(g - b)}{(r - b) + (g - b)} \\
+  \min(r, g, b) &= r & H &= 120 + \frac{120(b - r)}{(g - r) + (b - r)} \\
+  \min(r, g, b) &= g & H &= 240 + \frac{120(r - g)}{(r - g) + (b - g)}
+\end{align*}
+
+\[
+  S = \frac{\max(r,g,b) - \min(r, g, b)}{\max(r, g, b)} 
+\]
+
+\[
+  V = \max(r, g, b) 
+\]
+
+In the RGB system, each point is treated as a mixture of pure colour and white.
+The smallest component is taken as white and the ratio of the other components (after subtraction of the white component) is the pure colour.
+
+The pure colours however are not coherent wavelengths as in the CIE diagram.
+
+\subsection{Alpha Channels}
+The $\alpha$ value is the attenuation of the intensity, allowing greater flexibility in colour representation and avoids truncation errors at low intensity, or for masking certain parts of an image.
+\begin{align*}
+  \alpha &= 0 && \text{transparent} \\
+  0 < \alpha &< 1 && \text{semi-transparent} \\
+  \alpha &= 1 && \text{opaque}
+\end{align*}
+
+\[
+  C = (R, G, B) \rightarrow C = (\alpha r, \alpha g, \alpha b, \alpha) 
+\]
+
 \end{document}
