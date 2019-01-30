@@ -1,0 +1,722 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amsthm}
+\usepackage{amsmath} \usepackage{amssymb}
+\usepackage{graphicx}
+
+\graphicspath{ {./imgs/} }
+
+\setlength{\parindent}{0pt}
+
+\title{Network and Web Security (CO331)}
+\author{Michael Tsang}
+
+\newtheorem{defn}{Definition}
+\newtheorem{eg}{Example}
+\newtheorem{theo}{Theorem}
+\newtheorem{lem}{Lemma}
+
+\begin{document}
+
+\maketitle
+\section{Cybersecurity}
+Attacking a system is easy, only \textbf{one way} in is needed.
+
+Defending a system is hard:
+\begin{itemize}
+  \item Defenses may interfere with business goals.
+  \item Laws need to be enforced across borders.
+  \item Targets are interconnected devices running vulnerable software.
+  \item Hard to identify attackers.
+  \item \textbf{All fronts} must be protected.
+\end{itemize}
+
+\subsection{Human Factors}
+\begin{itemize}
+  \item Social engineering.
+  \item Weak passwords.
+  \item Insider threats.
+  \item Coercion.
+\end{itemize}
+
+\section{Vulnerabilities}
+\begin{defn}
+  \textbf{Vulnerabilities} are software bugs that attackers can exploit in order to compromise computers.
+\end{defn}
+
+\begin{defn}
+  \textbf{Exploits} are pieces are software that take advantage of Vulnerabilities in order to access or infect a computer.
+\end{defn}
+
+\begin{defn}
+  A \textbf{zero day} vulnerability or exploit is one that is unknown to the software vendor.
+\end{defn}
+
+Finders of zero-days could do one of four things:
+\begin{enumerate}
+  \item \textbf{Fix}.
+  \item \textbf{Sell}.
+  \item \textbf{Disclose}.
+  \item \textbf{Exploit}.
+\end{enumerate}
+
+\subsection{Advisories}
+\begin{itemize}
+  \item Security advisories or bulletins publicly disclose new vulnerabilities.
+  \item All published vulnerabilities are classified and given a unique ID.
+  \item Once a vulnerability is public, proof of concept exploits may become available.
+\end{itemize}
+
+\subsection{Ethics}
+If we discover a vulnerability, we can choose whether or not we disclose it:
+\begin{itemize}
+  \item \textbf{Full disclosure} - make the details public, open to public scrutiny:
+    \begin{itemize}
+      \item Preferred by security researchers and the open source community.
+      \item May expose users to attack until patched - attackers may already know about it.
+    \end{itemize}
+  \item \textbf{Responsible disclosure} - affected vendor decides when to release information, and how much:
+    \begin{itemize}
+      \item Preferred by vendors.
+      \item End-users will not develop their own patches.
+      \item Can lead to longer time between discovery to fix.
+    \end{itemize}
+  \item \textbf{Non disclosure} - keep secret:
+    \begin{itemize}
+      \item Preferred by exploiters and vendors unwilling to invest in fixes.
+      \item ``Security by obscurity''.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Fun and Profit}
+\begin{itemize}
+  \item Bug bounty programs:
+    \begin{itemize}
+      \item Some vendors offer rewards for finding vulnerabilities in their products.
+      \item Companies may give explicit permission on what can be attacked, and what cannot.
+    \end{itemize}
+  \item Competitions (CTF).
+  \item Vulnerability markets:
+    \begin{itemize}
+      \item Legitimate - run by security companies who buy vulnerabilities and re-sell to vendors.
+      \item Black market - dark web.
+    \end{itemize}
+\end{itemize}
+
+\section{Security Software Development Lifecycle (SSDLC)}
+Security touchpoints in the software engineering are:
+\begin{itemize}
+  \item Abuse cases.
+  \item Security requirements.
+  \item Risk analysis:
+    \begin{itemize}
+      \item Threat modelling.
+      \item Quantitative risk assessment.
+    \end{itemize}
+  \item Risk-based security analysis.
+  \item Code review.
+  \item Penetration testing.
+  \item Security operations.
+\end{itemize}
+\subsection{Threat Modelling}
+We use consistent visual syntax and focus on the system architecture.
+
+\subsubsection{Data-Flow Diagram (DFD)}
+\begin{figure}[htb!]
+  \centering
+  \caption{Data-flow diagram.}
+  \includegraphics[scale=0.3]{dfd}
+\end{figure}
+\begin{itemize}
+  \item Depict the flow of information across system components.
+  \item External entities are out of our control.
+  \item Trust boundaries help to establish what principal controls what.
+  \item Attacks tend to cross trust boundaries.
+\end{itemize}
+
+\subsubsection{Identifying Threats: STRIDE}
+For each element in the DFD, we ask what could go wrong:
+\begin{itemize}
+  \item \textbf{Spoofing} - pretending to be something or somebody else.
+  \item \textbf{Tampering} - modifying without permission.
+  \item \textbf{Repudiation} - denying to have done something.
+  \item \textbf{Information Disclosure} - revealing information without permission.
+  \item \textbf{Denial of Service} - preventing a system from providing a (timely) service.
+  \item \textbf{Elevation of Privilege} - achieving more than what is intended.
+\end{itemize}
+
+Some threats may belong to more than one category.
+We document threats by writing risk-based security tests.
+
+\subsubsection{Identifying Threats: Attack Trees}
+\begin{figure}[htb!]
+  \centering
+  \caption{Attack tree with the goal of authenticating with user credentials.}
+  \includegraphics[scale=0.3]{attacktree}
+\end{figure}
+We create a tree structure with the following properties:
+\begin{itemize}
+  \item Root represents the attack goal, or asset being compromised.
+  \item Children are steps to achieve goal.
+  \item Leaves are concrete attacks.
+  \item Siblings represent sufficient steps to achieve goal (step 1 or step 2).
+  \item Special notation for sibilings which represent necessary steps (step 1 and step 2).
+\end{itemize}
+
+Attack trees are an alternative to STRIDE.
+For each element in the DFD, if the goal of a tree is relevant, we start traversing the tree to identify possible attacks.
+Attack trees capture domain-specific expertise and can be reused on different DFDs.
+
+\subsubsection{Evaluating Threats}
+We use the DREAD system to score each threat between 5 and 15, where higher scores imply greater risk, see figure \ref{fig:dread}.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Scoring a system based on DREAD.}
+  \label{fig:dread}
+  \includegraphics[width=\textwidth]{dread}
+\end{figure}
+
+\subsubsection{Addressing each Threat}
+To recommend a response, we use META:
+\begin{itemize}
+  \item \textbf{Mitigate} - make a threat hearder to exploit.
+  \item \textbf{Eliminate} - remove the feature that was exposed to the threat.
+  \item \textbf{Transfer} - let another party assume the risk.
+  \item \textbf{Accept} - other options are impossible or impractical; keep track that the threat remains valid.
+\end{itemize}
+
+\section{Malicious Software (Malware)}
+\begin{itemize}
+  \item Format:
+    \begin{itemize}
+      \item Injected code added to a legitimate program.
+      \item DLL called by legitimate program.
+      \item Script run by an application.
+      \item Standalone executable.
+      \item Malicious code loaded in volatile memory.
+    \end{itemize}
+  \item Propagation:
+    \begin{itemize}
+      \item Installed by attacker - self replication, exploiting vulnerabilities.
+      \item Installed by user - social engineering, compromised certificate.
+    \end{itemize}
+  \item Privileges:
+    \begin{itemize}
+      \item Root - owns the machine.
+      \item User - limited damage, but can attempt elevation to root.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Malware Campaigns}
+\begin{defn}
+  \textbf{Malware campaigns} are targeted attacks aiming to infect the machine of a (or a few) particular victim(s).
+\end{defn}
+
+Advanced persistent threats (APTs) stealthily exploit a high-value target over time:
+\begin{itemize}
+  \item Wait for interesting information.
+  \item Exfiltrate large database slowly.
+  \item Gain access in order to exploit at a later date.
+\end{itemize}
+
+Generic attacks infect as many machines as possible:
+\begin{itemize}
+  \item Low-cost attacks with low chance of success.
+  \item Botnet.
+\end{itemize}
+
+\subsection{Botnets}
+\begin{itemize}
+  \item One attacker (\textit{botmaster}) controls hundreds of thousands of infected machines (\textit{bots}).
+  \item Bots connect to a \textit{command-and-control} (C\&C) server to receive instructions on what to do.
+  \item Sophisticated topologies.
+  \item Encrypted and stealthy communication of commands and results.
+  \item Botmaster may keep changing IP.
+\end{itemize}
+
+\subsubsection{Goals}
+\begin{itemize}
+  \item \textbf{Data theft} - steal sensitive data.
+  \item \textbf{Spam} - deliver unrequested email.
+  \item \textbf{Distributed denial of service} (DDOS) - flood web servers with requests.
+  \item \textbf{Credential stuffing} - attempt to login with leaked credentials to see which works.
+  \item \textbf{Card cracking} - bruteforce missing information for card payments.
+  \item \textbf{Network scanning} - attempt to probe other hosts.
+  \item \textbf{Click fraud} - generate advertising revenue.
+  \item \textbf{Cryptojacking} - mining cryptocurrencies.
+\end{itemize}
+
+\subsection{Spam}
+Spammers are the marketers for affiliate programs that support online stores with the back-office functions.
+
+\subsection{Exploit Kits}
+Exploit kits are commoditised, commercial malware toolkits sold or rented out to criminals:
+\begin{itemize}
+  \item Automated vulnerability analysis, exploitation, and post-exploitation.
+  \item Anti-virus evasion techniques.
+  \item Operator subscribes to traffic from spam and malicious ads.
+  \item Administration console to fine tune parameters and select victims.
+\end{itemize}
+
+\subsection{Malware Detection}
+\begin{itemize}
+  \item Anti-virus - detect malware just before or after infection:
+    \begin{itemize}
+      \item Impossible to have perfect anti-virus.
+      \item Scan programs for \textit{signatures}, sequences of instructions typical of malware.
+      \item Signatures can be obfuscated, so the new signatures need to be added to the anti-virus.
+    \end{itemize}
+  \item Blacklist web pages hosting phising and malware.
+\end{itemize}
+
+The attacker always has a window of opportunity before detection.
+
+\subsection{Malware Analysis}
+\begin{itemize}
+  \item Malware samples are captured:
+    \begin{itemize}
+      \item Clean up after infection.
+      \item \textit{Honeypot} - intentionally vulnerable machines.
+    \end{itemize}
+  \item Observe malware execution in a VM sandbox:
+    \begin{itemize}
+      \item Look at effects on storage, settings, network traffic, etc.
+      \item Malware can kill logging processes in the guest OS.
+      \item Malware can sometimes detect virtualization and behave differently.
+    \end{itemize}
+  \item Dynamic analysis:
+    \begin{itemize}
+      \item Extract a signature based on malware behaviour, not code - typically system call patterns.
+      \item Malware could mix malicious with legitimate looking behaviour.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Malware Prevention}
+\begin{itemize}
+  \item Most common infection vectors are vulnerabilities and social engineering:
+    \begin{itemize}
+      \item Educate humans.
+      \item Update and patch software in response to vulnerability disclosures.
+      \item Firewalls and Intrusion Detection Systems.
+    \end{itemize}
+  \item Certified secure systems:
+    \begin{itemize}
+      \item Hardware and software should come with proof of correctness and/or security.
+      \item Ongoing research.
+    \end{itemize}
+\end{itemize}
+
+\section{Passwords}
+Passwords are used in the protection of cryptographic keys and user authentication.
+
+\subsection{Plain-text Passwords}
+\begin{enumerate}
+  \item Store credentials in password file.
+  \item User presents username and password.
+  \item Check if username is present.
+  \item Check if password matches stored password.
+  \item Grant or deny access.
+\end{enumerate}
+
+The password file is a valuable target for hackers.
+
+\subsection{Encrypted Passwords}
+\begin{defn}
+  \textbf{Symmetric encryption}:
+  \begin{align*}
+    \text{Encrypt}(\text{key}, \text{ plaintext}) &= \text{ ciphertext} \\
+    \text{Decrypt}(\text{key}, \text{ ciphertext}) &= \text{ plaintext} \\
+  \end{align*}
+\end{defn}
+
+\begin{enumerate}
+  \item Store encrypted credentials in a password file.
+  \item User presents username and password.
+  \item Check if username is present.
+  \item Check that present password matches decryption of stored password.
+  \item Grant or deny access.
+\end{enumerate}
+
+Key becomes a valuable target for hackers too.
+
+\subsection{Hashed Passwords}
+\begin{defn}
+  \textbf{Cryptographic hashing}:
+  \[
+    \text{Hash}(\text{plaintext}) = \text{ hashvalue} 
+  \]
+  Theoretically a one-way function, cannot be reversed.
+\end{defn}
+
+\begin{enumerate}
+  \item Store hashed credentials in a password file.
+  \item User presents username and password.
+  \item Check if username is present.
+  \item Apply $\text{Hash}()$ to password and check if this matches the stored hash.
+  \item Grant or deny access.
+\end{enumerate}
+
+The password file remains a valuable target.
+
+\textbf{Offline dictionary attack} - A \textit{rainbow table}, a dictionary of hash and password pairs, can be built.
+The corresponding password to a stolen hash can be found.
+
+\subsubsection{Salted Hashes}
+\begin{defn}
+  \textbf{Salted hashing}:
+  \[
+    \text{Hash}(\text{plaintext } \mid \text{ salt}) = \text{ hashvalue}
+  \]
+  The \textbf{salt} is a cryptographically random string.
+\end{defn}
+
+\begin{enumerate}
+  \item Store salted hashed credentials in a password file.
+  \item User presents username and password.
+  \item Check if username is present.
+  \item Find user salt, see if $\text{Hash}(\text{plaintext } \mid \text{ salt})$ matches the entry for that user.
+  \item Grant or deny access.
+\end{enumerate}
+
+Password file is less valuable.
+A different dictionary is needed for every possible salt.
+An attack against a specific user is still practical if given the salt for that user.
+
+\subsection{Linux Password File}
+\texttt{username:password-data:parameters} in \texttt{/etc/passwd}
+\begin{itemize}
+  \item \texttt{password-data}: \texttt{\$hash-function-id\$salt\$password}:
+    \begin{itemize}
+      \item \texttt{*} - disabled.
+      \item \texttt{hash-function-id}:
+      \begin{itemize}
+        \item \texttt{1} - md5.
+        \item \texttt{2a, 2y} - Blowfish.
+        \item \texttt{5} - sha256.
+        \item \texttt{6} - sha512.
+      \end{itemize}
+    \end{itemize}
+  \item \texttt{parameters}, e.g.\ \texttt{:16826:0:99999:7:::}:
+    \begin{itemize}
+      \item \texttt{16826} - days since last change.
+      \item \texttt{0} - can be changed at any time.
+      \item \texttt{99999} - does not have to be changed.
+      \item \texttt{7} - warn 1 week before expiry.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Usability}
+\begin{itemize}
+  \item It is hard for humans to choose and remember good passwords.
+  \item Dictionary attacks can start from a vocabulary of common, memorable words, then apply \textit{password-mangling} rules to generate realistic variants (e.g.\ \textit{leetspeak}).
+  \item Users tend to reuse passwords.
+  \item Complex password rules are a burden.
+  \item Security questions are dangerous - answers can be found via social media.
+  \item Password hints should be avoided - reminders may give away password too easily.
+\end{itemize}
+
+\subsection{Online Dictionary Attack}
+\begin{itemize}
+  \item Attacker submits username/password combinations to a running authentication system.
+  \item Usernames are relatively easy to find.
+  \item Previously used passwords are easy to find - password lists from hacked websites can be found in the public domain, or purchased from the dark web.
+  \item Defenses:
+    \begin{itemize}
+      \item Limit number of tries per username or per IP.
+      \item CAPTCHAs.
+      \item \textit{Honeypot} passwords - create fake, easy to guess accounts and alert if accessed.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Alternatives to Passwords}
+\begin{itemize}
+  \item Hardware tokens from banks, one-time-password booklets from governments - expensive and hard to replace.
+  \item Second-factor authentication via mobile phone - SMS deprecated by NIST.
+  \item Biometric authentication - can spoof.
+  \item Authentication via RFID tags - risk of theft, proximity attacks.
+  \item Passwordless authentication (e.g.\ temporary pin via email) - email must be secure.
+\end{itemize}
+
+\subsection{Best Practices}
+\begin{itemize}
+  \item Filters to ensure users select long, random-looking passwords.
+  \item Do not ask users to change passwords often.
+  \item Store salted hashes in a protected file.
+  \item Do not fail with ``user not found''.
+  \item Ask additional security questions or CAPTCHA after a few failed login attempts for the same username, or same IP.
+  \item Block account or requests from the same IP after many failed attempts.
+  \item Show information about last login or notify user via email upon successful login.
+  \item Password managers.
+  \item Login using a trusted authentication provider (e.g.\ OAuth).
+\end{itemize}
+
+\section{Penetration Testing (Pentesting)}
+\begin{defn}
+  \textbf{Penetration testing} is when you pay someone to break into your system/organization and report weaknesses.
+\end{defn}
+Pentesting allows us to both find weaknesses in our web applications, and to gain insight into an attacker's approach.
+
+It is important to scope the pentesting exercise to avoid operational damage.
+
+Access to information:
+\begin{itemize}
+  \item \textbf{Black box} - no information.
+  \item \textbf{Gray box} - selected information to help focus exercise.
+  \item \textbf{White box} - access to source code, system architecture, protocols, valid accounts, etc.
+\end{itemize}
+
+It is hard to ensure the pentester has tried hard enough:
+\begin{itemize}
+  \item Play pentesting teams against each other.
+  \item Pentesting certifications.
+  \item Penetration Testing Execution Standard (PTES).
+\end{itemize}
+
+\subsection{PTES}
+Key steps:
+\begin{enumerate}
+  \item Pre-engagement interactions.
+  \item Intelligence gathering.
+  \item Threat modelling.
+  \item Vulnerability analysis.
+  \item Exploitation.
+  \item Post-exploitation.
+  \item Reporting.
+\end{enumerate}
+
+\subsubsection{Intelligence Gathering}
+\textbf{Passive} information gathering:
+\begin{itemize}
+  \item Aim to build a DFD, network map, architectural diagram, organization chart, sociogram of target, etc.
+  \item Avoid interaction with target to avoid suspicion.
+  \item Look for publicly available information about target:
+    \begin{itemize}
+      \item Online presence of company and/or employees.
+      \item Web presence - cache, archive, source code, protocols, uptime statistics, domain registrar, DNS.
+      \item Comments in open source code used by target - open bugs, hardcoded credentials in old versions.
+      \item Even publicly accessible data may be protected by law.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Google Hacking}
+\begin{itemize}
+  \item Advanced operators:
+    \begin{itemize}
+      \item \texttt{ext:pdf} - search for files with specific extensions.
+      \item \texttt{site:example.com} - search within given website.
+      \item \texttt{"index.html" inurl: -html} - search inside url or title or body of a page.
+    \end{itemize}
+  \item Identifying potential targets using operators:
+    \begin{itemize}
+      \item \texttt{intitle:index.of "parent directory"} - locate unintentional exposed directory listings.
+      \item \texttt{allintext:"Powered by phpbb"}, \texttt{inurl:index.asp} - locate sites  running vulnerable software.
+    \end{itemize}
+  \item Cache search:
+    \begin{itemize}
+      \item Access code of webpage without accessing the actual target.
+      \item Use proxy to prevent loading uncached elements.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Intelligence Gathering}
+\textbf{Active} information gathering:
+\begin{itemize}
+  \item Contacting target services.
+  \item \texttt{dig} query to discover the version of the DNS server.
+  \item Verify potential email addresses and usernames.
+  \item Determine network perimeter:
+    \begin{itemize}
+      \item Accessing target directly or via firewall?
+      \item \texttt{traceroute} to reverse DNS and identify intermediate hosts.
+    \end{itemize}
+  \item Probe the network:
+    \begin{itemize}
+      \item Host discovery - identify active subnet addresses.
+      \item Port scanning - identify ports accepting communication.
+      \item OS fingerprinting - identify target OS.
+      \item Identify services - observe identifying information from a service.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Vulnerability Analysis}
+\begin{itemize}
+  \item Unpatched systems:
+    \begin{itemize}
+      \item Search in the CVE database for vulnerabilities affecting any identified component.
+      \item Scan for known vulnerabilities and exposures using tools.
+    \end{itemize}
+  \item Patched systems:
+    \begin{itemize}
+      \item Perform code review of source code.
+      \item Try to trigger unknown vulnerabilities.
+    \end{itemize}
+  \item Obtain credentials:
+    \begin{itemize}
+      \item Investigate password policies, identify default passwords.
+      \item Look for published password hashes.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Exploitation}
+\begin{itemize}
+  \item Exploit identified vulnerabilities.
+  \item Use valid credentials, or brute-force.
+  \item Run publicly available exploits, or build your own.
+\end{itemize}
+
+\subsubsection{Post-Exploitation}
+\begin{itemize}
+  \item Privilege escalation:
+    \begin{itemize}
+      \item \textit{Pass-the-hash} - send the admin's hashed password to an internal authentication server.
+      \item Confused deputy - exploit application that runs as root.
+    \end{itemize}
+  \item Steal data - explore disk, keylogger, capture screenshots, etc.
+  \item Send data back to hacker.
+  \item Pivot - exploit other targets on LAN.
+  \item Maintain access - open backdoors, create new accounts to login to later.
+  \item Cover tracks - manipulate logs, install rootkits to hide backdoors.
+\end{itemize}
+
+\section{Network Security}
+\subsection{The Internet}
+\begin{itemize}
+  \item \textbf{Host} - provider/consumer of \textit{services}, reachable via an IP address.
+  \item \textbf{Autonomous Systems} (AS) - network of networks, controls a range of IPs.
+  \item TCP/IP protocol stack.
+  \item Packet switched:
+    \begin{itemize}
+      \item \textbf{Packet} (or \textbf{datagram}) - message that is sent as a single unit on the network, composed of headers and a payload.
+      \item Each packet needs to be routed between endpoints.
+    \end{itemize}
+\end{itemize}
+
+\subsection{IP Addresses}
+\begin{itemize}
+  \item Different network services are multiplexed through the same IP address using ports.
+  \item One machine can have multiple IPs:
+    \begin{itemize}
+      \item Across networks.
+      \item Across network interfaces.
+    \end{itemize}
+  \item Multiple machines may share the same IP.
+\end{itemize}
+
+\subsection{Network Intermediaries}
+\begin{itemize}
+  \item \textbf{Router}:
+    \begin{itemize}
+      \item Connects two different networks.
+      \item Does not modify packet addresses.
+    \end{itemize}
+  \item \textbf{Network Address Translator} (NAT):
+    \begin{itemize}
+      \item Exposes a local network via the ports of 1 IP address.
+      \item Modifies packet's IP addresses to affect the mapping.
+    \end{itemize}
+  \item \textbf{Proxy}:
+    \begin{itemize}
+      \item Networks A and B communicate to a proxy, not directly to each other.
+      \item 2 independent packets.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Network Capabilities}
+\begin{itemize}
+  \item \textbf{Participant} - sends and receives legitimate packets that respect the protocol, e.g.\ web browser.
+  \item \textbf{Eavesdropper} - reads packets sent to others, cannot (or will not) participate, e.g.\ wiretapper.
+  \item \textbf{Off-path} - participates and creates arbitrary packets, e.g.\ ethernet.
+  \item \textbf{Man in the Middle} (MITM) - participates, reads, modifies, creates and deletes packets, e.g.\ router.
+\end{itemize}
+
+\subsection{Layers and Protocols}
+See figure \ref{fig:layers}.
+\begin{figure}[htb!]
+  \centering
+  \caption{Layers and protocols involved in networking.}
+  \label{fig:layers}
+  \includegraphics[scale=0.4]{layers}
+\end{figure}
+
+\subsection{Datagram}
+See figure \ref{fig:datagram}.
+\begin{figure}[htb!]
+  \centering
+  \caption{Datagram encapsulation.}
+  \label{fig:datagram}
+  \includegraphics[scale=0.4]{datagram}
+\end{figure}
+
+\subsection{Processing at Different Layers}
+See figure \ref{fig:processing}.
+\begin{figure}[htb!]
+  \centering
+  \caption{Processing involved at different layers of networking.}
+  \label{fig:processing}
+  \includegraphics[scale=0.4]{processing}
+\end{figure}
+
+\subsection{Local Area Network}
+\begin{itemize}
+  \item Based on a broadcast medium, such as cable or wireless.
+  \item The network interface of each host has a Media Access Control (MAC) address.
+  \item Messages on the LAN are sent based on MAC addresses.
+  \item Dynamic Host Configuration Protocol (DHCP) tells new hosts their IP and other configuration information.
+  \item Address Resolution Protocol (ARP) used to find the MAC of an IP on the same LAN.
+\end{itemize}
+
+LAN relies on the broadcast medium, requiring a minimum packet size in order to store conflict resolution requirements.
+If not initialized, this could lead to data disclosure.
+
+\subsection{MAC Flooding}
+\begin{itemize}
+  \item Network switches cache port-MAC associations.
+  \item The attacker floods the switch with numerous invalid source MACs, consuming the limited memory.
+  \item Since there are no longer entries for valid hosts, the switch is forced to broadcast traffic to all hosts.
+  \item The attacker can now sniff the packets.
+  \item Countermeasures:
+    \begin{itemize}
+      \item Port security - limit ability to flood caches.
+      \item Keep track of authorized MAC addresses in the system.
+    \end{itemize}
+\end{itemize}
+
+\subsection{ARP Poisoning}
+\begin{itemize}
+  \item The switch needs to find the MAC corresponding to an IP.
+  \item The attacker spoofs the MAC of the victim, and replies like the victim does.
+  \item The message is forwarded to both ports that replied.
+  \item The attacker is able to read the message.
+  \item Countermeasures:
+    \begin{itemize}
+      \item Static ARP rules.
+      \item Spoofed ARP message detection.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Internet Protocol}
+\begin{itemize}
+  \item Packets are delivered between \textit{Source} and \textit{Destination} hosts via the protocol.
+  \item The structure of IP addresses guides routing.
+  \item The protocol is best effort, it may drop or reorder packets.
+  \item The packet may be fragmented when it transmits on networks with smaller packet sizes:
+    \begin{itemize}
+      \item Various OSs treat duplicate IP fragments in different ways - OS fingerprinting.
+    \end{itemize}
+  \item Time to live (TTL) is used to discard packets that take too many steps to reach the destination:
+    \begin{itemize}
+      \item The TTL is decremented at each step.
+      \item At 0, the packet is discarded and an ICMP error message is sent to the source.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Traceroute}
+\begin{itemize}
+  \item The traceroute algorithm uses TTL to identify the hosts/routers on the path to the target.
+  \item Packets with increasing TTL are sent until the destination is reached.
+  \item Each ICMP error message should be from a host on the path to the destination.
+\end{itemize}
+
+
+\end{document}
