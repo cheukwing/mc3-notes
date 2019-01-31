@@ -1618,4 +1618,152 @@ The $\alpha$ value is the attenuation of the intensity, allowing greater flexibi
   C = (R, G, B) \rightarrow C = (\alpha r, \alpha g, \alpha b, \alpha) 
 \]
 
+\section{Texture Mapping}
+Textures enhance the visual appearance of a graphics scene without requiring greater effort in scene design, e.g.\ using a polygon for individual bricks and using one polygon with a repeating brick pattern.
+
+Textures can be defined as:
+\begin{itemize}
+  \item One-dimensional functions.
+  \item Two-dimensional functions.
+  \item Raster images (texels).
+  \item Three-dimension functions.
+\end{itemize}
+
+\subsection{Procedural Textures}
+\[
+  F(\textbf{p}) \rightarrow \text{ colour} 
+\]
+
+\begin{itemize}
+  \item Algorithm is used to calculate each colour rather than directly stored data.
+  \item Non-intuitive.
+  \item Difficult to match a specific texture that already exists in the real world.
+\end{itemize}
+
+\subsection{The Concept of Texture Mapping}
+\begin{figure}[htb!]
+  \centering
+  \caption{Spaces and functions involved in texture mapping.}
+  \includegraphics[scale=0.3]{texturemapping}
+\end{figure}
+We limit the axis of the texture image to $[0, 1]$.
+
+For each triangle or polygon in the model, we establish a corresponding region in the texture.
+During rasterization, we interpolate the coordinate indices into the texture map.
+
+\subsection{Parametrization}
+There are several ways in which we could map an image into the model:
+\begin{itemize}
+  \item \textbf{Planar mapping}:
+    \begin{itemize}
+      \item One of the coordinates of the model is dumped.
+      \item Only looks good from the front.
+    \end{itemize}
+  \item \textbf{Cylindrical and Spherical Mapping}:
+    \begin{itemize}
+      \item Compute angles between the vertex and object center.
+      \item Compare to polar/spherical coordinate systems.
+      \item Singularity problems.
+    \end{itemize}
+  \item \textbf{Box Mapping}:
+    \begin{itemize}
+      \item A separate texture for each plane.
+      \item Used mainly for environment mapping.
+    \end{itemize}
+  \item \textbf{Manual Mapping}:
+    \begin{itemize}
+      \item CAD software.
+      \item ``Unwrapping''.
+    \end{itemize}
+\end{itemize}
+
+All mappings have distortions and singularities - these often need to be fixed manually.
+
+\subsection{Texture Addressing}
+When we map to a coordinate of the texture image outside $[0, 1]$, we have several texture addressing modes available, see figure \ref{fig:addressing}.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Texture addressing modes.}
+  \label{fig:addressing}
+  \includegraphics[scale=0.3]{addressing}
+\end{figure}
+
+To aid in repeated addressing, we may introduce seamless tiling in the source texture in order to improve the look of the result.
+We could use \textit{texture synthesis} to generate tiling textures.
+
+\subsection{Texture Coordinates}
+At each vertex, we specify a texture coordinate ($(0, 0) \rightarrow (1, 1)$), then linearly interpolate the values in screen space.
+This is the same as Gouraud shading, but for texture coordinates.
+
+However, this can cause distortion in perspective projection.
+This is because the linear combination of points is not preserved - the equal distances in 3D space do not map to equal distances in screen space, the \textbf{linear interpolation is different}, see figure \ref{fig:distortion}.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{3D space interpolation against screen space interpolation.}
+  \label{fig:distortion}
+  \includegraphics[scale=0.3]{distortion}
+\end{figure}
+
+\subsubsection{Perspective Correct Interpolation}
+\begin{figure}[htb!]
+  \centering
+  \caption{The points involved in perspective correct interpolation.}
+  \includegraphics[scale=0.3]{perspectivecorrect}
+\end{figure}
+To find the texture parameter $t$ at point $q$:
+\[
+  t_q = \frac{\text{lerp}\left(\frac{t_p}{z_p}, \frac{t_r}{z_r} \right)} {\text{lerp}\left(\frac{1}{z_p}, \frac{1}{z_r} \right)}
+\]
+where:
+\begin{itemize}
+  \item $\text{lerp}$ is linear interpolation.
+  \item $t_i$ is the texture parameter at point $i$.
+  \item $z_i$ is the $z$ coordinate at point $i$.
+  \item Assuming the image plane is at $z = 1$.
+\end{itemize}
+
+\subsubsection{Bilinear Mapping}
+\begin{figure}[htb!]
+  \centering
+  \caption{Bilinear texture mapping.}
+  \includegraphics[scale=0.3]{bilinearmap}
+\end{figure}
+An alternative method is to use bilinear texture mapping.
+\begin{align*}
+  \textbf{p} &= \alpha\textbf{a} + \beta\textbf{e}
+  \textbf{e} &= \textbf{b} + \alpha(\textbf{c} - \textbf{b})
+\end{align*}
+so:
+\[
+  \textbf{p} = \alpha\textbf{a} + \beta\textbf{b} + \alpha\beta(\textbf{c} - \textbf{b})
+\]
+
+The second order term means that straight lines in the texture may become curved.
+However if the mapping is to a parallelogram where $\textbf{b} = \textbf{c}$, then:
+\[
+  \textbf{p} = \alpha\textbf{a} + \beta\textbf{b}
+\]
+
+\subsection{Additional Mappings}
+\begin{itemize}
+  \item \textbf{Bump Mapping}:
+    \begin{itemize}
+      \item Textures can be used to alter the surface normal of an object - the shading changes but the shape is kept the same.
+      \item The texture map is treated as a single-valued height function.
+      \item The partial derivatives tell us how to alter the true surface normal at each point, to make it appear deformed.
+    \end{itemize}
+  \item \textbf{Displacement Mapping}:
+    \begin{itemize}
+      \item We can also use a texture map to actually move the surface point.
+      \item The geometry must be displaced before visibility is determined.
+    \end{itemize}
+  \item \textbf{Environment Maps}:
+    \begin{itemize}
+      \item We can simulate reflections by using the direction of the reflected ray to index a spherical texture map at ``infinity''.
+      \item We assume all reflected rays begin from the same point.
+    \end{itemize}
+\end{itemize}
+
 \end{document}
