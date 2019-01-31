@@ -718,5 +718,224 @@ If not initialized, this could lead to data disclosure.
   \item Each ICMP error message should be from a host on the path to the destination.
 \end{itemize}
 
+\subsection{IP Security}
+\begin{itemize}
+  \item The source IP is easy to spoof:
+    \begin{itemize}
+      \item Attackers can send packets with the target IP as source, the target will then receive the response (DDOS).
+      \item It is hard to trace back attacks.
+    \end{itemize}
+  \item The internet is a decentralized network of untrusted networks:
+    \begin{itemize}
+      \item Packets travel through untrusted hosts - MITM reads and modification.
+      \item BGP routing is based on trust - \textit{BGP hijacking} by advertising false routes to divert traffic.
+    \end{itemize}
+\end{itemize}
 
+\subsection{IPsec}
+IPsec adds security to the IP protocol via AH and ESP.
+
+\begin{itemize}
+  \item \textbf{Authentication Header} (AH):
+    \begin{itemize}
+      \item Authentication and integrity of whole packet.
+      \item Allows packet inspection.
+    \end{itemize}
+  \item \textbf{Encapsulating Security Payload} (ESP):
+    \begin{itemize}
+      \item Confidentiality of payload.
+      \item Optional authentication.
+    \end{itemize}
+\end{itemize}
+
+There are two modes: \textbf{transport mode} which protects the payload, and \textbf{tunnel mode} which additionally protects the header.
+
+\subsubsection{ESP Tunnel Mode}
+This is most often used to implement VPNs.
+It gives network layer confidentiality, source authentication, data integrity and replay-attack prevention.
+The original datagram is encrypted and stored in a new datagram.
+
+For each connection, it uses a \textbf{Security Association} (SA):
+\begin{itemize}
+  \item IP of origin and destination interfaces to protect.
+  \item Security Parameter Index (SPI) as identifier.
+  \item Encryption and authentication keys.
+\end{itemize}
+
+\subsection{IPv6}
+In comparison with IPv4, IPv6 offers:
+\begin{itemize}
+  \item Much larger address space - no need for NAT.
+  \item Fewer headers - better routing.
+  \item Fragmentation only at endpoints - ICMP code signals failure if packet too big.
+  \item Anycast addresses - can send packet to one IP in a range of IPs, if they all provide the same service.
+  \item Better IPSec support.
+\end{itemize}
+
+\subsection{Transmission Control Protocol (TCP)}
+TCP establishes a reliable connection to a service on the target destination port, it is the channel used to send HTTP data.
+\begin{itemize}
+  \item Source port chosen at random by OS to recieve responses.
+  \item TCP adds sequence numbers to packets, and re-requests lost packets.
+  \item Delivers all packets to the application, and in the right order.
+\end{itemize}
+
+\subsubsection{Security Issues}
+\begin{itemize}
+  \item TCP state easily accessible.
+  \item Sequence numbers predictable.
+  \item MITM attacker can read current sequence number and inject new packets - \textit{TCP session hijacking}.
+  \item Off-path attacker can try to guess the sequence number - \textit{blind spoofing attack}.
+  \item Countermeasures:
+    \begin{itemize}
+      \item Time-delay - discard race-condition packets.
+      \item Use IDS, HTTPS.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Port Scanning}
+Port scanning is used to find the open ports of a target machine.
+A simple method is the \texttt{connect()} scan, which just tries to connect to an arbitrary port on the target and determines its status based on the response:
+\begin{itemize}
+  \item \texttt{SYN/ACK} - open.
+  \item \texttt{RST} - closed.
+\end{itemize}
+
+\subsubsection{TCP Idle Scan}
+A more sophisticated method which does not involve interaction between the attacker and the target is idle scan:
+\begin{enumerate}
+  \item Identify an idle host.
+  \item Check the available IPID (say $x$) on the idle host.
+  \item Spoof the source IP (using the idle host) and connect to the target.
+  \item Check the new IPID on the idle host:
+    \begin{itemize}
+      \item If the IPID is $x + 2$, the port is open.
+      \item Otherwise if $x + 1$ it is closed.
+    \end{itemize}
+\end{enumerate}
+
+If the target responded \texttt{SYN/ACK} to the idle host, then the idle host sends a response to the target, causing an initial increment to IPID.
+
+\subsection{User Datagram Protocol (UDP)}
+UDP is a connectionless protocol which has low overhead and low latency - faster than TCP.
+\begin{itemize}
+  \item No guarantee data reaches destination.
+  \item No integrity - optional checksum.
+  \item Packets may be received out of order, or as duplicates.
+\end{itemize}
+
+\subsubsection{UDP Scans}
+We send a generic UDP header with no payload to target ports:
+\begin{itemize}
+  \item Receive UDP response - open.
+  \item Receive ICMP error - closed, or filtered by firewall.
+  \item Timeout - port may be filtered or be open but the service drops malformed packets, we probe again with protocol-specific payloads.
+\end{itemize}
+
+\subsection{Key TCP/IP Threats}
+\begin{itemize}
+  \item Host and port scanning.
+  \item Port sweep - looking for a specific (usually vulnerable) service on many machines.
+  \item Malicious traffic - exfiltration of data.
+  \item Distributed Denial of Service (DDoS) - flood target with high volume of network traffic.
+\end{itemize}
+
+\subsection{Port Knocking}
+Port knocking is a technique to hide a service from port scanning, but can also be used to hide backdoors:
+\begin{enumerate}
+  \item All ports are closed.
+  \item Client shares a secret with server that identifies specific ports to probe in a fixed order.
+  \item Server replies to last probe with a random port where the service will be provided.
+  \item Client connects to the service using this port.
+\end{enumerate}
+
+\subsection{Network Defenses}
+\begin{itemize}
+  \item Firewalls:
+    \begin{itemize}
+      \item Packet filtering, keep state, inspect application-layer packets.
+      \item Can protect individual machine from port scanning and malicious traffic.
+    \end{itemize}
+  \item Intrusion Detection Systems (IDS):
+    \begin{itemize}
+      \item Dedicated hardware that inspects network traffic - signature or anomaly detection based.
+      \item Can detect host and port scanning, port sweep.
+      \item Can filter malicious traffic.
+      \item Can rate-limit connections to mitigate DDoS.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{IDS Evasion}
+\begin{enumerate}
+  \item Fragment a suspicious packet into 2.
+  \item \texttt{traceroute} to determine distance to the IDS and the target.
+  \item Send fragment 1 to the target.
+  \item Send innocuous replacement of fragment 2 so that it expires after the IDS, but before the target.
+  \item IDS decides communication is safe.
+  \item Send malicious fragment 2.
+  \item IDS does not interpret the second fragment as related to the first.
+\end{enumerate}
+
+\section{Domain Name System (DNS)}
+The DNS lets us identify hosts via \textit{hostname} instead of IP address - separates the logical address from the physical address of the host running the service.
+
+To resolve DNS, the client looks up the IP address of the target hostname.
+This could be stored in the local cache, or can be returned after querying an external primary DNS server.
+DNS traffic is sent over UDP, but may fall back to TCP if more data needs to be exchanged.
+
+\subsection{Common DNS Records}
+\begin{itemize}
+  \item \textbf{SOA} (Start of Authority) - indicates that the server is the best authoritative source for data concerning the zone.
+  \item \textbf{NS} (Name Server) - DNS server functioning as an authority for the zone.
+  \item \textbf{A} (Address) - name-to-address mapping that supplies an IPv4 address for a specific DNS name.
+    \begin{itemize}
+      \item \textbf{AAAA} is the IPv6 equivalent.
+    \end{itemize}
+  \item \textbf{PTR} (Pointer) - address-to-name mapping that supplies a DNS name for a specific address.
+  \item \textbf{CNAME} (Canonical Name) - creates an alias that points to the canonical name of a host identified by an `A' record.
+  \item \textbf{MX} (Mail Exchange) - system that directs email traffic sent to an address in the domain to the individual recipient.
+\end{itemize}
+
+\subsection{Security Issues}
+\begin{itemize}
+  \item DNS requests and responses are not authenticated - MITM or compromised DNS can map to malicious IPs.
+  \item \textit{Cache poisioning}.
+  \item \textit{Rebining}.
+  \item Name servers can be misconfigured or hijacked.
+\end{itemize}
+
+\subsection{DNSSEC}
+DNSSEC improves the security of DNS by protecting the authenticity and integrity of DNS records.
+Each DNS zone has public/private key-pairs to sign and verify data.
+
+DANE is DNSSEC data used to improve TLS certificate infrastructure, allowing digital certificates to be bound to domain names.
+This moves the trust from certificate authorities to DNS operators.
+
+Weaknesses:
+\begin{itemize}
+  \item Increased load on DNS servers.
+  \item Decreased network performance.
+  \item \textit{Zone enumeration} information leakage.
+\end{itemize}
+
+\subsubsection{Zone Enumeration}
+If a domain does not exist, an NSEC record reveals alphabetically-closest neighbours.
+This is useful to prove that the domain does not exist.
+However, it allows a hacker to find out which domains do not exist, and discover closest ones.
+
+NSEC3 extension mitigates this problem by using salted hashes of domain names.
+Instead of revealing the domains of neighbours, it reveals the hashes of the domains of neighbours.
+The salt changes over time and across timezones, hindering dictionary attacks.
+
+\subsection{DNS Tunneling}
+\begin{enumerate}
+  \item Attacker encodes data to be sent in a DNS query for a domain for which they control the authoritative DNS.
+  \item The domain is not found locally, the authoritative server is contacted.
+  \item DNS queries are not filtered by the firewall/proxy.
+  \item Server replies, encoding data in DNS response.
+  \item Firewall forwards reponse.
+  \item Attacker receives and decode the reply.
+\end{enumerate}
+
+This allows the exfiltration of data encoded as subdomain names.
 \end{document}
