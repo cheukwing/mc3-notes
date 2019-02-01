@@ -199,7 +199,6 @@ The distributed processes communicate with PL components.
   \includegraphics[scale=0.3]{pl}
 \end{figure}
 
-\subsubsection{Safety and Liveness Properties}
 \begin{itemize}
   \item \textbf{Reliable Delivery (L)} - if Alice and Bob are correct processes, then every message sent by Alice to Bob is eventually delivered to Bob.
   \item \textbf{No Duplication (S)} - no message is delivered to a process more than once.
@@ -223,14 +222,13 @@ Given a list of all processes and a message, we send the message to all processe
 
 We assume messages are unique (e.g.\ they include a process-id and seq-no), no process broadcasts a message twice, and no two processes every broadcast the same message.
 
-\subsubsection{Safety and Liveness Properties}
 \begin{itemize}
   \item \textbf{Validity (L)} - if a correct process broadcasts a message, then every correct process eventually delivers it.
   \item \textbf{No Duplication (S)} - no message is delivered to a process more than once.
   \item \textbf{No Creation (S)} - no message is delivered unless it was broadcast.
 \end{itemize}
 
-\subsection{BEB Basic Broadcast}
+\subsubsection{BEB Basic Broadcast}
 \begin{figure}[htb!]
   \centering
   \caption{Basic broadcast.}
@@ -244,12 +242,17 @@ We assume messages are unique (e.g.\ they include a process-id and seq-no), no p
   \item BEB derives its S\&L properties from PL.
 \end{itemize}
 
-\subsubsection{Safety and Liveness Properties}
 \begin{itemize}
   \item \textbf{No Duplication (S)} and \textbf{No Creation (S)} dervied from PL.
   \item \textbf{No Duplication (S)} also assumes messages are unique.
   \item \textbf{Validity (L)} derived from \textbf{Reliable Delivery (L)} in PL and the fact that the message needs to be sent to all processes.
 \end{itemize}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{BEB code.}
+  \includegraphics[scale=0.3]{bebcode}
+\end{figure}
 
 \subsection{Reliable Broadcast (RB)}
 \begin{figure}[htb!]
@@ -259,7 +262,6 @@ We assume messages are unique (e.g.\ they include a process-id and seq-no), no p
 \end{figure}
 All correct processes will agree on the messages they deliver, even if the broadcasting process crashes while sending.
 
-\subsubsection{Safety and Liveness Properties}
 \begin{itemize}
   \item \textbf{Validity (L)}, \textbf{No Duplication (S)}, and \textbf{No Creation (S)} as in BEB.
   \item \textbf{Agreement (L)}:
@@ -270,45 +272,58 @@ All correct processes will agree on the messages they deliver, even if the broad
     \end{itemize}
 \end{itemize}
 
-\subsection{Eager RB (fail-silent)}
+\subsubsection{Eager RB (fail-silent)}
 \begin{figure}[htb!]
   \centering
   \caption{Eager RB.}
   \includegraphics[scale=0.3]{rbbeb}
 \end{figure}
 
-\begin{itemize}
-  \item Every process re-broadcasts every message it delivers.
-  \item If the broadcasting process crashes, then the message will be forwarded by other processes using BEB.
-  \item At best $1$ broadcast step, at worst $O(N)$ broadcast steps if processes crash in sequence.
-  \item $O(N^2)$ messages.
-\end{itemize}
+Every process re-broadcasts every message it delivers.
+If the broadcasting process crashes, then the message will be forwarded by other processes using BEB.
 
-\subsubsection{Safety and Liveness Properties}
+At best $1$ broadcast step, at worst $O(N)$ broadcast steps if processes crash in sequence.
+$O(N^2)$ messages.
+
 \begin{itemize}
   \item \textbf{No Creation (S)} and \textbf{Validity (L)} derived from BEB.
   \item \textbf{No Duplication (S)} as messages delivered are kept track of, and messages are assumed to be unique.
   \item \textbf{Agreement (L)} is derived from \textbf{Validity (L)} of BEB, and the fact that every correct process forwards every message it delivers.
 \end{itemize}
 
-\subsection{Lazy RB (fail-stop)}
+\begin{figure}[htb!]
+  \centering
+  \caption{Eager RB code.}
+  \includegraphics[scale=0.3]{eagercode}
+\end{figure}
+
+\subsubsection{Lazy RB (fail-stop)}
 \begin{figure}[htb!]
   \centering
   \caption{Lazy RB.}
   \includegraphics[scale=0.3]{lazyrb}
 \end{figure}
 
-\begin{itemize}
-  \item Uses BEB, but includes a failure detector component to detect processes that have failed (and stopped).
-  \item When a crash is detected, all messages from that process are broadcast.
-  \item When a messsage is received from a crashed process then the message is broadcast, otherwise if it is a correct process it is not.
-\end{itemize}
+Uses BEB, but includes a failure detector component to detect processes that have failed (and stopped).
+When a crash is detected, all messages from that process are broadcast.
+When a messsage is received from a crashed process then the message is broadcast, otherwise if it is a correct process it is not.
 
-\subsubsection{Safety and Liveness Properties}
 \begin{itemize}
   \item \textbf{Agreement (L)} is derived from the \textbf{Validity (L)} from BEB, that every correct process forwards every message it delivers when it detects a crashed process, and from PFD.
   \item Other properties follow as for the Eager RB.
 \end{itemize}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Lazy RB code, part 1.}
+  \includegraphics[scale=0.3]{lazycode1}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Lazy RB code, part 2.}
+  \includegraphics[scale=0.3]{lazycode2}
+\end{figure}
 
 \subsection{Failure Detectors}
 \begin{itemize}
@@ -318,33 +333,30 @@ All correct processes will agree on the messages they deliver, even if the broad
       \item Makes timing assumptions (assumes systems are not asynchronous).
       \item Never changes its view - suspects remain suspected forever.
     \end{itemize}
-  \item \textbf{Eventually Perfect Failure Detecter}: $\Diamond P$:
+  \item \textbf{Eventually Perfect Failure Detector}: $\Diamond P$:
     \begin{itemize}
       \item May make mistakes but will eventually detect a crashed process.
     \end{itemize}
 \end{itemize}
 
-\subsubsection{Safety and Liveness Properties}
+It has the following safety and liveness properties:
 \begin{itemize}
   \item \textbf{Strong Completeness (L)} - every process that crashes will eventually be permanently suspected by every correct process.
   \item \textbf{Strong Accuracy (S)} - no process is suspected before it crashes.
   \item \textbf{Eventually Strong Accuracy (L)} - eventually no correct process is suspected.
 \end{itemize}
 
-\subsection{PFD Exclude on Timeout}
+\subsubsection{PFD Exclude on Timeout}
 \begin{figure}[htb!]
   \centering
   \caption{Exclude on timeout.}
   \includegraphics[scale=0.3]{pfd}
 \end{figure}
 
-\begin{itemize}
-  \item Uses PL to exchange \textit{heartbeat} messages with a timeout mechanism.
-  \item Timeout delay must be large enough for all sends to processes, processing time, and replies back.
-  \item After timeout, processes from which a reply has not been received are considered crashed, even if it is alive and the reply arrived after timeout.
-\end{itemize}
+Uses PL to exchange \textit{heartbeat} messages with a timeout mechanism.
+The timeout delay must be large enough for all sends to processes, processing time, and replies back.
+After timeout, processes from which a reply has not been received are considered crashed, even if it is alive and the reply arrived after timeout.
 
-\subsubsection{Safety and Liveness Properties}
 \begin{itemize}
   \item \textbf{Strong Completeness (L)}:
     \begin{itemize}
@@ -357,6 +369,19 @@ All correct processes will agree on the messages they deliver, even if the broad
       \item A process is suspected only if no reply is delivered before timeout.
     \end{itemize}
 \end{itemize}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{PFD code, part 1.}
+  \includegraphics[scale=0.3]{pfdcode1}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{PFD code, part 2.}
+  \includegraphics[scale=0.3]{pfdcode2}
+\end{figure}
+
 
 \subsection{Process Configuration}
 Each distributed process is in the configuration seen in figure \ref{fig:processconf}.
@@ -381,6 +406,154 @@ Each distributed process is in the configuration seen in figure \ref{fig:process
     \begin{itemize}
       \item If a process (not necessarily correct) delivers a message $M$, then every correct process will also deliver $M$.
       \item The set of messages delivered by a faulty process is always a subset of messages delivered by a correct process.
+      \item Use case may be to ensure consistency in financial transactions.
     \end{itemize}
 \end{itemize}
+
+\subsubsection{Majority-Ack URB}
+\begin{figure}[htb!]
+  \centering
+  \caption{Majority-ack URB.}
+  \includegraphics[scale=0.3]{majorityack}
+\end{figure}
+
+The message is only delivered after the message has been BEB-delivered by a majority (\textit{quorum}) of processes - at least one correct process is in the majority.
+
+This is \textbf{fail-silent} as crashes are not detected, but it is \textbf{assumed the majority are correct processes}.
+
+If process $P$ \texttt{beb\_deliver}s message $M$, then $P$ will eventually \texttt{urb\_deliver} M.
+If $P$ \texttt{beb\_broadcast}s $M$, then all correct processes \texttt{beb\_broadcast} $M$.
+Assuming the majority is correct, $P$ will eventually \texttt{beb\_deliver} $M$ from the majority of processes, then it will \texttt{urb\_deliver} $M$.
+Then:
+\begin{itemize}
+  \item \textbf{No Creation (S)} follows from the corresponding safety property of BEB.
+  \item \textbf{No Duplication (S)} as the algorithm keeps track of messages that have been \texttt{urb\_deliver}ed.
+  \item \textbf{Validity (L)}:
+    \begin{align*}
+      P \texttt{ urb\_broadcast } M &\implies P \texttt{ beb\_broadcast } M \\
+                                    &\implies P \texttt{ beb\_deliver } M \\
+                                    &\implies P \texttt{ urb\_deliver } M
+    \end{align*}
+  \item \textbf{Uniform Agreement (L)}, if $Q$ is any process that \texttt{urb\_deliver}s $M$, then:
+    \begin{itemize}
+      \item $Q$ \texttt{beb\_deliver}ed $M$ from the majority of processes, and at least $1$ correct process \texttt{beb\_broadcast}ed $M$ (assumption).
+      \item THen all correct processes eventually \texttt{beb\_deliver} $M$, and will also eventually \texttt{urb\_deliver} $M$.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Majority-ack URB code, part 1.}
+  \includegraphics[scale=0.3]{urbcode1}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Majority-ack URB code, part 2.}
+  \includegraphics[scale=0.3]{urbcode2}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Majority-ack URB code, part 3.}
+  \includegraphics[scale=0.3]{urbcode3}
+\end{figure}
+
+\section{FIFO, Causal, and Total Order Broadcast}
+\begin{itemize}
+  \item \textbf{First In, First Out (FIFO)} - messages broadcast by a process are delivered in their broadcast order.
+  \item \textbf{Causal Order (CO)} - messages broadcast by a process are delivered in their \textit{causal} order.
+  \item \textbf{Total Order (TO)} - all correct processes deliver the same (global) sequence of messages, impossible in an asynchronous system.
+\end{itemize}
+
+\subsection{FIFO Regular RB (FRB)}
+\begin{figure}[htb!]
+  \centering
+  \caption{FRB component.}
+  \includegraphics[scale=0.3]{fifo}
+\end{figure}
+
+FIFO regular reliable broadcast has the same reliability properties as RB, plus the ordering property that if a process broadcasts $M1$ before it broadcasts $M2$, then all \textbf{correct processes} will deliver $M1$ before $M2$.
+This does not affect the messages of different senders.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{FRB code, part 1.}
+  \includegraphics[scale=0.3]{frbcode1}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{FRB code, part 2.}
+  \includegraphics[scale=0.3]{frbcode2}
+\end{figure}
+
+\subsection{Causal Order RB (CRB)}
+\begin{figure}[htb!]
+  \centering
+  \caption{CRB component.}
+  \includegraphics[scale=0.3]{crb}
+\end{figure}
+
+The \textbf{causal order relation} $m1 \rightarrow m2$ states that $m1$ may have caused $m2$ if the following apply:
+\begin{itemize}
+  \item \textbf{FIFO order} - Alice broadcasts $m1$, and later $m2$.
+  \item \textbf{Local order} - Alice delivers $m1$, and later broadcasts $m2$.
+  \item \textbf{Transitivity} - if there is a message $m3$ such that $m1 \rightarrow m3$, and $m3 \rightarrow m2$.
+\end{itemize}
+
+The \textbf{causal delivery property} ensures that if any process delivers $m2$, it must have previously delivered every message $m1$ such that $m1 \rightarrow m2$, thus ensuring that ``cause-effect'' relations are respected.
+
+We never delay \texttt{crb\_deliver}ing a message - if we receive $m2$ and $m1$ was in the past, then we deliver $m1$ then $m2$ in causal order.
+If we then receive $m1$ again, we can safely discard it.
+\begin{itemize}
+  \item \textbf{No Duplication (S)}, \textbf{No Creation (S)}, \textbf{Validity (L)}, and \textbf{Uniform Agreement (L)} are derived from the URB.
+  \item \textbf{Causal Delivery (S)} is ensured by every message carrying its causally past messages, and by forcing them to be delivered before the message.
+\end{itemize}
+Carrying the entirety of the message's past means the overall message size can grow very large - we can optimize by purging messages from \texttt{past}.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{CRB code, part 1.}
+  \includegraphics[scale=0.3]{crbcode1}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{CRB code, part 2.}
+  \includegraphics[scale=0.3]{crbcode2}
+\end{figure}
+
+\subsubsection{CRB with Vector Clocks}
+We can use \textbf{vector clocks} to avoid storing past messages.
+The vector clock (an array of sequence numbers) indicates the number of messages from each process that have been delivered.
+Each process also maintains a count of the number of messages it has broadcast.
+
+When a process broadcasts, it includes its vector clock with its own entry set to the broadcast's sequence number.
+The receiving process, before delivering a message $M$, must compare the vector clock of the message with its own, the difference is the number of messages that must be delivered before $M$ - the process must defer delivering if necessary.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{CRB with vector clock code, part 1.}
+  \includegraphics[scale=0.3]{vccode1}
+\end{figure}
+
+\begin{figure}[htb!]
+  \centering
+  \caption{CRB with vector clock code, part 2.}
+  \includegraphics[scale=0.3]{vccode2}
+\end{figure}
+
+\subsection{Total Order Broadcast}
+All processes must deliver all messages in the same order.
+Causality or FIFO does not need to be respected but can be made to do so.
+
+\subsubsection{Uniform Total Order Broadcast (TOURB)}
+We require the 4 properties of URB, plus the following:
+If $P$ is a correct process and delivers $M1$ without having delivered $M2$, no correct process delivers $M2$ before $M1$.
+
+This is equivalent to the consensus problem - solving this problem solves the total order problem.
+However, this problem cannot be solved in a completely asynchronous system.
+
 \end{document}
+
