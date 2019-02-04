@@ -506,4 +506,266 @@ Other notes:
   \item If the model is stochastic, we should replicate the training several times to know the distribution of the performance.
 \end{itemize}
 
+\section{Neural Networks}
+\begin{figure}[htb!]
+  \centering
+  \caption{A single neuron.}
+  \includegraphics[scale=0.5]{neuron}
+\end{figure}
+
+Every \textbf{input} $x_i$ is multiplied by its corresponding \textbf{weight} $w_i$ then summed to get $z$, the \textbf{pre-activation value}, which is then passed to the \textbf{activation function} $f$:
+\[
+  y = f(z) = f \left( \sum_i w_i x_i \right) = f (w^\intercal x)
+\]
+In vector form, $w, x \in \mathcal{R}^{n \times 1}$.
+
+We can simplify to a single input:
+\[
+  y = f(wx) 
+\]
+which resembles the function of a line $y = wx + b$, without the \textbf{bias}.
+If $x' = \begin{pmatrix} x \\ 1 \end{pmatrix}$ and $w = \begin{pmatrix} w_1 \\ w_0 \end{pmatrix}$, then we get $y = w_1 x + w_0$ - the same as having an explicit bias value.
+
+\subsection{Perceptron}
+Suppose we have some labelled data $x^{(1)}, x^{(2)}, \dots$ which have some desired outputs $y^{(1)}, y^{(2)}, \dots$.
+We are trying to do binary classification, the class is either $0$ or $1$.
+We take the activation function to be a \textit{threshold function}:
+\[
+  h_w(x) = f(w \cdot x) = 1 \text{ if } w \cdot x \geq \theta \text{ else } 0
+\]
+
+\begin{defn}
+  The \textbf{percepton learning rule} to update the weights in order to learn this classification is:
+  \[
+    w_i \leftarrow w_i + \alpha(y - h_w(x)) \times x_i
+  \]
+\end{defn}
+The $\alpha$ is the \textbf{learning rate}:
+\begin{itemize}
+  \item If $y = h_w(x)$, then the weights stay the same.
+  \item If $y = 1; h_w(x) = 0$, then the corresponding weight is increased when the $x_i$ is positive, and decreased when it is negative - we want to increase the summation.
+  \item If $y = 0; h_w(x) = 1$, then the opposite happens - we want to decrease the summation.
+\end{itemize}
+
+A perceptron can learn any \textbf{linearly separable function}, but cannot handle an \textit{XOR} case - we cannot draw two lines to separate the classes.
+We need to transform the \textit{XOR} into a linearly separable problem, what if the transformation was learned?
+
+\subsection{Layers}
+When we have multiple outputs or want to learn multiple intermediate transformation or features of the input, we need many neurons.
+\begin{defn}
+  A \textbf{layer} is a collection of neurons that share the same inputs but have different weights.
+\end{defn}
+
+We still have the input $x \in \mathcal{R}^{N \times 1}$, but we can collect the weights into a matrix $W \in \mathcal{N \times M}$, with bias $b \in \mathcal{R}^{M \times 1}$, producing outputs $y \in \mathcal{R}^{M \times 1}$:
+\[
+  y = f(W^\intercal x + b) 
+\]
+
+Every neuron has the same computation but different weights - each neuron creates a learnable linear combination of its inputs passed through a non-linear activation function $f$, the layer now computes $M$ many different transformations of the input.
+
+The scalar activation function is applied element-wise:
+\[
+  f(\textbf{x}) = 
+  f 
+  \left( 
+    \begin{pmatrix}
+      x_1 \\ x_2 \\ \vdots
+    \end{pmatrix}
+  \right) 
+  =
+  \begin{pmatrix}
+    f(x_1) \\ f(x_2) \\ \vdots
+  \end{pmatrix}
+\]
+There is no requirement to apply the activation within the layer - we can separate activation from the linear transformation:
+\begin{align*}
+  z &= W^\intercal x + b 
+  y &= f(z)
+\end{align*}
+
+\begin{defn}
+  A \textbf{fully-connected} or \textbf{dense} layer is when every input is connected to every neuron; the number of neurons in these layers is referred to as \textbf{units}.
+\end{defn}
+
+\subsection{Feed-Forward Networks}
+\begin{figure}[htb!]
+  \centering
+  \caption{Feed-forward neural network.}
+  \includegraphics[scale=0.4]{ffnn}
+\end{figure}
+\begin{defn}
+  A \textbf{feed-forward}, \textbf{deep feed-forward}, or \textbf{multi-layer perceptron} (MLP) network is a collection of layers chained together:
+  \[
+    y = h_3 (h_2 (h_1 (x))) 
+  \]
+  The output of one is the input to the next, where each layer is $h_i$.
+\end{defn}
+
+\begin{itemize}
+  \item \textbf{Depth} - number of layers.
+  \item \textbf{Width} - number of neurons.
+  \item \textbf{Architecture} - how many units the layers have, how the units are connected, etc.
+  \item \textbf{Hidden layers} - the layers between the input and output; they do not interact with the outside world.
+\end{itemize}
+The input layer is conceptual as it computes no transformation, $x = f(x)$.
+
+More formally:
+\[
+  A^{(l)}  = f^{(l)} (Z^{(l)}); Z^{(l)} = W^{(l)} \cdot A^{(l - 1)}; A^{(0)} = x
+\]
+where $A^{(l)}$ is the input to the next layer, and $Z$ is referred to as the pre-activation output.
+
+\subsubsection{Initializing Weights}
+Two basic ways of initializing the weights of the network are:
+\begin{itemize}
+  \item \textbf{Zeros} - set parameters to $0$, commonly used for bias.
+  \item \textbf{Normal} - set parameters from a normal distribution $W \sim \mathcal{N}(0, 1)$.
+\end{itemize}
+
+However, assigning random values could result in tiny or massive outputs - we want the variance of the output of the layers to stay stable across the layers.
+\begin{defn}
+  The \textbf{Xavier uniform} or \textbf{Glorot uniform} is:
+  \[
+    W \sim U \left[ -\frac{\sqrt{6}}{\sqrt{n_j + n_{j + 1}}}, \frac{\sqrt{6}}{\sqrt{n_j + n_{j + 1}}}\right] 
+  \]
+  where $U$ is the uniform distribution, $n_j$ is the number of inputs of the layer, $n_{j + 1}$ is the number of outputs of the layer.
+\end{defn}
+
+\subsubsection{Activation Functions}
+\begin{figure}[htb!]
+  \centering
+  \caption{Common activation functions.}
+  \includegraphics[scale=0.4]{caf}
+\end{figure}
+The \textit{threshold function} is a linear activation function.
+To learn beyond this, we need non-linear activation functions, the most common of which are:
+\begin{itemize}
+  \item \textbf{linear (identity)} - same as no activation function, simply exoises the linear transformation that precedes the activation $y = W^\intercal x$.
+  \item \textbf{sigmoid} - compresses the output to $[0, 1]$, with $0$ corresponding $0.5$.
+    \[
+      \text{sigmoid}(x) = \frac{1}{1 + (e^{-x})} 
+    \]
+  \item \textbf{tanh} - adjusts the sigmoid such that input $0$ corresponds to output $0$, so ranges $[-1, 1]$.
+    \[
+      \text{tanh}(x) = \frac{2}{1 + (e^{-2x})} - 1 
+    \]
+  \item \textbf{ReLU} (rectified linear unit) - most commonly used for feed-forward neural networks; piece-wise linear function as it is composed of linear functions but overall it is a non-linear function.
+    \[
+      \text{relu}(x) =
+      \begin{cases}
+        x, & \text{if } x > 0 \\
+        0, & \text{otherwise}
+      \end{cases}
+    \]
+  \item \textbf{softmax} - $n$-dimensional version of sigmoid; compresses the sum of the output vector to $1$.
+    \[
+      \text{softmax}(z_i) = \frac{e^{z_i}}{\sum_k e^{z_k}}; z \in \mathcal{R}^n 
+    \]
+\end{itemize}
+
+We often use ReLU in the hidden layers to get the computational benefits and stability of linear functions, while having non-linearity.
+The final layer activation depends on what we are trying to achieve with the network: binary classification, multi-class, or regression? 
+
+\subsection{Loss Functions}
+\begin{defn}
+  The \textbf{loss function} is the function we are trying to minimize, such that we learn the relationship between the given inputs and the desired outputs.
+\end{defn}
+
+It is crucial to select/design the function in order to learn something meaningful - it depends on what we are trying to do.
+
+\subsubsection{Regression}
+When trying to predict a continuous variable, we have a (non-linear) \textbf{regression problem}.
+
+We use the \textbf{squared error} loss function:
+\[
+  L(y^{(i)}, a^{(i)})  = (a^{(i)} - y^{(i)})^2
+\]
+where $a^{(i)}$ is the network output and $y^{(i)}$ the desired output.
+
+When there are multiple outputs, we take the \textbf{mean-squared error}:
+\[
+  \frac{1}{d} \sum_j^d (a_j^{(i)} - y_j^{(i)})^2 
+\]
+
+For the activation of the last layer, since the output is not bounded we use linear activation when regressing with the squared error loss function.
+
+\subsubsection{Classification}
+More commonly, we are trying to classify things categorically.
+\textbf{Binary classification} refers to a situation with two classes, \textbf{multi-class classification} with many classes.
+We assume every input belongs to one class, and one class only - if we want to predict multiple classes, we need \textbf{multi-label classification}.
+
+\begin{center}
+  \begin{tabular}{c | c | c | c}
+    Type & Layer Activation & Desired Output & Loss \\
+    \hline
+    binary & sigmoid & 0 or 1 & binary cross entropy \\
+    multi-class & softmax & one-hot & categorical cross entropy \\
+    multi-label & sigmoid & 0s and 1s & binary cross entropy
+  \end{tabular}
+\end{center}
+
+Consider first the sigmoid activation, where values range from $0$ to $1$.
+We can interpret this as the probability of that input belonging to a class, $p(y \mid x)$.
+The network output is the probability distribution over classes, so we would like to maximize the likelihood of the network assigning the correct labels to all inputs in the dataset:
+\[
+  \prod_i^N p(y^{(i)} \mid x^{(i)}; \theta) 
+\]
+assuming that the examples are independent and identically distributed (i.i.d).
+For a \textbf{binary classification}, we get:
+\[
+  \prod_i^N (a^{(i)})^{y^{(i)}} (1 - a^{(i)})^{1 - y^{(i)}}
+\]
+If we output the same label as the desired label, we get $1$, if we output the opposite we get $0$.
+We want to maximize towards $1$, we take the logarithm:
+\[
+  \sum_i^N y^{(i)}\log(a^{(i)}) + (1 - y^{(i)}) \log(1 - a^{(i)})
+\]
+since maximizing the logarithm is the same as maximizing the original product.
+We then take the inner equation defined on a single pair:
+\[
+  L(y^{(i)}, a^{(i)}) = -(y^{(i)}\log(a^{(i)}) + (1 - y^{(i)}) \log(1 - a^{(i)}))
+\]
+which is the \textbf{binary cross entropy} loss function, also referred to as \textbf{negative log likelihood}.
+When optimizing, we want to minimize the loss - minimizing the minus of the original equation maximizes the quantity we are interested in.
+
+Extending to the \textbf{multi-class situation}:
+\[
+  L(y^{(i)}, a^{(i)}) = -\sum_k y_k^{(i)}\log(a_k^{(i)})
+\]
+is the \textbf{categorical cross entropy} loss function, where $k$ is the number of classes we have.
+We use the softmax activation function in the final layer, to get $a^{(i)}$ which yields a probability distribution, e.g.\ $[0.2, 0.6, 0.2]$ with desired output $[0, 1, 0]$.
+
+We could still use squared error with sigmoid activation, but using log-based-loss provides \textbf{better convergence} properties.
+
+\subsection{Training}
+Our network still has random weights, we need to adjust these to fit the desired data - \textbf{training}.
+
+\subsubsection{Back Propagation}
+Let us take the partial derivative of the loss function with respect to the weights of a layer, using the chain rule:
+\[
+  \frac{\partial Loss}{\partial W^{(L)}} = \frac{\partial Loss}{\partial A^{(L)}} \cdot \frac{\partial A^{(L)}}{\partial Z^{(L)}} \cdot \frac{\partial Z^{(L)}}{\partial W^{(L)}}
+\]
+We are taking the partial derivative of the loss with respect to every weight in the layer because we want to adjust all of them.
+
+Let us look at the hidden layer before the output layer:
+\[
+  \frac{\partial Loss}{\partial W^{(L - 1)}} = \frac{\partial Loss}{\partial A^{(L)}} \cdot \frac{\partial A^{(L)}}{\partial Z^{(L)}} \cdot \frac{\partial Z^{(L)}}{\partial A^{(L - 1)}} \cdot \frac{\partial A^{(L - 1)}}{\partial Z^{(L - 1)}} \cdot \frac{\partial Z^{(L - 1)}}{\partial W^{(L - 1)}}
+\]
+Observe the pattern, we are following the forward computation backwards, starting at the output and going backwards to the weights - \textbf{back-propagation}.
+We propagate the gradients backwards through the network layers.
+If we extract the pattern out, it reads:
+\[
+  \frac{\partial Loss}{\partial W^{(L)}}  = \text{ gradient w.r.t. my output } \times \text{ gradient w.r.t. my weights}
+\]
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Back-propagation of gradients of a linear layer.}
+  \includegraphics[scale=0.4]{backpropagation}
+\end{figure}
+
+When we change the value of $W^{(L - 1)}$, this affects $Z^{(L - 1)}$, which affects $A^{(L - 1)}$, which is the input to the next layer, so this affects $Z^{(L)}$, and so on.
+
+
+
 \end{document}
