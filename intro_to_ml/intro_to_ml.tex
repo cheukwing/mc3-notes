@@ -766,6 +766,176 @@ If we extract the pattern out, it reads:
 
 When we change the value of $W^{(L - 1)}$, this affects $Z^{(L - 1)}$, which affects $A^{(L - 1)}$, which is the input to the next layer, so this affects $Z^{(L)}$, and so on.
 
+We now consider a linear layer $Z = XW + B$, where:
+  \begin{itemize}
+    \item $X \in \mathcal{R}^{N \times D}$; consider $N$ as the number of elements in the input, each with $D$ features.
+    \item $W \in \mathcal{R}^{D \times M}$; $M$ is the number of outputs for each of our inputs.
+    \item $B \in \mathcal{R}^{N \times M}$; this is the stacked version of $b \in \mathcal{R}^{1 \times M}$.
+  \end{itemize}
+such that $Z \in \mathcal{R}^{N  \times M}$.
 
+\subsubsection{Back Propagation Example}
+Let $N = D = 2$, and $M = 3$:
+\[
+  X = 
+  \begin{bmatrix}
+    x_{1, 1} & x_{1, 2} \\
+    x_{2, 1} & x_{2, 2}
+  \end{bmatrix}
+\]
+\[
+  W =
+  \begin{bmatrix}
+    w_{1, 1} & w_{1, 2} & w_{1, 3} \\
+    w_{2, 1} & w_{2, 2} & w_{2, 3}
+  \end{bmatrix}
+\]
+\[
+  B = \begin{bmatrix} \textbf{b} \\ \textbf{b} \end{bmatrix} 
+  = \begin{bmatrix}
+    b_1 & b_2 & b_3 \\
+    b_1 & b_2 & b_3
+  \end{bmatrix}
+\]
+\[
+  Z = \begin{bmatrix}
+    x_{1,1}w_{1,1} + x_{1,2}w_{2,1} + b_1 & 
+    x_{1,1}w_{1,2} + x_{1,2}w_{2,2} + b_2 &
+    x_{1,1}w_{1,3} + x_{1,2}w_{2,3} + b_3 \\
+    x_{2,1}w_{1,1} + x_{2,2}w_{2,1} + b_1 & 
+    x_{2,1}w_{1,2} + x_{2,2}w_{2,2} + b_2 &
+    x_{2,1}w_{1,3} + x_{2,2}w_{2,3} + b_3
+  \end{bmatrix}
+\]
+The $Z$ is used in the upper layers, which then pass back a gradient for each of our outputs:
+\[
+  \frac{\partial Loss}{\partial Z} = \begin{bmatrix}
+    \frac{\partial Loss}{\partial z_{1, 1}} &
+    \frac{\partial Loss}{\partial z_{1, 2}} &
+    \frac{\partial Loss}{\partial z_{1, 3}} \\
+    \frac{\partial Loss}{\partial z_{2, 1}} &
+    \frac{\partial Loss}{\partial z_{2, 2}} &
+    \frac{\partial Loss}{\partial z_{2, 3}}
+  \end{bmatrix}
+\]
+We are interested in the gradients with respect to $W$, $b$, and $X$:
+\begin{itemize}
+  \item We use $\frac{\partial Loss}{\partial W}$ and $\frac{\partial Loss}{\partial b}$ to \textbf{learn}:
+    \begin{align*}
+      \frac{\partial Loss}{\partial W} &= \frac{\partial Loss}{\partial Z} \cdot \frac{\partial Z}{\partial W} \\
+      \frac{\partial Loss}{\partial b} &= \frac{\partial Loss}{\partial Z} \cdot \frac{\partial Z}{\partial b}
+    \end{align*}
+  \item We pass $\frac{\partial Loss}{\partial X}$ \textbf{backwards}:
+    \[
+      \frac{\partial Loss}{\partial X} = \frac{\partial Loss}{\partial Z} \cdot \frac{\partial Z}{\partial X}
+    \]
+\end{itemize}
+
+Let us take one element and investigate.
+We first apply the derivative:
+\[
+  \frac{\partial Z}{\partial x_{1, 1}} = \begin{bmatrix}
+    w_{1, 1} & w_{1, 2} & w_{1, 3} \\
+    0 & 0 & 0
+  \end{bmatrix}
+\]
+Then the chain rule:
+\[
+  \frac{\partial Loss}{\partial x_{1, 1}} = \begin{bmatrix}
+    \frac{\partial Loss}{\partial z_{1, 1}} &
+    \frac{\partial Loss}{\partial z_{1, 2}} &
+    \frac{\partial Loss}{\partial z_{1, 3}} \\
+    \frac{\partial Loss}{\partial z_{2, 1}} &
+    \frac{\partial Loss}{\partial z_{2, 2}} &
+    \frac{\partial Loss}{\partial z_{2, 3}}
+  \end{bmatrix}
+  \cdot
+  \begin{bmatrix}
+    w_{1, 1} & w_{1, 2} & w_{1, 3} \\
+    0 & 0 & 0
+  \end{bmatrix}
+\]
+Which is the general dot-product:
+\[
+  \frac{\partial Loss}{\partial x_{1, 1}} = 
+  \frac{\partial Loss}{\partial z_{1,1}}w_{1,1} +
+  \frac{\partial Loss}{\partial z_{1,2}}w_{1,2} +
+  \frac{\partial Loss}{\partial z_{1,3}}w_{1,3}
+\]
+If we apply this to every element of $X$, we get:
+\[
+  \frac{\partial Loss}{\partial X} =
+  \begin{bmatrix}
+  \frac{\partial Loss}{\partial z_{1,1}}w_{1,1} + \frac{\partial Loss}{\partial z_{1,2}}w_{1,2} + \frac{\partial Loss}{\partial z_{1,3}}w_{1,3}
+  &
+  \frac{\partial Loss}{\partial z_{1,1}}w_{2,1} + \frac{\partial Loss}{\partial z_{1,2}}w_{2,2} + \frac{\partial Loss}{\partial z_{1,3}}w_{2,3} \\
+  \frac{\partial Loss}{\partial z_{2,1}}w_{1,1} + \frac{\partial Loss}{\partial z_{2,2}}w_{1,2} + \frac{\partial Loss}{\partial z_{2,3}}w_{1,3}
+  &
+  \frac{\partial Loss}{\partial z_{2,1}}w_{2,1} + \frac{\partial Loss}{\partial z_{2,2}}w_{2,2} + \frac{\partial Loss}{\partial z_{2,3}}w_{2,3}
+  \end{bmatrix}
+\]
+Which is the same as:
+\[
+  \frac{\partial Loss}{\partial X} = \frac{\partial Loss}{\partial Z}W^\intercal 
+\]
+
+In a similar fashion, we can obtain:
+\[
+  \frac{\partial Loss}{\partial W} = X^\intercal\frac{\partial Loss}{\partial Z}
+\]
+\[
+  \frac{\partial Loss}{\partial b} = \textbf{1}^\intercal\frac{\partial Loss}{\partial Z}
+\]
+
+Let us now consider activation functions.
+Suppose we have $Z = f(X)$, where $X \in \mathcal{R}^{N \times D}$, and $Z \in \mathcal{R}^{N \times D}$:
+\[
+  Z = f(X) = \begin{bmatrix} f(x_{1, 1}) & f(x_{1, 2}) \\  f(x_{2, 1}) & f(x_{2, 2})\end{bmatrix}
+\]
+If we apply the chain rule for a single element:
+\[
+ \frac{\partial Loss}{\partial x_{1,1}} =
+  \begin{bmatrix}
+  \frac{\partial Loss}{\partial z_{1,1}} & \frac{\partial Loss}{\partial z_{1,2}} \\
+  \frac{\partial Loss}{\partial z_{2,1}} & \frac{\partial Loss}{\partial z_{2,2}}
+  \end{bmatrix} \cdot
+  \begin{bmatrix}
+  f'(x_{1,1}) & 0 \\
+  0 & 0
+  \end{bmatrix}
+  = \frac{\partial Loss}{\partial z_{1,1}} f'(x_{1,1}) 
+\]
+Generalising, we get:
+\begin{align*}
+  \frac{\partial Loss}{\partial X} &=
+  \begin{bmatrix}
+  \frac{\partial Loss}{\partial z_{1,1}} f'(x_{1,1}) & \frac{\partial Loss}{\partial z_{1,2}} f'(x_{1,2}) \\
+  \frac{\partial Loss}{\partial z_{2,1}} f'(x_{2,1}) & \frac{\partial Loss}{\partial z_{2,2}} f'(x_{2,2})
+  \end{bmatrix}
+  \\
+  &=
+  \begin{bmatrix}
+  \frac{\partial Loss}{\partial z_{1,1}} & \frac{\partial Loss}{\partial z_{1,2}} \\
+  \frac{\partial Loss}{\partial z_{2,1}} & \frac{\partial Loss}{\partial z_{2,2}}
+  \end{bmatrix} \circ
+  \begin{bmatrix}
+  f'(x_{1,1}) & f'(x_{1,2}) \\
+  f'(x_{2,1}) & f'(x_{2,2})
+  \end{bmatrix}
+  \\
+  &=
+  \frac{\partial Loss}{\partial Z} \circ f'(X)
+\end{align*}
+where $\circ$ is element-wise multiplication (\textit{Hadamard product}).
+
+The derivatives for some of the activation functions are:
+\begin{itemize}
+  \item \textbf{linear}: $f'(x) = 1$, for all $x$.
+  \item \textbf{sigmoid (logistic)}: $f'(x) = f(x)(1-f(x))$.
+  \item \textbf{tanh}: $f'(x) = 1-f^2(x)$.
+  \item \textbf{ReLU}: $f'(x) = 1$, if $x > 0$.
+\end{itemize}
+Notice that for sigmoid and tanh, the gradients range $[0, 1]$, then as you back propagate, the gradients can vanish - \textbf{vanishing gradient problem}.
+This is not the case with ReLU.
 
 \end{document}
