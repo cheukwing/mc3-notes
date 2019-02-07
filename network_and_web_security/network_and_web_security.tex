@@ -1,7 +1,8 @@
 \documentclass[11pt]{article}
 \usepackage{fullpage}
 \usepackage{amsthm}
-\usepackage{amsmath} \usepackage{amssymb}
+\usepackage{amsmath} 
+\usepackage{amssymb}
 \usepackage{graphicx}
 
 \graphicspath{ {./imgs/} }
@@ -938,4 +939,173 @@ The salt changes over time and across timezones, hindering dictionary attacks.
 \end{enumerate}
 
 This allows the exfiltration of data encoded as subdomain names.
+
+\section{Transport Layer Security (TLS)}
+TLS is a cryptographic protocol to provide confidentiality and integrity of network communications.
+This is ensured by protecting the payload data, and having integrity checks to detect MITM tampering - however the IP and port are not protected when sent over TCP/IP.
+
+To perform TLS, the server needs a certificate stating its identity and public key.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{TLS using public key cryptography to validate certificate and send keys.}
+  \includegraphics[scale=0.5]{tls}
+\end{figure}
+
+\subsection{Certificates}
+Certificates identify an entity, either an explicit domain name or a set of hostnames, and have limited validity in time.
+There are two ways to sign certificates:
+\begin{itemize}
+  \item \textbf{Certificate Authority} (CA):
+    \begin{itemize}
+      \item By default, TLS clients trust a number of reputable CAs.
+      \item Buying and renewing certificates from CAs can be expensive.
+      \item Free certificates and automated renewals available.
+    \end{itemize}
+  \item \textbf{Self-Signed Certificates} (SSC):
+    \begin{itemize}
+      \item Client must trust that the self-signing key is appropriate for the domain covered by SSC.
+      \item Clients can trust a custom CA as a whole - enables proxy to inspect TLS traffic.
+    \end{itemize}
+\end{itemize}
+TLS protection is ineffective when certificates cannot be trusted.
+
+\subsubsection{Certificate Validation}
+In order to issue a new certificate, its parameters must be verified:
+\begin{itemize}
+  \item \textbf{Extended Validation} (EV):
+    \begin{itemize}
+      \item Verify the identity of the owner or organization.
+      \item Usually offline channels, e.g.\ over phone.
+    \end{itemize}
+  \item \textbf{Domain Validation} (DV):
+    \begin{itemize}
+      \item Domain owner must prove control over domain when asking for certificate.
+      \item Usually internet-based.
+      \item The CA generates a random token, then either:
+        \begin{itemize}
+          \item Owner places token in DNS record for domain.
+          \item Owner servers token at specific URL from domain.
+          \item Owner includes token in fresh TLS certificate served from domain.
+          \item CA emails token to owner, who submits challenge to CA online.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+Attackers can compromise the DV process to obtain rogue certificates:
+\begin{itemize}
+  \item \textbf{IP spoofing} - fake DNS reply.
+  \item \textbf{DNS hijacking} - serve challenge from a malicious IP.
+  \item \textbf{Email snooping} - read the challenge from clear text email.
+\end{itemize}
+These can be mitigated using DNSSEC and DANE, but this transfers the threat as we now need to establish trust in the DNSSEC certificate.
+
+\section{HTTP}
+\subsection{Uniform Resource Locators (URLs)}
+\texttt{https://host1.example.com:5588/private/login.php}:
+\begin{itemize}
+  \item \textbf{Scheme} \texttt{https} - specifies what protocol to use.
+  \item \textbf{Host} \texttt{host1.example.com} - target IP address or hostname to resolve via DNS.
+  \item \textbf{Port} \texttt{5588} - port of target; if unspecified defaults to standard port for the scheme.
+  \item \textbf{Path} \texttt{/private/login.php} - the request resource.
+  \item \textbf{Origin = (scheme, port, host)}
+\end{itemize}
+
+\texttt{http://alice:secret@www.example.com:80/resource.php?lang=en\#section2}:
+\begin{itemize}
+  \item \textbf{Credentials} \texttt{alice:secret} - used differently depending on protocol; if absent then defaults to anonymous access.
+  \item \textbf{Query string} \texttt{lang=en} - parameters to pass to resource handler.
+  \item \textbf{Fragment} \texttt{section2} - is not passed to the server, remains on the client.
+\end{itemize}
+In practice, it is up to the client and server on how to interpret the fields of a URL.
+We need to consider the confidentiality of credentials, the integrity of the path, and the integrity and confidentiality of the query string.
+
+\subsection{HTTP/1.1}
+\begin{enumerate}
+  \item Client initiates TCP connection.
+  \item Client sends a request conforming to HTTP protocol format.
+  \item Server replies with protocol-specific response.
+  \item Server closes the TCP connection.
+\end{enumerate}
+
+The TCP connection may be kept open (\textit{keepalive}) for a few seconds in case there is a follow up request, however the protocol is stateless.
+Each request is handled independently of previous requests - it is up to the client and server to maintain state.
+
+Two important methods are:
+\begin{itemize}
+  \item \texttt{GET} - fetches a resource from the server, usually side-effect free and idempotent.
+  \item \texttt{POST} - submits data to the server to change state on the server, contains the payload in the body.
+\end{itemize}
+
+\subsection{Request Headers}
+The main request headers, with their intended purpose, are:
+\begin{itemize}
+  \item \texttt{Host} - specifies target host on the server.
+  \item \texttt{User-Agent} - browser compatibility.
+  \item \texttt{Referer} - URL of the page that originated the current request (if present).
+  \item \texttt{Cookie} - cookies stored on behalf of the server.
+  \item \texttt{Authorization} - credentials for HTTP Basic or Digest authentication schemes.
+  \item \texttt{Accept-Encoding} - the acceptable compression methods for the response.
+\end{itemize}
+
+\subsection{Response Codes}
+\begin{itemize}
+  \item \texttt{200 OK Success} - request succeeded.
+  \item \texttt{302 Found} - requested source resides temporarily under a different URI.
+  \item \texttt{404 Not Found} - server has not found anything matching the requested URI.
+  \item \texttt{500 Internal Server Error} - unexpected condition prevented the server from fulfilling the request.
+\end{itemize}
+
+\subsection{Response Headers}
+\begin{itemize}
+  \item \texttt{Content-Type} - MIME type and character set of response.
+  \item \texttt{Location} - combined with a \texttt{3xx} response code, redirects client to different server.
+  \item \texttt{Set-Cookie} - requests client to store/delete some cookie.
+  \item \texttt{WWW-Authenticate} - HTTP Basic or Digest authentication schemes must be used to access the resource.
+  \item \texttt{Content-Encoding} - compression method used.
+  \item \texttt{Cache-Control} - desired caching behaviour for client and intermediary caches.
+\end{itemize}
+
+\subsection{Security Issues}
+\begin{itemize}
+  \item HTTP is over TCP/IP - no confidentiality or integrity of headers or messages.
+  \item Caching - if an HTTP proxy cache is poisoned, downstream clients receive rogue HTTP responses.
+  \item Response splitting - attacker could confuse client to accept bogus responses over  \textit{keepalive} connection.
+\end{itemize}
+
+\subsection{HTTPS}
+Running HTTP over an encrypted TLS connection is HTTPS.
+TLS provides confidentiality and integrity to the HTTP connection and prevents DNS spoofing as the attacker is unable to create fake certificates for target domains.
+
+As HTTPS runs in the browser, controlled by a human, it is still susceptible to problems with accepting invalid certificates.
+A countermeasure for this is HTTP Public Key Pinning (HPKP), where the domain includes includes a public key for the domain in the response header, which the browser caches.
+
+\subsubsection{SSL Stripping and HSTS}
+It is unsafe to upgrade a connection from HTTP to HTTPS - \textit{SSL stripping attack}, see figure \ref{fig:strip}.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{SSL stripping attack.}
+  \label{fig:strip}
+  \includegraphics[scale=0.7]{sslstripping}
+\end{figure}
+
+The countermeasure to this is Strict Transport Security (HSTS):
+\begin{itemize}
+  \item Server responds with header \texttt{Strict-Transport-Security}.
+  \item This tells the browser to load pages from that domain over HTTPS only.
+  \item Saved for future requests.
+\end{itemize}
+There is still the problem of SSL stripping occurring during the first connection from HTTP.
+Browsers can have a list of websites that must be connected over HTTPS directly, but this does not scale.
+
+\subsection{\texttt{Referer} Header}
+When a user on site $A$ clicks on a link to site $B$, not only does $B$ learn that the user visited $A$, but if the query string for $A$ contained sensitive parameters, then $B$ can see them too.
+
+Countermeasures:
+\begin{itemize}
+  \item Put sensitive data in the \texttt{POST} body, rather than in \texttt{GET} query string.
+  \item Use \texttt{Referrer-Policy} response header to control the sending of the \texttt{Referer} header.
+\end{itemize}
+
 \end{document}
