@@ -555,5 +555,152 @@ If $P$ is a correct process and delivers $M1$ without having delivered $M2$, no 
 This is equivalent to the consensus problem - solving this problem solves the total order problem.
 However, this problem cannot be solved in a completely asynchronous system.
 
+\section{Consensus}
+Consensus is how correct processes in a distributed system agree on a value.
+Each process \textbf{proposes} a value, all processes must agree on (\textbf{decide} or \textbf{choose}) one of the proposed values.
+Often these values are actions or commands to be carried out by a set of replicated servers.
+
+Consensus can be used for total order broadcast, as processes must agree on message delivery order - and thus total order broadcast can be used for consensus.
+
+In the \textit{non-blocking commit problem}, each process performs its own local computation and then the processes collectively either commit or abort their local computation.
+Using consensus, each process proposes a \textit{yes} or a \textit{no} - if there is a \textit{no} proposal, then all local computations are aborted, otherwise all are committed.
+
+More generally they can be used in any distributed system where processes have to agree on the \textbf{state of the application} before proceeding.
+
+\subsection{Uniform Consensus}
+\begin{itemize}
+  \item \textbf{Validity (S)} - if a process decides on a value, then some process proposed it.
+  \item \textbf{Integrity (S)} - a process decides one value at most.
+  \item \textbf{Termination (L)} - each correct process eventually decides.
+  \item \textbf{Uniform Agreement (S)} - no two processes decide different values.
+\end{itemize}
+Consensus does not specify which proposal is decided, only that the decision is one of the proposals.
+
+With \textbf{regular consensus}, we replace uniform agreement with:
+\begin{itemize}
+  \item \textbf{Agreement (S)} - no two \textbf{correct} processes decide different values.
+\end{itemize}
+
+\subsection{Primary Backup}
+Consider a simple algorithm with two servers, $S1$ and $S2$.
+$S1$ is the leader and decides which requests to choose: if $S1$ chooses $r1$, it must tell $S2$.
+We look into two cases after $S1$ chooses $r1$:
+\begin{itemize}
+  \item If $S2$ crashes before an \texttt{ack} is sent, $S1$ should continue and execute $r1$
+  \item If $S1$ crashes after $r1$ is sent, $S2$ should continue and execute $r1$.
+\end{itemize}
+However, suppose $r1$ takes too long to reach $S2$ after being sent by $S1$.
+Then $S2$ will execute $r2$ instead, thinking $S1$ has crashed.
+$S1$ will execute $r1$ if \texttt{ack} takes too long to reach $S1$.
+Then \textbf{consensus is violated}.
+
+\subsection{FLP Impossibility Result}
+Consensus cannot be solved in a purely asynchronous system where processes can crash.
+This result applies even where:
+\begin{itemize}
+  \item Processes want to agree only on a single bit value.
+  \item Message passing is reliable.
+  \item At most 1 process crashes (even if there are thousands of correct processes).
+\end{itemize}
+In a purely asynchronous system, we cannot tell if a process has crashed or if it is slow to respond - there is no bound on the time taken to transmit messages.
+
+\subsection{$\diamond$ Synchronous System}
+In an eventually synchronous system (\textbf{$\diamond$ synchronous system}), messages take up to time $mT$ most of the time, but sometimes longer - how often they take longer is bounded but not known.
+We can have consensus in a $\diamond$ synchronous system.
+
+\subsubsection{Rotating Leaders}
+Let us consider how we could use a $\diamond$ synchronous system.
+
+\begin{itemize}
+  \item Each round has a \textbf{leader}, we rotate between servers.
+  \item The length of the round is set such that it is sufficient for servers to complete all the messages needed to make a choice.
+  \item If messages take longer, we give the next server a chance to be leader and make the decision.
+  \item We will eventually reach a round where the messages take $< mT$ and we can make a choice.
+\end{itemize}
+
+Suppose we only have two servers, $S1$ and $S2$.
+If they do not hear from each other, they will keep swapping leadership forever.
+We do not know the bound on the number of times messages will take longer than $mT$ but we do know that the system will be eventually synchronous and we want to tolerate crashes, but we cannot with only two servers as the other server may never respond quickly enough.
+
+We can have consensus in a system with \textbf{$2f + 1$ servers in a $\diamond$ synchronous system}, if only up to $f$ servers crash.
+
+\subsection{Paxos}
+We now consider a basic example of a system with 3 servers: $S1$, $S2$, and $S3$.
+
+Suppose $S1$ is the leader, and the rest witnesses:
+\begin{itemize}
+  \item $S1$ \textbf{consults} the other servers.
+  \item The other servers reply with their \textbf{most recent value} and which \textbf{round} it was witnessed.
+  \item $S1$ selects the \textbf{most recent value received}, and \textbf{proposes} it to the other servers.
+  \item The other servers \textbf{accept} this, and send an acknowledgement back to $S1$.
+  \item Finally, $S1$ sends the value selected as its \textbf{decision} to everyone, who then update their values.
+\end{itemize}
+
+\subsubsection{Crashes}
+If any of the witnesses crash, then $S1$ can continue as they are expecting a message from the other witness.
+
+If $S1$ crashes, then the witnesses will move the next round when the end of the round is reached, messages from earlier rounds are ignored, and the next leader $S2$ is selected.
+
+\subsubsection{Safety and Liveness}
+\begin{itemize}
+  \item Safety - any value that is decided in a round must have been accepted by at least one other server, no other value that could be decided was in a higher round since it would have been selected and proposed.
+  \item Liveness - we will eventually get to a round with sufficient time to complete the message exchanges within a round
+\end{itemize}
+
+\subsubsection{Round duration}
+Rounds can have different durations, we can have longer rounds to ensure servers have enough time to complete their message exchange.
+
+\subsubsection{Synchronous in Round 1}
+Although Paxos is designed for $\diamond$ synchronous systems, it is very efficient if the system is synchronous from the start.
+This requires that messages take less than $mT$, which is often very easy to do.
+
+Therefore $S1$ will achieve consensus in the first round - furthermore, there is no need for consulting since there are no previous values, fast.
+
+\subsubsection{Desynchronized Rounds}
+The servers do not need be synchronized, they can rely solely on local clocks and move to the next round based on it - older rounds get ignored and slower servers are asked to catch up.
+
+\subsection{Lamport's Basic Paxos}
+Each Paxos component has 3 sub-components:
+\begin{itemize}
+  \item \textbf{Proposers} - \textbf{propose values} that they would like to be decided by acceptors; values are decided if they are accepted by a majority of acceptors.
+  \item \textbf{Acceptors} - conditionally accept values from proposers.
+  \item \textbf{Learners} - learn what values have been accepted and process them.
+\end{itemize}
+Each instance of the Basic Paxos algorithm decides a single value and can have several rounds.
+A successful round has two phases: a \textbf{Prepare-Promise} phase and an \textbf{Accept-Accepted} phase.
+\subsubsection{Phase 1: Prepare-Promise}
+\begin{itemize}
+  \item \textbf{Proposer: PREPARE request message}:
+    \begin{itemize}
+      \item Increase its (globally unique) proposal number, $PN$.
+      \item Ask Acceptors to make a promise not to accept proposals less than its $PN$.
+    \end{itemize}
+  \item \textbf{Acceptor: PROMISE reply message}:
+    \begin{itemize}
+      \item Responds with the highest proposal it has accepted, or $\varnothing$ if no proposal has been accepted.
+      \item If the Proposer's $PN$ is lower than the $PN$ of a previously made promise, respond with a negative acknowledgement.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Phase 2: Accept-Accepted}
+\begin{itemize}
+  \item \textbf{Proposer: ACCEPT request message}:
+    \begin{itemize}
+      \item Waits until promises have been received from a majority of Acceptors.
+      \item Asks Acceptors to accept value $V$ with proposal number $PN$ - only needs to ask Acceptors that replied.
+      \item $V$ is either the value of the highest promise made by the acceptors, or the Proposer's  own value if no Acceptors have made a promise.
+    \end{itemize}
+  \item \textbf{Acceptor: ACCEPTED reply message}:
+    \begin{itemize}
+      \item Accepts proposed value $V$ only if it has not made a higher promise.
+      \item Returns value of highest $PN$ accepted.
+    \end{itemize}
+  \item \textbf{Proposer}:
+    \begin{itemize}
+      \item Waits until accepted replies are received from a majority of Acceptors.
+      \item Retries (with higher $PN$) if a higher value was accepted by an Acceptor.
+    \end{itemize}
+\end{itemize}
+
 \end{document}
 
