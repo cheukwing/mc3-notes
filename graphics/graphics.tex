@@ -1766,4 +1766,158 @@ However if the mapping is to a parallelogram where $\textbf{b} = \textbf{c}$, th
     \end{itemize}
 \end{itemize}
 
+\section{Rasterization, Visibility and Anti-Aliasing}
+
+\subsection{Coordinate Systems}
+\begin{figure}[htb!]
+  \centering
+  \caption{Trilinear and Barycentric coordinates.}
+  \includegraphics[scale=0.3]{tribary}
+\end{figure}
+In \textbf{trilinear coordinates}, we project each vertex of the triangle onto the opposite edge and measure the distance to a particular point to calculate the coordinates of the point.
+
+In \textbf{barycentric coordinates}, we use the ratios of the subtriangles formed by the vertices of the triangle and the point to calculate the coordinates of the point.A
+
+\subsection{Barycentric Coordinates}
+We use vertices $a, b, c$ to specify the three points of a triangle.
+These three points determine a plane, and the vectors $b - a$ and $c - a$ form a basis for this plane.
+
+Then any point $p$ in the plane can be specified:
+\begin{align*}
+  p &= a + \beta (b - a) + \gamma(c - a) 
+  &= (1 - \beta - \gamma) a + \beta b + \gamma c
+  &= \alpha a + \beta b + \gamma c
+\end{align*}
+\[
+  p(\alpha, \beta, \gamma) = \alpha a + \beta b + \gamma c
+\]
+where $\alpha, \beta, \gamma$ are called barycentric coordinates.
+
+We can have two types of barycentric coordinates:
+\begin{itemize}
+  \item \textbf{Homogenous barycentric coordinates} are normalized so that $\alpha + \beta + \gamma = \text{ area of triangle}$.
+  \item \textbf{Areal coordinates} or \textbf{absolute barycentric coordinates} are normalized by the area of the original triangle, $\alpha + \beta + \gamma = 1$.
+\end{itemize}
+
+\subsubsection{Properties}
+\begin{itemize}
+  \item Barycentric coordinates describe a point $p$ as an affine combination of the triangle vertices:
+    \begin{align*}
+      p(\alpha, \beta, \gamma) = \alpha a + \beta b + \gamma c & & \alpha + \beta + \gamma = 1
+    \end{align*}
+  \item For any point $p$ inside the triangle $(a, b, c)$:
+    \begin{align*}
+      0 < \alpha < 1 && 0 < \beta < 1 && 0 < \gamma < 1
+    \end{align*}
+  \item Points on the edge have one coefficient as $0$.
+  \item At the vertices, two coordinates are $0$, the remaining is $1$.
+\end{itemize}
+
+\subsubsection{Signed Distances}
+\begin{figure}[htb!]
+  \centering
+  \caption{The possible positions of a point for different values of coordinate $\beta$.}
+  \includegraphics[scale=0.5]{signeddistances}
+\end{figure}
+Let $p = \alpha a + \beta b + \gamma c$, each coordinate is the signed distance from $p$ to the line through the triangle edge.
+
+The signed distance can be computed by evaluating implicit line equations of the edges.
+
+\subsubsection{Implicit Equation for Lines}
+Recall $f(x, y)$:
+\begin{itemize}
+  \item Points with $f(x, y) = 0$ are on the line.
+  \item Points with $f(x, y) \neq 0$ are not on the line.
+\end{itemize}
+
+The general form is $Ax + By + C = 0$.
+The implicit line through two points $(x_a, y_a)$ and $(x_b, y_b)$:
+\[
+  (y_a - y_b) x + (x_b - x_a) y + x_a y_b - x_b y_a = 0 
+\]
+
+For a given point $p$, we want to compute its barycentric coordinate $\beta$.
+We know that if $f(x, y) = 0$, then $kf(x, y) = 0$, then we need to choose a $k$ such that:
+\[
+  kf_{ac} (x, y) = \beta 
+\]
+
+We know $\beta = 1$ at point $b$, then if $kf_{ac}(x_b, y_b) = 1$, so $k = \frac{1}{f_{ac}(x_b, y_b)}$:
+\[
+  \beta = \frac{f_{ac}(x, y)}{f_{ac}(x_b, y_b)}
+\]
+
+In general, we have:
+\begin{align*}
+  \alpha = \frac{f_{bc}(x, y)}{f_{bc}(x_a, y_a)} &&
+  \beta = \frac{f_{ac}(x, y)}{f_{ac}(x_b, y_b)} &&
+  \gamma = 1 - \alpha - \beta
+\end{align*}
+Given a point in Cartesian coordinates $(x, y)$, we can calculate its barycentric coordinates $(\alpha, \beta, \gamma)$.
+
+\[
+  \begin{pmatrix}
+    x_a & x_b & x_c \\
+    y_a & y_b & y_c \\
+    1 & 1 & 1
+  \end{pmatrix}
+  \begin{pmatrix} \alpha \\ \beta \\ \gamma \end{pmatrix}
+  =
+  \begin{pmatrix} x \\ y \\ 1 \end{pmatrix}
+\]
+
+\subsubsection{Conversion to Trilinear}
+\[
+  P_t(t_1, t_2, t_3) = P_b(t_1 a, t_2 b, t_3 c) 
+\]
+where $a, b, c$ are the side lengths of the triangle.
+
+\subsection{Triangle Rasterization}
+A simple method of generating fragments for a rectangle is checking $(\alpha, \beta, \gamma)$ and checking if they are all within the bounds of the rectangle.
+
+With one triangle, things are simple as pixels never overlap.
+
+With more than one, fragments might overlap in screen space.
+It may be a simple case where one is on top of the other, or more complicated where they may intersect with each other - we need to decide what to draw first.
+
+\subsubsection{Painter's Algorithm}
+\begin{enumerate}
+  \item Sort triangles on $z$ values (depth) in eye space.
+  \item Draw triangles from back to front.
+\end{enumerate}
+
+There is an issue with correctness when handling intersections or overlaps in a cycle - we could solve this with splitting triangles but this is ugly and expensive.
+Another issue is in the efficiency of sorting all triangles.
+
+\subsubsection{The Depth Buffer (Z-Buffer)}
+Instead, we can perform hidden surface removal per-fragment:
+\begin{enumerate}
+  \item Each fragment gets a $z$ value in the screen space.
+  \item We keep only the fragment with the smallest $z$ value.
+\end{enumerate}
+As many fragments may map to the same pixel location so we need to track their $z$-values using a $z$-buffer.
+This is a 2D buffer with the same size as the image, containing all the current depth values of the pixels.
+
+\subsection{Anti-Aliasing}
+One major problem with rasterization are alias effects (e.g.\ jagged edges), these are caused by undersampling and can cause unreal visual artefacts.
+
+
+\subsubsection{Supersampling}
+The most successful solution to this problem is to apply a degree of blurring to the boundary to reduce the effect, the most successful technique is \textbf{supersampling}.
+
+We compute the picture at a higher resolution than the display area and average to find the pixel values, thus blurring boundaries but leaving coherent areas of colour unchanged.
+
+While supersampling works well for scenes made up of filled polygons, it does not work for line drawings and has high computational costs.
+
+\subsubsection{Convolution Filtering}
+The more common and faster method is to use a filter to blur the image, taking an average over a small region around each pixel to change the resultant pixel.
+
+Taking a local average can have undesirable effects so we normally use a weight average, putting more weight on pixels in the centre of the region.
+
+The disadvantages to this method are that while visual appearance is enhanced, the image quality is degraded.
+
+\subsubsection{Textures}
+When we identify a point in the texture map, we return an average of texture map around the point.
+
 \end{document}
+
