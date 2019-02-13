@@ -1199,4 +1199,42 @@ Countermeasures:
   \item Static and dynamic analysis.
 \end{itemize}
 
+\section{SQL Injection}
+SQL injections are the most common example of command injection.
+They can be used for multiple goals:
+\begin{itemize}
+  \item Elevation of privilege - bypass authentication.
+  \item Information disclosure - reading data.
+  \item Tampering - modifying or deleting data.
+  \item Denial of service - force the server to do costly operations.
+\end{itemize}
+
+\subsection{Blind SQLi}
+Web-based interaction with a database may not display data as a response, other methods (\textit{side channels}) are required to infer information from the database.
+
+Most commonly, we use the time it takes to serve a response by trying payloads which cause a delay in processing, e.g.\ \texttt{SLEEP()} or \texttt{pg\_sleep()}.
+If a response takes longer than normal, injection may have been successful.
+\begin{itemize}
+  \item We can apply a conditional wait to check if certain information (e.g.\ letters of a password) hold in the database.
+  \item If the response takes longer than normal, we assume the condition holds.
+  \item We can slowly exfiltrate information.
+\end{itemize}
+
+\subsection{Second-Order SQLi}
+Untrusted data can be handled securely when it is first inserted into the database to avoid injection, but must also be handled securely later in the process.
+Other application components may read the data in the database, assume it does not need sanitisation, and use it as part of a new query.
+
+An attacker can submit payloads that are dangerous only on the second usage, for example setting their usename to ``\texttt{admin' --}'' and requesting to change their password - then the password of the actual admin is changed instead.
+
+\subsection{Countermeasures}
+\begin{itemize}
+  \item \textbf{Input filtering} - escape blacklisted characters; hard to capture all user input and escape correctly for all uses of the input.
+  \item \textbf{Prepared statements} - avoid building SQL commands piece-wise, use formatting.
+  \item \textbf{Stored procedures} - parameterized SQL queries stored in the database, acting as a fixed API to the application; need to be programmed to avoid injection on themselves and may run the risk of higher privileges than usual queries.
+  \item \textbf{Static/dynamic analysis of PHP code} - check that the query has the expected type, or use taint analysis to detect if untrusted input reaches the database without being sanitized.
+  \item \textbf{Rate-limiting} - limit web or database server requests.
+  \item \textbf{IDS-style defense} - detect and stop sequences of suspicious queries before they reach the database.
+  \item \textbf{Programming framework} - rely on trusted framework developed by others.
+\end{itemize}
+
 \end{document}
