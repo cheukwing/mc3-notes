@@ -556,7 +556,7 @@ When we have multiple outputs or want to learn multiple intermediate transformat
   A \textbf{layer} is a collection of neurons that share the same inputs but have different weights.
 \end{defn}
 
-We still have the input $x \in \mathcal{R}^{N \times 1}$, but we can collect the weights into a matrix $W \in \mathcal{N \times M}$, with bias $b \in \mathcal{R}^{M \times 1}$, producing outputs $y \in \mathcal{R}^{M \times 1}$:
+We still have the input $x \in \mathcal{R}^{N \times 1}$, but we can collect the weights into a matrix $W \in \mathcal{R}^{N \times M}$, with bias $b \in \mathcal{R}^{M \times 1}$, producing outputs $y \in \mathcal{R}^{M \times 1}$:
 \[
   y = f(W^\intercal x + b) 
 \]
@@ -579,7 +579,7 @@ The scalar activation function is applied element-wise:
 \]
 There is no requirement to apply the activation within the layer - we can separate activation from the linear transformation:
 \begin{align*}
-  z &= W^\intercal x + b 
+  z &= W^\intercal x + b &
   y &= f(z)
 \end{align*}
 
@@ -640,8 +640,8 @@ However, assigning random values could result in tiny or massive outputs - we wa
 The \textit{threshold function} is a linear activation function.
 To learn beyond this, we need non-linear activation functions, the most common of which are:
 \begin{itemize}
-  \item \textbf{linear (identity)} - same as no activation function, simply exoises the linear transformation that precedes the activation $y = W^\intercal x$.
-  \item \textbf{sigmoid} - compresses the output to $[0, 1]$, with $0$ corresponding $0.5$.
+  \item \textbf{linear (identity)} - same as no activation function, simply exposes the linear transformation that precedes the activation $y = W^\intercal x$.
+  \item \textbf{sigmoid} - compresses the output to $[0, 1]$, with $0$ corresponding to $0.5$.
     \[
       \text{sigmoid}(x) = \frac{1}{1 + (e^{-x})} 
     \]
