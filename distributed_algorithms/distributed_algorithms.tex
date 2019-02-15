@@ -702,5 +702,189 @@ A successful round has two phases: a \textbf{Prepare-Promise} phase and an \text
     \end{itemize}
 \end{itemize}
 
+\section{Leader Election}
+In a distributed system, we do not want all the processes to run an algorithm in order to conserve resources.
+We can achieve this by selecting one process from the network as the leader.
+
+\subsection{Models and Assumptions}
+Our network is \textbf{synchronous} and modelled as a digraph: $G = (V, E)$, where $\lvert V \rvert$ is the number of processes, and $E$ are the communication channels between them.
+Processes consist of an initial state, a set of states, message generation function, and state transisiton function.
+
+The leader election process can be initiated by any process in the system.
+Each process maintains two boolean variables:
+\begin{itemize}
+  \item \texttt{done} - set when the leader election process is over.
+  \item \texttt{leadeflag} - set when the process knows it is the leader.
+\end{itemize}
+
+A basic case has the processes arranged in a ring, with unidirectional or bidirectional communication around the ring.
+Each process has a unique identifier (UID).
+
+\subsection{Properties}
+\begin{itemize}
+  \item \textbf{Safety} - at most one process is elected as the leader.
+  \item \textbf{Liveness} - eventually all processes should know a leader has been elected, and at least one process is a leader.
+\end{itemize}
+
+\subsection{LeLann, Chang, and Roberts (LCR) Algorithm}
+The ring is unidirectional and has an unknown number of processes.
+The process with the largest UID ends up as the leader.
+
+\begin{enumerate}
+  \item Each process in the ring sends its UID to its clockwise neighbour.
+  \item When the process receives the UID, it compares it to its own UID:
+    \begin{itemize}
+      \item If it is smaller, \textbf{discard}.
+      \item If it is bigger, \textbf{pass it on}.
+      \item If it is equal, \textbf{declare yourself as leader} and let others know.
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Complexity}
+We consider two complexities:
+\begin{itemize}
+  \item \textbf{Time complexity} - total number of rounds taken.
+  \item \textbf{Message complexity} - total number of messages sent.
+\end{itemize}
+
+For time complexity, the message goes around at most $n$ hops before coming back to the original sender so $O(n)$.
+
+The best case message complexity (processes in order of UID) is $O(n)$, the worst case (processes in reverse order) is $O(n^2)$.
+The average case is $O(n \log n)$.
+
+\subsection{Hirschberg-Sinclair (HS) Algorithm}
+The ring is birdirectional and has an unknown number of processes.
+The process with the largest UID ends up as the leader.
+
+We carry out elections on increasingly larger sets (neighbourhoods).
+
+\begin{enumerate}
+  \item Each process operates in rounds ($0, 1, 2, \dots$).
+  \item In round $k$, a process sends a message with its UID to $2^k$ neighbours on \textbf{both sides}, it proceeds to round $k + 1$ only if \textbf{replies arrive from both directions} (it is the leader of the local neighbourhood).
+  \item When a process receives an outbound UID (inbound messages always forwarded) from its neighbour, it compares it to its own UID:
+    \begin{itemize}
+      \item If it is smaller, \textbf{discard it}.
+      \item If it is bigger, \textbf{pass it on} unless you are the last node of neighbourhood, otherwise reply to the previous node (return to the originating node).
+      \item If it is equal, \textbf{declare yourself as leader} and let others know.
+    \end{itemize}
+\end{enumerate}
+Here outbound/inbound refer to the relative direction to the current neighbourhood origin and its ends.
+
+\subsubsection{Complexity}
+The time for each phase is $k = 2 \cdot 2^k$, as there are $2^k$ steps outbound and $2^k$ inbound.
+The total time taken for phases $0$ to $k$ is $2 \cdot (2^0 + 2^1 + \dots + 2^k)$.
+The time taken for the penultimate phase is $2^{O(\log n)}= O(n)$, and the last phase is $n$.
+Then the time complexity is $2 + 4 + 8 + \dots + O(n) + n = O(n)$.
+
+In phase $k$, if a process $P_i$ is the leader, then within its neighbourhood of $2^{k - 1} + 1$ processes there is only one leader.
+The total number of leaders in phase $k$ is $\left\lfloor \frac{n}{2^{k - 1} + 1} \right\rfloor$.
+The messages send/received by each leader in phase $k$ is $4 \cdot 2^k$, $4$ as we consider both directions inbound and outbound, $2^k$ from neighbourhood distance.
+Then the number of messages in phase $k$ is $4 \cdot 2^k \cdot \left\lfloor \frac{n}{2^{k-1}+1}\right\rfloor \leq 8 \cdot n$.
+The number of phases before the leader is elected is at most $1 + \left\lceil \log n \right\rceil$.
+The the total nuber of messages is at most $8 \cdot n \cdot (1 + \left\lceil \log n \right\rceil)$.
+The message complexity is $O(n \log n)$.
+
+\subsection{Non-Comparison-Based Algorithms}
+Any comparison-based leader election algorithm for a ring with unknown size has a message complexity of $\Omega(n \log n)$.
+
+Let us now consider non-comparison-based algorithms, where the ring is unidirectional and the process UIDs are positive integers which we can manipulate with arithmetic operations.
+
+In general, the message complexity is $O(n)$, but the timing complexity is very high.
+
+\subsubsection{TimeSlice Algorithm}
+The number of processes ($n$) in the ring is known.
+\begin{enumerate}
+  \item Divide into phases $1,2,3, \dots$ with each consisting of $n$ rounds.
+  \item Phase $k$ is devoted to a process with UID $k$, if available.
+  \item If a process has UID $k$, then in phase $k$ it sends its UID to its neighbour, who forwards it on through the network.
+  \item When it reaches process $k$ again $k$ is elected, the number of messages is the number of nodes traversed ($n$).
+\end{enumerate}
+The process with the lowest UID ($UID_{min}$) is the leader.
+
+The time complexity is $O(n \cdot UID_{min})$ (unbounded).
+
+\subsubsection{VariableSpeeds Algorithm}
+The number of processes in the ring is not known.
+\begin{enumerate}
+  \item Each process initiates a message with its UID and forwards it around the ring at the rate of 1 hop every $2^{UID}$ rounds - each process waits $2^{UID}$ rounds after receiving the message before forwarding it.
+  \item If a process sees a message UID larger than the smallest UID it has seen so far, the message is discarded.
+  \item The leader is the process whose message returns back to it, the message has travelled $n$ hops.
+\end{enumerate}
+The process with the lowest UID ($UID_{min}$) is the leader.
+
+The time complexity is $O(n \cdot 2^{UID_{min}})$ (unbounded).
+
+\subsection{FloodMax}
+We relax the assumption that processes are arranged in a ring into a network of processes in a strongly connected digraph.
+
+The diameter (or an upper bound on it) of the network is known, i.e.\ the longest distance between two nodes in the system.
+The process with the largest UID ends up as the leader.
+
+We wish to flood the network to propagate the UIDs.
+
+Consider a process P with UID, $UID_P$:
+\begin{enumerate}
+  \item Keep track of the maximum UID seen so far ($UID_{max}$), initially $UID_P$.
+  \item During each round, send $UID_{max}$ to all your outgoing channels.
+  \item Repeat until the number of rounds is equal to the network diameter.
+  \item If $UID_{max} = UID_P$, elect yourself as the leader.
+\end{enumerate}
+This is similar to LCR, but requires knowledge of the network.
+
+\subsubsection{Complexity}
+The time complexity is directly related to the diameter as the algorithm stops after $diameter$ rounds.
+
+The message complexity is $\text{diameter } \multiply \text{ number of directed edges}$, as a message is sent along every directed edge.
+
+\subsubsection{Optimisations}
+\begin{itemize}
+  \item Do not resend $UID_{max}$ to your neighbours every round, unless it changes (\textit{OptFloodMax}).
+  \item If the new $UID_{max}$ was from a bidirectional neighbour, do not resend this along the same link during the next round.
+\end{itemize}
+
+\subsection{SyncBFS}
+We require a method of calculating the diameter of the network -  we can build a spanning tree.
+
+We assume that the network of processes is a strongly connected digraph, the number of processes is unknown, the diameter is unknown, each process has a UID.
+
+A distinguished source node initiates the process:
+\begin{enumerate}
+  \item Initially the distinguished source process $P_0$ is marked.
+  \item $P_0$ sends out a \textit{search} message to all its outgoing neighbours.
+  \item During any round, if an unmarked process receives a \textit{search} message, it marks itself and chooses one of the processes from which it received this message as its parent.
+  \item In the next round, that process sends a \textit{search} message to all its outgoing neighbours.
+\end{enumerate}
+
+\subsubsection{Complexity}
+The time complexity is related to the diameter of the network.
+
+The message complexity is $\lvert E \rvert$ since a \textit{search} message is sent once along each directed edge.
+
+\subsubsection{Extensions}
+It can be useful to know not only the parent processes but also the child processes.
+This is easy with bidirectional links but requires indirect routes with unidirectional links (perhaps using another \textit{SyncBFS} execution).
+
+\subsubsection{Convergecast}
+Extend the previous idea to the whole network to allow the source node $P_0$ to detect termination of the algorithm - \textit{fan in} information from the leaves to the source node.
+
+Each process sends notification of completion to its parent when:
+\begin{itemize}
+  \item It has received responses to all its search messages (knows its children).
+  \item It has received notification of completion from all its children.
+\end{itemize}
+
+Termination is detected when $P_0$ receives replies from all its outgoing neighbours - this has the same issues with regards to unidirectional communication links.
+
+\subsubsection{Applications}
+\begin{itemize}
+  \item \textbf{Broadcast communication} - add information onto the \textit{search} request, eventually all processes in the network will receive it.
+  \item \textbf{Global computation} - perform accumulation using \textit{convergecast}.
+  \item \textbf{Leader election} - all nodes run \textit{SyncBFS} in parallel and search for $UID_{max}$ using global computation on their own trees.
+  \item \textbf{Diameter calculation} - all nodes run \textit{SyncBFS} in parallel and use  \textit{convergecast} to find diameter of each tree, then use \textit{convergecast} to find the maximum diameter.
+\end{itemize}
+
+\subsection{Asynchronous Networks}
+In asynchronous networks, there is no notion of time so no bound on communication and execution time, nor any clock synchronisation (no rounds).
+
 \end{document}
 
