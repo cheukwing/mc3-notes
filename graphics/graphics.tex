@@ -4,6 +4,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{siunitx}
 
 \graphicspath{ {./imgs/} }
 
@@ -1919,6 +1920,153 @@ The disadvantages to this method are that while visual appearance is enhanced, t
 
 \subsubsection{Textures}
 When we identify a point in the texture map, we return an average of texture map around the point.
+
+\section{Ray Tracing}
+In global illumination, a surface point receives light after the light rays have interacted with other objects in the scene.
+We need to consider shadows, refraction, reflection and transmission.
+
+A simple method which is still a local illumination model is to cast one ray per pixel of the image.
+For each intersection with an object, trace another ray to the light and draw a shadow if this intersects with another object.
+
+\subsection{Recursive Ray Casting}
+For a global illumination model, we again cast one ray per pixel of the image and cast shadow rays to the light sources.
+However we also consider mirrors and transparency, tracing a ray for reflections and transmissions.
+As we trace these additional rays, they may then trace their own rays, leading to a recursive process.
+
+Since the process can continue infinitely, we can decide to use some stopping criteria:
+\begin{itemize}
+  \item Recursion depth - stop after a number of bounces.
+  \item Ray contribution - stop if the contribution from reflection or transmission becomes too small.
+\end{itemize}
+
+\subsubsection{Primary Rays}
+For each ray we need to test which objects are intersecting the ray.
+If the object has an intersection with the ray, we calculate the distance between the intersection point and the viewpoint.
+If the ray has more than one intersection, the smallest distance identifies the visible surface.
+
+The primary rays are thus the rays from the viewpoint to the nearest intersection point.
+Local illumination is computed as before:
+\[
+  L = k_a + (k_d (\textbf{n} \cdot \textbf{l}) + k_s(\textbf{v} \cdot \textbf{r})^q)I_s 
+\]
+
+\subsubsection{Secondary Rays}
+Secondary rays are rays originating at intersection points, these can be caused by being:
+\begin{itemize}
+  \item Reflected off the surface in the direction of reflection.
+  \item Transmit through transparent materials in the direction of refraction.
+  \item Shadow rays.
+\end{itemize}
+
+\subsubsection{Final Equation}
+\[
+  L = k_a + (k_d (\textbf{n} \cdot \textbf{l}) + k_s(\textbf{v} \cdot \textbf{r})^q)I_s + k_{reflected} L_{reflected} + k_{refracted}L_{refracted}
+\]
+
+\subsection{Precision Problems}
+The origin of secondary rays is often below the surface of objects due to calculation imprecision.
+This results in the surface area shadowing itself as the ray intersects with the surface.
+
+To solve this, we check if the distance between the surface and the intersection point is within some epsilon tolerance:
+\begin{itemize}
+  \item If $ \lvert \mu \rvert < \epsilon$, the point is on the surface.
+  \item Otherwise, the point is inside/outside the surface.
+\end{itemize}
+
+If the point is on the surface, we move the intersection point by $\epsilon$ along the surface normal so that it is outside the object.
+
+\subsection{Mirror Reflection}
+To cast the ray:
+\begin{enumerate}
+  \item Compute the mirror contribution.
+  \item Cast the ray in the direction symmetric with respect to the normal.
+  \item Multiply by the reflection coefficient.
+\end{enumerate}
+
+To calculate the illumination as a result of reflections:
+\begin{itemize}
+  \item Calculate the direction of the secondary ray at the intersection of the primary ray with the object.
+  \item 
+    \[
+      \textbf{v}' = \textbf{v} - (2 \textbf{v} \cdot \textbf{n}) \textbf{n} 
+    \]
+    where:
+    \begin{itemize}
+      \item $\textbf{n}$ is the unit surface normal.
+      \item $\textbf{v}$ is the direction of the primary ray.
+      \item $\textbf{v}'$ is the direction of the secondary ray as a result of reflections.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Transparency}
+To compute the ray:
+\begin{enumerate}
+  \item Compute the transmitted contribution.
+  \item Cast the ray in the refracted direction.
+  \item Multiply by the transparency coefficient.
+\end{enumerate}
+
+\subsubsection{Refraction}
+The angle of the refracted ray is determined by Snell's Law:
+\[
+  \eta_1 \sin(\phi_1) = \eta_2 \sin(\phi_2)
+\]
+where:
+\begin{itemize}
+  \item $\eta_1$ is the constant for medium 1.
+  \item $\eta_2$ is the constant for medium 2.
+  \item $\phi$ is the angle between the incident ray and the surface normal.
+  \item $\phi$ is the angle between the refracted ray and the surface normal.
+\end{itemize}
+
+In vector notation:
+\[
+  k_1 (v \cdot n) = k_2 (v' \cdot n) 
+\]
+
+If the light passes from one medium to another whose index of refraction is low, then the angle of the refracted ray is greater than the angle of the incident ray - if the incident ray is large then the refracted ray angle will be greater than $\ang{90}$, so the ray is reflected rather than refracted.
+
+\subsubsection{Fresnel Factor}
+We tend to mix reflected and refracted light according to the Fresnel factor:
+\[
+  L = k_{fresnel} L_{reflected} + (1 - k_{fresnel}) L_{refracted} 
+\]
+The smaller the angle between the ray and the normal, the more that is transmit through the material.
+
+Schlick's approximation:
+\[
+  k_{fresnel} (\theta) = k_{fresnel} (0) + (1 - k_{fresnel}(0)) (1 - (\textbf{n} \cdot \textbf{l}))^5
+\]
+where $k_{fresnel}(0)$ is the Fresnel factor at zero degrees, we can choose $0.8$ for stainless steel.
+
+\subsection{Shadows}
+We add $s$ to the equation:
+\[
+  L = k_a + s(k_d (\textbf{n} \cdot \textbf{l}) + k_s(\textbf{v} \cdot \textbf{r})^q)I_s + k_{reflected} L_{reflected} + k_{refracted}L_{refracted}
+\]
+where:
+\[
+  s =
+  \begin{cases}
+    0, & \text{if the light source is obscured} \\
+    1, & \text{if the light source is not obscured}
+  \end{cases}
+\]
+
+We have one shadow ray per intersection per point light source.
+
+For softer shadows, we can have multiple shadow rays from an intersection to sample an area light source.
+
+\subsection{Monte Carlo Ray Tracing}
+With traditional reflections, we use one reflection per intersection.
+To achieve glossy reflections, we can use \textbf{Monte Carlo ray tracing} - random reflection rays around the mirror direction:
+\begin{enumerate}
+  \item Cast a ray from the eye through each pixel (as before).
+  \item Cast random rays from the visible point - accumulate radiance contribution.
+  \item Recurse.
+  \item From all intersection points of rays, send ray to the light.
+  \item Trace only one secondary ray per recusrion, but send many primary rays per pixel.
+\end{enumerate}
 
 \end{document}
 
