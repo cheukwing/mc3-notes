@@ -1176,7 +1176,7 @@ Countermeasures:
 \end{itemize}
 
 \subsection{Untrusted Query String}
-e.g.\ \texttt{http://example.com/update.php?account=user\_id&action=unsubscribe}, the attacker can tamper with the query string:
+e.g.\ \texttt{http://example.com/update.php?account=user\_id\&action=unsubscribe}, the attacker can tamper with the query string:
 \begin{itemize}
   \item \textbf{Insecure direct object references} - the application exposes a reference to an internal implementation object (user id), the attacker can guess a valid id to target a different user.
   \item \textbf{Missing function-level access control} - the attacker can set the action arbitrarily, e.g. to \texttt{upgrade\_to\_root}; even if this was not a choice available, it is accepted by the server without further checks.
@@ -1236,5 +1236,128 @@ An attacker can submit payloads that are dangerous only on the second usage, for
   \item \textbf{IDS-style defense} - detect and stop sequences of suspicious queries before they reach the database.
   \item \textbf{Programming framework} - rely on trusted framework developed by others.
 \end{itemize}
+
+\section{Browser Security}
+Browsers enable users to browse the web and so should protect the device from infection, user data from unauthorized access, and provide a trustworthy platform to deploy the client-side of a web application.
+
+\subsection{Client Architecture}
+In the \textit{Chrome} browser:
+\begin{itemize}
+  \item OS process-based \textbf{isolation} used to sandbox the limits of compromise.
+  \item Each window/tab has its own process.
+  \item Efficient networking architecture to enable socket reuse and predictive optimizations.
+  \item User interface (the \textit{chrome}) cannot be tampered by web pages, and aims to be spoof-resistant.
+\end{itemize}
+
+\subsection{HTTPS in the Browser}
+The HTTPS UI gives traffic light warnings on certificate validity:
+\begin{itemize}
+  \item \textbf{Public/Insecure} - HTTP connection or, OK certificate with outdated settings or, mixed content (risk of MITM).
+  \item \textbf{Insecure/Dangerous} - Certificate does not match the domain name, malicious site.
+  \item \textbf{Secure}.
+\end{itemize}
+
+\subsection{Phishing}
+\begin{enumerate}
+  \item The user visits a page controlled by the attacker - the page resembles a page from the target.
+  \item The user reveals data to the attack page.
+  \item The attack page forwards data to the attacker and to the legitimate page, displaying an error or a short acknowledgement - the user's credentials and other sensitive information have been stolen.
+\end{enumerate}
+The hosting of phishing pages can be done either through an attacker's own domain or with a compromised site or free hosting service.
+Although the latter two options give less control, the domain has better reputation and may be relevant to the attack.
+
+Phishing sites can be generated using phishing kits - some of these kits can send the original author a copy of the stolen data.
+
+\subsubsection{Countermeasures}
+\begin{itemize}
+  \item Prevent spreading of links via spam.
+  \item Blacklists of phishing sites in major browsers.
+  \item Automated detection via machine learning - length/complexity of URL, visual or structural similarity to whitelisted pages, topological properties of the page, etc.
+\end{itemize}
+
+\subsection{HTML}
+The building blocks (scripts, links, forms, etc) for web applications can be considered trustworthy, but some browsers can interpret special cases in bizarre ways leading to subleties in using them correctly.
+
+Other security-sensitive elements (Java, Flash, ActiveX, etc) are handled by browser plugins and have their own security restrictions.
+These can suffer from memory corruption or other vulnerabilities, leading to browser compromise.
+
+\subsection{JavaScript and DOM}
+The \textbf{Browser Object Model (BOM)} provides a JavaScript interface to the browser.
+This gives access to create and navigate windows, access cookies and local storage, manipulate browser history, and set timeouts.
+
+The \textbf{Document Object Model (DOM)} is rooted in the \texttt{window.document}, providing an object-oriented interface to the page HTML structure.
+This gives access to alter the HTML structure of the page, directly read/write data from/to the page, manipulate and submit forms, create and listen to events.
+
+\subsection{Asynchronous JavaScript and XML (AJAX)}
+Scripts can exchange data with the server without causing the page to reload - the key to responsive web pages.
+Most commonly, data is encoded as JSON due to being more concise and native.
+
+\subsection{HTML APIs}
+\begin{itemize}
+  \item PostMessage API - communicate string data between arbitrary frames.
+  \item Web Workers - run batch JavaScript computations in the background.
+  \item Web Sockets - binary protocol over TCP to provide bidirectional messaging between client and server.
+  \item WebRTC - real-time communication.
+  \item Web Cryptography - provides encryption, signatures, and hashing functions.
+\end{itemize}
+
+\subsection{Navigation}
+A \textit{browsing context} (BC) is a container for a web page and its related resources - each tab is associated to a top level BC.
+When a new page is loaded, the BC goes through the following steps:
+\begin{enumerate}
+  \item Render content - display HTML, execute scripts, fetch/display images and other resources, navigate nested BCs.
+  \item Process events - user-based, rendering, or from JavaScript.
+\end{enumerate}
+
+\subsection{JavaScript in the Browser}
+All scripts embedded in the same document \textbf{share the same execution enviornment} and DOM.
+
+JavaScript can be embedded in a page via the HTML, in URLs (even within CSS files), and in event handlers.
+When executed, it can further embed scripts into the page.
+
+Each script executes until its end without interruptions - if a script is unresponsive the browser may open a dialog offering termination.
+Uncatchable exceptions terminate the current script and execution moves onto the next script.
+
+\subsection{Browser Extensions}
+While plugins extend a browser by adding binary components, extensions are JavaScript-based and talk to the browser API.
+
+The extension has a background page running its back-end to enable it to be always on; pop-up windows are built with regular browser windows.
+The scripts of extensions interact with the DOM of each visited page, they can thus add scripts to the execution environment of a visited page.
+
+\subsection{Attacks}
+\subsubsection{Clickjacking}
+The user communicates data and intentions to the browser via clicks and keystrokes - an attacker can interfere with this in many ways:
+\begin{itemize}
+  \item Overlap a transparent \texttt{iframe} on a website - the user's clicks on the site cause them to perform undesired actions in the transparent frame.
+    \begin{itemize}
+      \item Can counter by preventing a page from being put in an \texttt{iframe}, e.g.\ \texttt{X-Frame-Options} header, or in the JavaScript code.
+    \end{itemize}
+  \item Show a fake cursor to attract user's attention while real cursor hovers over malicious options.
+    \begin{itemize}
+      \item Can counter by showing a trusted confirmation pop-up - can be annoying.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Drive-by Download}
+The user visits a malicious page which exploits a vulnerability, leading to installation of malware (or saving of dangerous files) on the client machine.
+
+Countermeasures:
+\begin{itemize}
+  \item Disable running plugins, or confine to a restricted sandbox.
+  \item Warn about blacklisted websites.
+  \item Detect suspicious JavaScript.
+  \item Harden browser/OS against memory corruption vulnerabilities.
+\end{itemize}
+
+\subsubsection{Content Sniffing and Polyglots}
+\textbf{Content sniffing} allows a browser to render a resource based on the resource data instead of the MIME type reported, meaning pages with broken MIME types still work correctly,
+
+\textbf{Polyglots} are files that are valid with respect to different data formats.
+GIFs, PNGs, JARs have been crafted to be valid JavaScript or HTML. \\
+
+The risks with these are that polyglots can bypass content-based filtering rules.
+Furthermore, polyglots with content sniffing can lead to bypassing the same-origin policy - the attacker can upload a PNG/HTML polyglot to a website, then pages on the website linked to that image are compromised. \\
+
+This can be prevented by \texttt{X-Content-Type-Options: nosniff}.
 
 \end{document}
