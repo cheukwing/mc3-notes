@@ -1053,4 +1053,28 @@ When we push the weights towards 0, the connection is effectively cut and capaci
 We could just remove them entirely and not have fully-connected layers - \textbf{dropout}.
 The outputs of layers are randomly set to 0, essentially turning off neurons.
 
+During each round, we set the output of the neuron to 0 with probability $p$.
+Every time we apply dropout we get a different sub-network, so it is like training smaller networks inside a larger one - \textbf{interdependency between neurons across layers is reduced} as neurons may be dropped in the next round.
+The network becomes more robust as it is less ability to extract specific features of the training data.
+
+Dropout is \textbf{applied only at training time}, during test or prediction time the entire network is active and no neuron is dropped - but the weights/activations may be scaled to avoid saturating neurons since all connections are active.
+
+Since the network is dissected, we may need more epochs.
+As gradients become 0, a higher learning rate would also be helpful.
+
+\subsubsection{Pre-processing}
+To better utilise our data, we can apply some pre-processing to remove trivial relationships in the training data which may cause overfitting.
+
+One approach is \textbf{data augmentation} which introduces noise to the data:
+\[
+  X' = X + \mathcal{N}(\mu, \sigma^2) 
+\]
+This wiggles specific features/points in the data using Gaussian noise so that they are no longer static - we are generating artifical data based on the original data, giving better generalisation and reducing overfitting.
+For example, we could blur and flip images when doing image recognition.
+
+A more common technique is \textbf{data normalisation} where we normalize the input, and potentially the output data.
+This may be in the form of \textbf{feature scaling} to reduce a range to $[0, 1]$ or $[-1, 1]$, or normalising using the mean and standard deviation of the data $X' = \frac{X - \mu}{\sigma}$ (\textbf{z-normalisation}).
+
+Recall $\frac{\partial Loss}{\partial W} = X^\intercal \frac{\partial Loss}{\partial Z}$, if $X$ has very large or very small inputs then training is destabilised or hampered.
+
 \end{document}
