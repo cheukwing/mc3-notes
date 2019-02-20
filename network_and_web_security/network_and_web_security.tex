@@ -1360,4 +1360,36 @@ Furthermore, polyglots with content sniffing can lead to bypassing the same-orig
 
 This can be prevented by \texttt{X-Content-Type-Options: nosniff}.
 
+\section{Same Origin Policy}
+The Same Origin Policy (SOP) is the key security policy in the browser.
+Resources are associated to the origin (based on scheme, host, and port) where they were loaded from, scripts to the origin of the browsing context that loaded them.
+
+Pages in \textbf{different browsing contexts} can interact with each other if and only if they have the \textbf{same origin}.
+Persistent resources are associated to origins and can only be accessed by pages from that origin.
+
+\subsection{DNS Rebinding}
+\begin{figure}[htb!]
+  \centering
+  \caption{DNS rebinding.}
+  \includegraphics[scale=0.5]{dnsrebinding}
+\end{figure}
+\begin{enumerate}
+  \item The SOP restricts a page to interacting with other pages from the same origin.
+  \item DNS rebinding associates the attacker's DNS name to the target's IP address.
+  \item The firewall is circumvented and the attacker can access the corporate network through the victim's browser.
+\end{enumerate}
+
+Countermeasures for this are DNS pinning to prevent bindings changing too quickly, and preventing external DNS queries resolving to internal addresses.
+
+\subsection{SOP Properties}
+The SOP prevents pages from different origins tampering with each other, and confines resources based on origins.
+\begin{itemize}
+  \item Outbound communication is not prevented - it is OK to do cross-domain post requests.
+  \item Bidirectional communication is not prevented - the server must be willing to communicate this way, and the client must trust that the server as arbitrary code could be injected.
+\end{itemize}
+
+\subsection{Domain Relaxation}
+A page can change its origin by \textbf{relaxing} to a suffix of its domain.
+This essentially adds to the origin the \texttt{relaxed\_domain\_flag}.
+Although two pages relaxing their domain to the same domain can communicate, they still cannot communicate with a page from the domain they have relaxed to.
 \end{document}
