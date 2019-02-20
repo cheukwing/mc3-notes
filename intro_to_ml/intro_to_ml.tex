@@ -631,7 +631,7 @@ However, assigning random values could result in tiny or massive outputs - we wa
   where $U$ is the uniform distribution, $n_j$ is the number of inputs of the layer, $n_{j + 1}$ is the number of outputs of the layer.
 \end{defn}
 
-\subsubsection{Activation Functions}
+\section{Activation Functions}
 \begin{figure}[htb!]
   \centering
   \caption{Common activation functions.}
@@ -666,14 +666,14 @@ To learn beyond this, we need non-linear activation functions, the most common o
 We often use ReLU in the hidden layers to get the computational benefits and stability of linear functions, while having non-linearity.
 The final layer activation depends on what we are trying to achieve with the network: binary classification, multi-class, or regression? 
 
-\subsection{Loss Functions}
+\section{Loss Functions}
 \begin{defn}
   The \textbf{loss function} is the function we are trying to minimize, such that we learn the relationship between the given inputs and the desired outputs.
 \end{defn}
 
 It is crucial to select/design the function in order to learn something meaningful - it depends on what we are trying to do.
 
-\subsubsection{Regression}
+\subsection{Regression}
 When trying to predict a continuous variable, we have a (non-linear) \textbf{regression problem}.
 
 We use the \textbf{squared error} loss function:
@@ -689,7 +689,7 @@ When there are multiple outputs, we take the \textbf{mean-squared error}:
 
 For the activation of the last layer, since the output is not bounded we use linear activation when regressing with the squared error loss function.
 
-\subsubsection{Classification}
+\subsection{Classification}
 More commonly, we are trying to classify things categorically.
 \textbf{Binary classification} refers to a situation with two classes, \textbf{multi-class classification} with many classes.
 We assume every input belongs to one class, and one class only - if we want to predict multiple classes, we need \textbf{multi-label classification}.
@@ -737,10 +737,10 @@ We use the softmax activation function in the final layer, to get $a^{(i)}$ whic
 
 We could still use squared error with sigmoid activation, but using log-based-loss provides \textbf{better convergence} properties.
 
-\subsection{Training}
+\section{Training}
 Our network still has random weights, we need to adjust these to fit the desired data - \textbf{training}.
 
-\subsubsection{Back Propagation}
+\subsection{Back Propagation}
 Let us take the partial derivative of the loss function with respect to the weights of a layer, using the chain rule:
 \[
   \frac{\partial Loss}{\partial W^{(L)}} = \frac{\partial Loss}{\partial A^{(L)}} \cdot \frac{\partial A^{(L)}}{\partial Z^{(L)}} \cdot \frac{\partial Z^{(L)}}{\partial W^{(L)}}
@@ -774,7 +774,7 @@ We now consider a linear layer $Z = XW + B$, where:
   \end{itemize}
 such that $Z \in \mathcal{R}^{N  \times M}$.
 
-\subsubsection{Back Propagation Example}
+\subsection{Back Propagation Example}
 Let $N = D = 2$, and $M = 3$:
 \[
   X = 
@@ -937,5 +937,120 @@ The derivatives for some of the activation functions are:
 \end{itemize}
 Notice that for sigmoid and tanh, the gradients range $[0, 1]$, then as you back propagate, the gradients can vanish - \textbf{vanishing gradient problem}.
 This is not the case with ReLU.
+
+\section{Gradient Descent}
+Once we have the direction we want to adjust the weights to, we iteratively descend in the direction of the gradient to slowly minimize the loss - \textbf{gradient descent}:
+\begin{enumerate}
+  \item Start with random weights/parameters $\theta$.
+  \item Compute the gradients with respect to some data and loss function, also called an \textbf{objective function} $J(\theta)$.
+  \item Adjust weights in the direction of the gradient.
+  \item Repeat until we reach some minimum.
+\end{enumerate}
+A non-linear function can have multiple \textbf{local minimum}, there is no guarantee we will converge to the \textbf{global maximum}.
+
+\[
+  W \leftarrow W - \alpha \frac{\partial L}{\partial W} 
+\]
+where $\alpha$ is the \textbf{learning rate}, how much of a leap we should take in that direction.
+
+In order to use this, we assume that the gradient can be computed for every parameter - we need our functions, network, and loss to be differentiable.
+
+\subsection{Batches}
+Ideally we would like to compute the gradient using the entire training data but this is expensive and slow.
+Instead we estimate the true gradient using \textbf{small random batches}:
+\begin{itemize}
+  \item \textbf{Stochastic Gradient Descent (SGD)} - take one random data point and immediately update the weights using that gradient.
+  \item \textbf{Batch Gradient Descent} - use the entire data set then update the weights.
+  \item \textbf{Mini-batch Gradient Descent} - take small batches at a time then update the weights.
+\end{itemize}
+
+In mini-batch gradient descent:
+\begin{enumerate}
+  \item Take training data $X \in \mathcal{R}^{N \times D}$, size $N$ each with $D$ features.
+  \item Shuffle $X$ so that the points are not grouped together - helps with convergence due to the different combinations of data points.
+  \item Chop into batches of size $B$, such that they have the shape $B \times D$.
+  \item Compute the forward pass to collect the network output with one batch.
+  \item Compute the derivative of the loss with respect to the network outputs.
+  \item Back-propagate the gradients to compute the derivative loss with respect to every parameter in the network.
+  \item Update the weights using the given learning rate $\alpha$.
+  \item Repeat for every batch.
+  \item After we have done this for every batch we have finished an \textbf{epoch}, we then repeat on the batches until we have done the required number of epochs or reached a convergence criteria.
+\end{enumerate}
+
+\subsection{Hyper-Parameters}
+Anything not learned, e.g.\ number of layers, units in each layer, learning rate, are set by the user - \textbf{hyper-parameter}.
+Finding, guessing, and tuning is required to find the best values.
+
+\subsection{Learning Rate Decay}
+We can extend gradient descent to be adaptive by performing \textbf{learning rate decay}:
+\[
+  \alpha \leftarrow \alpha d 
+\]
+where $d \in [0, 1]$, which reduces the learning rate by a factor each epoch.
+
+As we approach the minimal loss, we would like to take smaller steps to avoid overshooting.
+
+\section{Neural Network Evaluation}
+Validation data is used to tune the hyper-parameters of the model.
+We then use the best model on the validation set as our final model, and test on the test data.
+
+To split the data into sets, we can use k-fold cross validation or just a simple split.
+
+\subsection{Overfitting}
+Noise can be present in the data, we want to avoid our model overfitting to a data set so that it does not learn from noisy data.
+
+We can detect overfitting by looking at the loss value or accuracy over time with respect to the training and validation data.
+Initially training and validation loss will decrease as the network learns, but at some point the \textbf{validation loss will start to increase while training loss continues to decrease} - overfitting has started.
+
+To avoid this, we can do \textbf{early stopping} to stop the training when validation loss starts to stray from the training loss.
+
+There is a correlation between network capacity (the number of layers, and the number of units those layers have) and overfitting:
+\begin{itemize}
+  \item If the network is underfitting then it may not have enough capacity, we can try increasing the number of units/layers.
+  \item If the network is overfitting then it may have too much capacity, we can try decreasing the number of units/layers.
+\end{itemize}
+
+The best solution to overfitting is getting more data - there is less opportunity for the network to memorize specifics about the training set as there are more training points.
+
+\subsection{Regularisation}
+If our data has complex patterns we want to introduce more capacity, but this has the tendency to overfit.
+\textbf{Regularisation} is a way to penalise the model to stop it from overfitting - we reduce the effective capacity of the network by penalising how large the weights could be.
+
+If a feature is present that describes only the training data, the network may latch onto it and aggressively try to learn it, we can penalise this by:
+\begin{itemize}
+  \item \textbf{L2 Regularisation}
+    \begin{align*}
+      J(\theta) = Loss(Y, A) + \lambda \sum_w w^2 &&
+      w \leftarrow w - \alpha \left( \frac{\partial Loss}{\partial w} + 2 \lambda w \right)
+    \end{align*}
+    \begin{itemize}
+      \item As the weight increases, so does loss due to $w^2$ - to reduce loss the network must keep $w$ small.
+      \item $\lambda$ tells us how much we want to regularize.
+      \item The weight update rule is proportional to weight - larger weights shrink proportionally faster.
+    \end{itemize}
+  \item \textbf{L2 Regularisation}
+    \begin{align*}
+      J(\theta) = Loss(Y, A) + \lambda \sum_w \lvert w \rvert &&
+      w \leftarrow w - \alpha \left( \frac{\partial Loss}{\partial w} + \lambda \text{sign}(w) \right)
+    \end{align*}
+    \begin{itemize}
+      \item The absolute value of the weight is added to the objective function.
+      \item The update rule considers a fixed movement towards 0 - if it is negative it is nudged upwards, if positive it is nudged downwards by a fixed $\lambda$ amount.
+    \end{itemize}
+\end{itemize}
+These may also be referred to as \textbf{weight decay} as they both decay weights to 0.
+This results in less capacity as a weight of 0 implies no connection, we are simplifying the network by removing its ability to learn very specific patterns of the training set. \\
+
+L1 produces sparse weights as weights are pushed to 0, only the most useful features will have non-zero weight - feature selection.
+
+L2 ensures smoothness as it encourages a combination of inputs/features to be used, since weights are not forced to 0 when they are already small.
+A large combination of features are used over a few.
+
+We can mix these so in the final layer we may want to pick certain features and use L1, whereas we could use L2 in the hidden layers.
+
+\subsubsection{Dropout}
+When we push the weights towards 0, the connection is effectively cut and capacity reduced.
+We could just remove them entirely and not have fully-connected layers - \textbf{dropout}.
+The outputs of layers are randomly set to 0, essentially turning off neurons.
 
 \end{document}
