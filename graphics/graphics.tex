@@ -2234,6 +2234,71 @@ Then from any successive set of four control points:
 \]
 
 \subsection{Continuity}
+A function is smooth if its derivatives are well defined up to some order.
+
+\subsubsection{Parametric Continuity}
+We view the curve or surface as a function rather than a shape; at the junction between curves:
+\begin{itemize}
+  \item $C^0$ continuous if the $(x, y)$ values of the two curves agree.
+  \item $C^1$ continuous if their first derivatives also agree.
+  \item $C^2$ continuous if additionally their second derivatives agree.
+\end{itemize}
+
+\subsubsection{Geometric Continuity}
+Defined using only the shape of the curve; at the junction between the curves:
+\begin{itemize}
+  \item $G^0$ continuous if the $(x, y)$ values of the two curves agree.
+  \item $G^1$ is their first derivatives are also proportional (the tangent vectors are parallel).
+\end{itemize}
+
+\subsection{Bezier Curves}
+Bezier curves give predictable results for small sets of knots and are useful as spline patches:
+\begin{itemize}
+  \item End points are interpolated.
+  \item The slope at the end is the same as the line joining the end point to its neighbour.
+\end{itemize}
+
+\subsubsection{Casteljau's Algorithm}
+\begin{figure}[htb!]
+  \centering
+  \caption{Casteljau construction with $\mu = 0.25$, the final point is $P_{3,0}$.}
+  \includegraphics[scale=0.5]{casteljau}
+\end{figure}
+
+We construct the curve recursively with any value of $\mu$.
+
+\subsection{Bernstein Blending Function}
+Splines and Bezier curves can be formulated as a blend of the knots.
+We can consider $P = (1 - \mu)P_0 + \mu P_1$ as the linear blend of two points, the two-point Bezier curve.
+
+Any point on the spline is simply a blend of all the other points.
+For $N + 1$ knots we have:
+\[
+  P(\mu) = \sum_{i=0}^N W(N, i, \mu)P_i 
+\]
+where $W$ is the Bernstein blending function:
+\[
+  W(N, i, \mu) \binom{N}{i} \mu^i (1 - \mu)^{N - i}
+\]
+
+\subsubsection{Bezier Curves and Cubic Patches}
+Since all the knots of the Bezier curve appear in the blend, they cannot be used for curves with fine detail.
+They are however effective as spline patches.
+
+In fact, a four point Bezier curve is \textbf{equivalent} to a cubic patch going through the first and last knots of the curve.
+
+We can show this by:
+\begin{enumerate}
+  \item First expanding the iterative Bernstein blending function to show its equivalence to the cubic patch.
+  \item Then reversing the Casteljau algorithm to show equivalence to the expanded Bernstein blending function, and thus to the cubic spline patch.
+\end{enumerate}
+
+We can summarize the Bezier curve by saying it has:
+\begin{itemize}
+  \item Two points that are interpolated: $P_0, P_3$.
+  \item Two control points: $P_1, P_2$ - can be interacted with to determine the shape.
+\end{itemize}
+
 
 \end{document}
 
