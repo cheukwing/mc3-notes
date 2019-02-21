@@ -24,26 +24,13 @@
 
 \section{Projections and Transformations}
 \subsection{Device Independence}
-Device dependent graphics primitive methods are:
-\begin{verbatim}
-  SetPixel(XCoord, YCoord, Colour);
-  DrawLine(xs, ys, xf, yf);
-\end{verbatim}
-
 \textbf{Device independence} allows us to resize or transport a picture to a different operating system, and have it fit exactly in the window where we place it.
-We define a \textbf{world coordinate system} when drawing objects, typically it will use a method of the kind:
-\begin{verbatim}
-  SetWindowCoords(Wxmin, Wymin, Wxmax, Wymax);
-\end{verbatim}
+We define a \textbf{world coordinate system} when drawing objects, based on the window size.
 
 The units of these arguments will depend on that application.
 The application uses drawing primitives and these units to convert their numeric values to pixels, before the image is rendered on the screen.
 
-In order to implement a world coordinate system, we need to be able to translate between world coordinates and the device or pixel coordinates.
-We first find out the pixel coordinates of the window:
-\begin{verbatim}
-  GetWindowPixelCoords(Vxmin, Vymin, Vxmax, Vymax);
-\end{verbatim}
+In order to implement a world coordinate system, we need to be able to translate between world coordinates and the device or pixel coordinates - this is done by getting the pixel coordinates of the window.
 
 \begin{figure}[htb!]
   \caption{World coordinate window against viewport on the screen.}
@@ -323,46 +310,6 @@ Matrices for rotation around the three cartesian axes are:
   \includegraphics[scale=0.3]{deriverotate}
   \centering
 \end{figure}
-
-An example for how we derive $\mathcal{R}_z$ is as follows:
-\[
-  \begin{pmatrix}
-    x \\
-    y
-  \end{pmatrix}
-  =
-  \begin{pmatrix}
-    r \cos \varphi \\
-    r \sin \varphi
-  \end{pmatrix}
-\]
-\begin{align*}
-  \begin{pmatrix}
-    r \cos (\varphi + \theta) \\
-    r \sin (\varphi + \theta)
-  \end{pmatrix}
-  &=
-  \begin{pmatrix}
-    r \cos \varphi \cos \theta - r \sin \varphi \sin \theta \\
-    r \cos \varphi \sin \theta + r \sin \varphi \cos \theta
-  \end{pmatrix} \\
-  &=
-  \begin{pmatrix}
-    x \cos \theta - y \sin \theta \\
-    x \sin \theta + y \cos \theta
-  \end{pmatrix} \\
-  &=
-  \begin{pmatrix}
-    \cos \theta & - \sin \theta \\
-    \sin \theta & \cos \theta
-  \end{pmatrix}
-  \begin{pmatrix}
-    x \\
-    y
-  \end{pmatrix}
-\end{align*}
-
-The $2 \times 2$ matrix is the same as the upper left corner of the matrix $\mathcal{R}_z$.
 
 This assumes a left had axis system.
 \begin{itemize}
@@ -2229,5 +2176,64 @@ Primitives may be stored at the intermediate levels of the grid, or pushed to th
 \subsection{Binary Space Partition (BSP) Tree}
 Like in a binary search tree, we recursively partition the space by planes such that every cell is a convex polyhedron.
 We then trace rays by recursion on the tree - the construction enables simple front-to-back traversal.
+
+\section{Spline Curves}
+Splines are smooth curves defined from a small set of points called \textit{knots} or \textit{control points}:
+\begin{itemize}
+  \item \textbf{Interpolating splines} - curve passes through each point.
+  \item \textbf{Approximating splines} - points act as control points, the curve does not pass through the points.
+\end{itemize}
+
+\subsection{Non-Parametric Splines}
+The polynomial spline:
+\[
+  y = a_2 x^2 + a_1 x + a_0 
+\]
+We can find $a_2, a_1, a_0$ given any three points.
+
+There is no control using parametric splines, only \textbf{one curve} fits the data.
+
+\subsection{Parametric Splines}
+In vector form:
+\[
+  P = a_2 \mu^2 + a_1 \mu + a_0 
+\]
+by convention as $\mu$ ranges from 0 to 1, the point $P$ traces out a curve.
+
+Therefore:
+\begin{align*}
+  \mu &= 0 & P_0 = a_0 \\
+  \mu &= \frac{1}{2} & P_1 = \frac{1}{4}a_2 + \frac{1}{2}a_1 + P_0 \\
+  \mu &= 1 & P_2 = a_2 + a_1 + P_0
+\end{align*}
+which we can use to solve $a_1, a_2$.
+
+\subsection{Cubic Spline Patches}
+\begin{figure}[htb!]
+  \centering
+  \caption{Cubic spline patch.}
+  \includegraphics[scale=0.5]{splinepatches}
+\end{figure}
+The order of the spline matches the number of knots, higher order polynomials are undesirable as they tend to oscillate - we can solve this with \textbf{spline patches}, piecing together a number of parametric splines.
+
+We can calculate parametric spline patches using a cubic polynomial:
+\[
+  P = a_3 \mu^3 + a_2 \mu^2 + a_1 \mu + a_0 
+\]
+
+Then from any successive set of four control points:
+\[
+  \begin{pmatrix} a_0 \\ a_1 \\ a_2 \\ a_3 \end{pmatrix} =
+  \begin{pmatrix}
+    1 & 0 & 0 & 0 \\
+    0 & 1 & 0 & 0 \\
+    -3 & -2 & 3 & -1 \\
+    2 & 1 & -2 & 1
+  \end{pmatrix}
+  \begin{pmatrix} P_i \\ P_i' \\ P_{i+1} \\ P_{i+1}' \end{pmatrix}
+\]
+
+\subsection{Continuity}
+
 \end{document}
 
