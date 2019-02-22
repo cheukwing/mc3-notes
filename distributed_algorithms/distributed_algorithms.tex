@@ -886,5 +886,52 @@ Termination is detected when $P_0$ receives replies from all its outgoing neighb
 \subsection{Asynchronous Networks}
 In asynchronous networks, there is no notion of time so no bound on communication and execution time, nor any clock synchronisation (no rounds).
 
+\section{Group Membership}
+Group membership provides consistent and accurate information about which processes have crashed and which are correct, enabling dynamic changes in the list of processes that form the distributed system.
+
+Better coordinated failures means potentially faster and simpler algorithms.
+
+\subsection{Specification}
+We consider that changes to the group occur only as a result of process crashes.
+
+The \textbf{group} is the set of processes that participate in the system, a \textbf{view} is the current membership of the group.
+
+We start with $V_0 = (0, \pi)$, where $0$ is the view identifier, and $\pi$ is the complete set of processes in the system.
+Over time the system evolves with multiple views $V_n = (id, M)$.
+
+\subsection{Properties}
+\begin{itemize}
+  \item \textbf{Monotonicity} - all correct processes install multiple views in a sequence  with monotonically increasing view identifiers.
+  \item \textbf{Uniform Agreement} - two processes installing views with the same identifier will have the view containing the same set of processes as its members.
+  \item \textbf{Completeness} - if a process $p$ crashes, then eventually every correct process will install a view which does not have $p$ as its member.
+  \item \textbf{Accuracy} - if a process installs a new view which does not contain a process $p$, then $p$ must have crashed.
+\end{itemize}
+
+\subsection{Consensus-Based Group Membership}
+We first assume that there is uniform consensus and perfect failure-detectors.
+The algorithm is then:
+\begin{enumerate}
+  \item During initialisation, each process installs a view which includes all processes in the system.
+  \item If a process is detected to have crashed, invoke uniform consensus.
+  \item After consensus has been agreed, install the new view.
+\end{enumerate}
+
+\subsubsection{Correctness}
+\begin{itemize}
+  \item \textbf{Monotonicity} - a process initiates the formation of a new view (with a higher id) only when its current set is a subset of the current view membership.
+  \item \textbf{Uniform Agreement} - follows from the unfirom agreement property of the underlying uniform consensus abstraction.
+  \item \textbf{Completeness} - follows from the strong completeness property of the perfect failure-detector abstraction:
+    \begin{itemize}
+      \item If $p$ is detected as crashed then there will be a consensus instance in which every proposal will not include $p$.
+      \item By the validity property of consensus, processes will eventually install a view that does not contain $p$.
+    \end{itemize}
+  \item \textbf{Accuracy} - if during consensus a process proposes a set of processes that did not include one of the processes, then that process must have been detected to have crashed (as a result of the perfect failure-detector).
+\end{itemize}
+
+At most \textbf{one consensus step} is needed for each process crash.
+
+\subsection{View-Synchronous Communication}
+Integrates reliable broadcast with group membership by providing an abstraction that gives  the illusion that failures are synchronized and appear to happen atomically with respect to the delivered messages - order the installation of views with respect to the message flow.
+
 \end{document}
 
