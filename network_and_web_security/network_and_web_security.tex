@@ -1392,4 +1392,63 @@ The SOP prevents pages from different origins tampering with each other, and con
 A page can change its origin by \textbf{relaxing} to a suffix of its domain.
 This essentially adds to the origin the \texttt{relaxed\_domain\_flag}.
 Although two pages relaxing their domain to the same domain can communicate, they still cannot communicate with a page from the domain they have relaxed to.
+
+\section{Scripting Attacks}
+\subsection{XSS Attacks}
+\begin{defn}
+  \textbf{XSS attacks} occur when attacker-controlled input makes its way to a trusted web page and it is executed as a script.
+  The attack effectively controls the whole origin in the browser, allowing access to page resources which can be sent back to the attacker.
+\end{defn}
+
+Variants:
+\begin{itemize}
+  \item \textbf{DOM-based XSS} - \textbf{trusted script} reads an attacker-controlled parameter and embeds it in the page.
+  \item \textbf{Reflected XSS} - attacker-controlled URL parameter is embedded in the page by the \textbf{server}.
+  \item \textbf{Stored XSS} - attacker stores malicious data on a server, which is later embedded into user pages.
+  \item \textbf{Self-XSS} - user tricked into injecting malicious JavaScript into the page, e.g.\ in the location bar or in console.
+  \item \textbf{Cross-channel Scripting (XCS)} - inject XSS payload using a non-HTTP channel into embedded devices/IoT.
+  \item \textbf{Universal XSS} - victim visits a secure target page and an attacker page, the attacker page exploits XSS vulnerabilities in the browser extension/chrome to inject into the target page.
+  \item \textbf{Scriptless attacks} - attacker injects CSS into the target page.
+\end{itemize}
+
+Countermeasures:
+\begin{itemize}
+  \item Validate inputs - accept only what you expect.
+  \item XSS filters.
+  \item Use templates or frameworks to validate inputs consistently.
+  \item \texttt{X-XSS-Protection} header - if a URL parameter is reflected in the body as a script, the script is blocked.
+\end{itemize}
+
+\subsection{JavaScript Attacks}
+\begin{itemize}
+  \item \textbf{Source code snooping} - attacker retrieves parts of the source script to extract state and secret keys.
+    \begin{itemize}
+      \item Counter by hiding state inside closures and removing script nodes.
+    \end{itemize}
+  \item \textbf{Prototype poisoning} - attacker changes the functionality of prototype function calls.
+    \begin{itemize}
+      \item Counter by checking types and avoiding the reliance on inheritance when outside of your control.
+    \end{itemize}
+\end{itemize}
+
+\subsection{HTML5 Sandbox}
+The SOP can be seen as too permissive:
+\begin{itemize}
+  \item In same-origin iframes, user-supplied content could be exposed to XSS attacks so its access to more trusted iframes must be restricted.
+  \item In cross-origin iframes, advertising from malicious provider may be displayed so scripts should be restricted.
+\end{itemize}
+
+The \texttt{sandbox} attribute from iframes tells the browser to create a new unique origin and associate it to the frame.
+
+We can relax the same box with:
+\begin{itemize}
+  \item \texttt{allow-same-origin} - does not segregate to new origin.
+  \item \texttt{allow-\{scripts/popups/forms/pointer-lock/top-navigation\}} - reintroduces the behaviour that was allowed under SOP alone.
+\end{itemize}
+
+\subsection{Content Security Policy (CSP)}
+The server sends a response header that tells the browser a whitelist of what resources can be loaded, what scripts can be executed, and from where.
+
+e.g.\ \texttt{Content-Security-Policy: default-src 'self' http://c.com; img-src *}
+
 \end{document}
