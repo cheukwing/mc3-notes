@@ -409,9 +409,9 @@ An attack against a specific user is still practical if given the salt for that 
 
 \subsection{Usability}
 \begin{itemize}
-  \item It is hard for humans to choose and remember good passwords.
-  \item Dictionary attacks can start from a vocabulary of common, memorable words, then apply \textit{password-mangling} rules to generate realistic variants (e.g.\ \textit{leetspeak}).
-  \item Users tend to reuse passwords.
+  \item Hard to choose and remember good passwords.
+  \item Dictionary attacks start from a vocabulary of common, memorable words, then apply \textit{password-mangling} rules to generate realistic variants (e.g.\ \textit{leetspeak}).
+  \item Passwords reuse.
   \item Complex password rules are a burden.
   \item Security questions are dangerous - answers can be found via social media.
   \item Password hints should be avoided - reminders may give away password too easily.
@@ -1450,5 +1450,59 @@ We can relax the same box with:
 The server sends a response header that tells the browser a whitelist of what resources can be loaded, what scripts can be executed, and from where.
 
 e.g.\ \texttt{Content-Security-Policy: default-src 'self' http://c.com; img-src *}
+
+\section{Browser Storage}
+HTTP is a stateless protocol, web applications need to keep their own state - on the client-side, \textbf{cookies} are used:
+\begin{enumerate}
+  \item First client request carries no cookies.
+  \item Server sets each cookie using a response header: \\
+    \texttt{Set-Cookie: name = value; [(attribute [= value];)*]}
+  \item Browser includes relevant cookies for subsequent requests in one request header: \\
+    \texttt{Cookie: (name = value;)+}
+\end{enumerate}
+
+\subsection{Cookie Attributes}
+\begin{itemize}
+  \item \texttt{domain} - send cookie back when the \texttt{domain} is the suffix of the requested domain.
+  \item \texttt{path} - send cookie back when the \texttt{path} is the prefix of the requested path.
+  \item \texttt{expires = date} - store the cookie until \texttt{date}, can be in the past to delete the cookie immediately, or can be \texttt{Null} to keep cookie in memory until the browser is closed.
+  \item \texttt{Secure} - send cookie over HTTPS only.
+  \item \texttt{HttpOnly} - Prevent non-HTTP APIs (e.g.\ JavaScript) from accessing cookie.
+  \item \texttt{SameSite} - mitigates cross-origin information leakage:
+    \begin{itemize}
+      \item \texttt{Strict} - cookie is sent only from a page with same domain.
+      \item \texttt{Lax} - do not block for top-level cross-domain navigation with safe HTTP methods.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Cookie Scope}
+\begin{itemize}
+  \item Cookie origin is determined the \textbf{domain and path}.
+  \item Cookie is identified by the \textbf{name and origin}.
+  \item Cookie scope is determined by \textbf{origin and secure attribute}.
+\end{itemize}
+A browser request sends all cookies that are \textbf{in scope} to the server - all the server sees are \texttt{name = value} pairs.
+
+\subsection{Security Considerations}
+\begin{itemize}
+  \item Server does not see attributes - cannot tell if set by a subdomain, or tell if was written by JavaScript.
+  \item Path does not restrict visibility of cookies - scripts from a different path can load an iframe with a page from the target path, then access the \texttt{document.cookie} of the iframe.
+  \item Cookie integrity is not guaranteed - cookies can be set by user, JavaScript from the same origin, network attackers.
+\end{itemize}
+
+\subsection{HTML5 Web Storage}
+Web Storage implements \textbf{client-side state} using lists of key-value pairs.
+It is not sent/set over HTTP - up to the page how to involve the server.
+\begin{itemize}
+  \item \texttt{window.localStorage} - associated to page origin, kept until explicitly deleted.
+  \item \texttt{window.sessionStorage} - associated to current tab and page origin, kept until tab is closed.
+  \item JavaScript API can get/set/remove items.
+\end{itemize}
+
+\subsubsection{Resident XSS (RXSS)}
+Data in the browser storage is used to inject JavaScript into the page.
+As it is present only on the client, it remains effective after the vulnerable page is patched and cannot be detected by the server.
+
+To counter this, we choose to not trust values stored in the browser - sanitize stored values; periodically validate, refresh, or delete stored data.
 
 \end{document}
