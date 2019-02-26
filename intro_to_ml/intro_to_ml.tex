@@ -1,7 +1,9 @@
 \documentclass[11pt]{article}
 \usepackage{fullpage}
 \usepackage{amsthm}
-\usepackage{amsmath} \usepackage{amssymb}
+\usepackage{amsmath} 
+\usepackage{amssymb}
+\usepackage{bm}
 \usepackage{graphicx}
 
 \graphicspath{ {./imgs/} }
@@ -1050,7 +1052,7 @@ We can mix these so in the final layer we may want to pick certain features and 
 
 \subsubsection{Dropout}
 When we push the weights towards 0, the connection is effectively cut and capacity reduced.
-We could just remove them entirely and not have fully-connected layers - \textbf{dropout}.
+We could remove them entirely and not have fully-connected layers - \textbf{dropout}.
 The outputs of layers are randomly set to 0, essentially turning off neurons.
 
 During each round, we set the output of the neuron to 0 with probability $p$.
@@ -1076,5 +1078,192 @@ A more common technique is \textbf{data normalisation} where we normalize the in
 This may be in the form of \textbf{feature scaling} to reduce a range to $[0, 1]$ or $[-1, 1]$, or normalising using the mean and standard deviation of the data $X' = \frac{X - \mu}{\sigma}$ (\textbf{z-normalisation}).
 
 Recall $\frac{\partial Loss}{\partial W} = X^\intercal \frac{\partial Loss}{\partial Z}$, if $X$ has very large or very small inputs then training is destabilised or hampered.
+
+\section{Unsupervised Learning}
+Unsupervised learning is usually done with \textbf{clustering} - grouping data together in the feature space.
+\begin{defn}
+  A \textbf{cluster} is a collection of data items which are similar between them, and dissimilar to data items in other clusters.
+\end{defn}
+An unsupervised learning problem is one where the right label does not exist, we want to see if we can cluster the data points to form classes.
+
+\subsection{$k$-Means}
+\begin{enumerate}
+  \item \textbf{Initialisation}:
+    \begin{itemize}
+      \item Select the number of clusters $k$.
+      \item Randomly place $k$ centroids in the feature space.
+    \end{itemize}
+  \item \textbf{Assignment}:
+    \begin{itemize}
+      \item Assign each data point to the nearest centroid.
+    \end{itemize}
+  \item \textbf{Update}:
+    \begin{itemize}
+      \item Update the position of each centroid by computing the mean position of all the data points associated to the centroid.
+    \end{itemize}
+  \item \textbf{Repeat}:
+    \begin{itemize}
+      \item As the centroid positions have changed, the points must be reassigned and the centroids updated until there is convergence.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Selection of $k$}
+\subsubsection{Elbow Method}
+\begin{figure}[htb!]
+  \centering
+  \caption{Selecting the elbow point.}
+  \includegraphics[scale=0.3]{elbow}
+\end{figure}
+\begin{enumerate}
+  \item Run $k$-means forall possible values of $k$.
+  \item Compute a score or each - the average of the mean distance to the centroid.
+  \item Select the $k$ where the rate of decrease sharply shifts, the \textbf{elbow point}.
+\end{enumerate}
+
+\subsubsection{Cross-Validation}
+\begin{enumerate}
+  \item Split the dataset into $N$ folds.
+  \item Use $N - 1$ folds to compute the centroid positions with $k$-means.
+  \item Compute the average score on the validation datasets.
+  \item Do this for various values of $k$, pick the best configuration - select $k$ such that further increases in the number of clusters leads to only small improvement in the average score.
+\end{enumerate}
+
+\subsection{Strengths and Weaknesses}
+\begin{itemize}
+  \item \textbf{Strengths}:
+    \begin{itemize}
+      \item Easy to understand and implement.
+      \item $O(tkn)$, where $t$ is the number of iterations; since $k$, $t$ are small compared to $n$, it is considered linear.
+    \end{itemize}
+  \item \textbf{Weaknesses}:
+    \begin{itemize}
+      \item Only a local optimum is found - usually run several times with random initialization to compensate.
+      \item Must define $k$.
+      \item Only applicable if the mean is defined.
+      \item Sensitive to initialization and outliers.
+      \item Not suitable for non hyper-ellipsoidic clusters.
+    \end{itemize}
+\end{itemize}
+
+\section{Density Estimation}
+We use \textbf{density estimation} to perform anomoly or novelty detection.
+
+\subsection{Probability Density Functions (PDFs)}
+A PDF models the probability of a sample to be generated in a specific area.
+
+Given a dataset, we can see that some regions are denser than others, and model this with a \textbf{Gaussian distribution}:
+\begin{itemize}
+  \item \textbf{Univariate}:
+    \[
+      \mathcal{N}(x \mid \mu, \sigma) = \frac{1}{\sqrt{2 \pi \sigma^2}}\exp^{-\frac{(x - \mu)^2}{2 \sigma^2}} 
+    \]
+  \item \textbf{Multivariate}:
+    \[
+      \mathcal{N}(\bm{x} \mid \bm{\mu}, \bm{\Sigma}) = \frac{1}{\sqrt{(2\pi)^D \lvert \Sigma \rvert}}\exp^{-\frac{1}{2} (X - \mu)' \Sigma^{-1}(X - \mu)}
+    \]
+\end{itemize}
+
+For the univariate:
+\begin{align*}
+  \mu = \frac{1}{N} \sum_{n = 0}^N x_n && \sigma^2 = \frac{1}{N} \sum_{n=0}^N (x_n - \mu)^2
+\end{align*}
+
+For the multivariate:
+\begin{align*}
+  \bm{\mu} = \frac{1}{N} \sum_{n = 0}^N \bm{x_n} && \bm{\Sigma} = \frac{1}{N} \sum_{n=0}^N (\bm{x_n} - \bm{\mu})(\bm{x_n} - \bm{\mu})'
+\end{align*}
+
+\subsection{Quality of the Model}
+We compute the \textbf{negative-log-likelihood} on the dataset $\mathcal{X}$:
+\[
+  \mathcal{L} = - \log p(\bm{\mathcal{X}} \mid \bm{\theta}) = - \log \prod_{n = 1}^N p(\bm{x_n} \mid \theta) = - \sum_{n = 1}^N \log(p(\bm{x_n} \mid \bm{\theta})) 
+\]
+
+This is analogous to the concept of loss functions - we search for the parameter values that minimize this quantity:
+\[
+  \mathcal{L} = \frac{N}{2} \log(2 \pi) + \frac{N}{2} \log(\sigma^2) + \frac{1}{2\sigma^2} \sum_{n = 1}^N (x_n - \mu)^2 
+\]
+
+The optimum values are when the derviates are equal to $0$, which gives us:
+\begin{align*}
+  \mu = \frac{1}{N} \sum_{n = 1}^N x_n && \sigma^2 = \frac{1}{N} \sum_{n = 1}^N (x_n - \mu)^2
+\end{align*}
+
+\subsection{Gaussian Mixture Model (GMM)}
+\begin{figure}[htb!]
+  \centering
+  \caption{Gaussian v.s.\ Guassian Mixture Model}
+  \includegraphics[scale=0.5]{mixture}
+\end{figure}
+We may need to use a combination of several distributions to construct our model:
+\[
+  p(\bm{x}) = \sum_{k = 1}^K \pi_k p_k (\bm{x}) 
+\]
+where $0 \leq \pi_k \leq 1$ and $\sum_{k = 1}^K \pi_k = 1$.
+
+We use the \textbf{Gaussian Mixture Model}:
+\[
+  p(\bm{x} \mid \theta) = \sum_{k = 1}^K \pi_k \mathcal{N} (\bm{x} \mid \bm{\mu_k}, \bm{\Sigma_k})
+\]
+where $\bm{\theta} = \{ \bm{\mu_k}, \bm{\Sigma_k}, \bm{\pi_k} : k = 1, \dots, K \}$.
+
+In GMM, all $k$ mixture components contribute to the probability distribute, we can compute the \textbf{responsibility} of the $k$th mixture component for the $n$th data point:
+\[
+  r_{nk} = \frac{\pi_k \mathcal{N}(\bm{x_n} \mid \bm{\mu_k}, \bm{\Sigma_k})}{\sum_{j = 1}^K \pi_j \mathcal{N} (\bm{x_n} \mid \bm{\mu_j}, \bm{\Sigma_j})
+}
+\]
+
+\subsubsection{Expectation Maximization (EM)}
+We cannot maximise the likelihood to update each parameter, as the update of each parameter depends on the other paramaeters.
+
+Instead we perform \textbf{expectation maximization} on GMM, known as \textbf{GMM-EM}:
+\begin{enumerate}
+  \item \textbf{Initialization} - for each mixture component, initialize $\bm{\theta}$.
+  \item \textbf{E-Step} - compute the responsibilities for each data point and each mixture component.
+  \item \textbf{M-Step}:
+    \begin{itemize}
+      \item Update the mean of each mixture component:
+        \[
+          \bm{\mu_k} = \frac{1}{N_k} \sum_{n = 1}^N r_{nk} x_n \text{ with } N_k = \sum_{n = 1}^N r_{nk}
+        \]
+      \item Update the covariance of each mixture component:
+        \[
+          \bm{\Sigma_k} = \frac{1}{N_k}\sum_{n = 1}^N r_{nk} (\bm{x_n} - \bm{\mu_k})(\bm{x_n} - \bm{\mu_k})' 
+        \]
+      \item Update the weight of each mixture component:
+        \[
+          \pi_k = \frac{N_k}{N} 
+        \]
+    \end{itemize}
+  \item Repeat E and M steps until convergence.
+\end{enumerate}
+
+We determine convergence through:
+\begin{itemize}
+  \item No significant variation of the parameters, or
+  \item Stagnation of the likelihood.
+\end{itemize}
+As we may converge to a local optimal, we need to restart the algorithm with different initial guess of parameters.
+
+\subsubsection{Selecting the Number of Components}
+\begin{itemize}
+  \item More mixture components will lead to higher likelihood but may not generalize well on new data.
+  \item \textbf{Cross-validation}.
+  \item \textbf{Bayesian Information Criterion} (BIC) - minimize:
+    \[
+      BIC(K) = \mathcal{L}(K) + \frac{P(K)}{2} \log(N) 
+    \]
+    where:
+    \begin{itemize}
+      \item $K$ is the number of mixture components.
+      \item $N$ is the number of data points.
+      \item $P(K)$ is the number of parameters estimated by the model, e.g.\ for 2D Gaussian $P(K) = 6K$, as 2 for mean, 3 for covariance, 1 for weight.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Relation to $k$-Means}
+GMM-EM can be used to do unsupervised classification - each mixture component is a source which generates data points with a different probability.
+
+GMM-EM is like \textbf{soft $k$-means clustering} - every point belongs to several clusters with certain degrees.
 
 \end{document}
