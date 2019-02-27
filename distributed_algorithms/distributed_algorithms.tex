@@ -26,7 +26,7 @@
   \item Performance through parallelisation and distribution.
   \item Reliability and availability through replication, fault-tolerance, security.
   \item Scalability, modularity, evolvability.
-  \item Heterogenity of hardware and software.
+  \item Heterogeneity of hardware and software.
 \end{itemize}
 
 \subsection{What is a Distributed System?}
@@ -61,7 +61,7 @@ When designing distributed systems, we have to consider different assumptions.
   \item \textbf{Partially synchronous systems}:
     \begin{itemize}
       \item Real-world systems are mostly synchronous with asynchronous periods.
-      \item Assume the system is eventutally synchronous.
+      \item Assume the system is eventually synchronous.
     \end{itemize}
 \end{itemize}
 
@@ -714,7 +714,7 @@ The leader election process can be initiated by any process in the system.
 Each process maintains two boolean variables:
 \begin{itemize}
   \item \texttt{done} - set when the leader election process is over.
-  \item \texttt{leadeflag} - set when the process knows it is the leader.
+  \item \texttt{leaderflag} - set when the process knows it is the leader.
 \end{itemize}
 
 A basic case has the processes arranged in a ring, with unidirectional or bidirectional communication around the ring.
@@ -753,7 +753,7 @@ The best case message complexity (processes in order of UID) is $O(n)$, the wors
 The average case is $O(n \log n)$.
 
 \subsection{Hirschberg-Sinclair (HS) Algorithm}
-The ring is birdirectional and has an unknown number of processes.
+The ring is bidirectional and has an unknown number of processes.
 The process with the largest UID ends up as the leader.
 
 We carry out elections on increasingly larger sets (neighbourhoods).
@@ -781,7 +781,7 @@ The total number of leaders in phase $k$ is $\left\lfloor \frac{n}{2^{k - 1} + 1
 The messages send/received by each leader in phase $k$ is $4 \cdot 2^k$, $4$ as we consider both directions inbound and outbound, $2^k$ from neighbourhood distance.
 Then the number of messages in phase $k$ is $4 \cdot 2^k \cdot \left\lfloor \frac{n}{2^{k-1}+1}\right\rfloor \leq 8 \cdot n$.
 The number of phases before the leader is elected is at most $1 + \left\lceil \log n \right\rceil$.
-The the total nuber of messages is at most $8 \cdot n \cdot (1 + \left\lceil \log n \right\rceil)$.
+The total number of messages is at most $8 \cdot n \cdot (1 + \left\lceil \log n \right\rceil)$.
 The message complexity is $O(n \log n)$.
 
 \subsection{Non-Comparison-Based Algorithms}
@@ -932,6 +932,55 @@ At most \textbf{one consensus step} is needed for each process crash.
 
 \subsection{View-Synchronous Communication}
 Integrates reliable broadcast with group membership by providing an abstraction that gives  the illusion that failures are synchronized and appear to happen atomically with respect to the delivered messages - order the installation of views with respect to the message flow.
+
+\section{Distributed Shared Memory (DSM)}
+DSM provides the impression of a logical, single, large, monolithic memory.
+There is no need for communication primitives but as the DSM uses asynchronous primitives, it cannot be more efficient than asynchronous message passing implementations.
+
+\subsection{Memory Consistency Models}
+Memory consistency models define the set of allowable memory access orderings.
+We must redefine correctness - traditionally a \textit{read} returns the value of the most recent write, but what is the \textit{most recent} in a distributed system?
+
+\subsection{Strict Consistency/Linearizability}
+\begin{itemize}
+  \item Common \textbf{global time}.
+  \item Full replication of each data item.
+  \item Each write is immediately visible to all processes.
+\end{itemize}
+
+We are only concerned with operations that overlap:
+\begin{itemize}
+  \item A \textit{read} should return the most recent value written, defined by global time.
+  \item All operations appear to be executed atomically and sequentially.
+  \item All processors see the same ordering of events.
+\end{itemize}
+
+We can use \textbf{total order broadcasting} to send all requests from the application to the other processors.
+
+\subsection{Sequential Consistency}
+\begin{itemize}
+  \item We relax to \textbf{local time} reference.
+  \item The result of any execution is the same as if all operations of the processors were executed in \textbf{some} sequential order.
+  \item The operations of each individual processor appears in this sequence in the \textbf{local program order}.
+\end{itemize}
+
+Only \textit{writes} participate in \textbf{total order broadcasts}, \textit{reads} do not.
+The \textit{read} operations of different processors are independent of each other and so need to be ordered only with respect to the \textit{writes}.
+
+There are two versions \textbf{local reads} and \textbf{local writes}, which prioritize their namesakes.
+
+\subsection{Causal Consistency}
+\begin{itemize}
+  \item We relax the assumption that all writes have to be in the same order.
+  \item Only writes that are \textbf{causally related} need to be seen in order, we still use \textbf{total order broadcasts}:
+    \begin{itemize}
+      \item \textbf{Local Order} - at a processor, the serial order of events is the local order.
+      \item \textbf{Inter-process Order} - a \textit{write} operation causally precedes a \textit{read} operation issued by another processor if the value returned is the value written by the \textit{write}.
+      \item \textbf{Transitive Closure} - the transitive closure of the above two relations defines the causal order, all causally related \textit{writes} are seen in the same order by all processors.
+    \end{itemize}
+\end{itemize}
+
+
 
 \end{document}
 
