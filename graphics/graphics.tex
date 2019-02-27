@@ -3,6 +3,7 @@
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{bm}
 \usepackage{graphicx}
 \usepackage{gensymb}
 
@@ -2299,6 +2300,61 @@ We can summarize the Bezier curve by saying it has:
   \item Two control points: $P_1, P_2$ - can be interacted with to determine the shape.
 \end{itemize}
 
+\section{Surface Construction}
+\subsection{Simple Parametric Surfaces}
+\begin{figure}[htb!]
+  \centering
+  \caption{Curves and known points of a parametric surface.}
+  \includegraphics[scale=0.5]{parametricsurface}
+\end{figure}
+
+\[
+  \bm{P}(\mu, v) = \bm{a}\mu^2 + \bm{d}v^2 + 2\bm{b}\mu v + 2\bm{c} \mu + 2 \bm{e} v + \bm{f}
+\]
+To solve for the six unknown parameter vectors, we can substitute the $\mu, v$ values of known points.
+
+For the edges, we notice that either $\mu$ or $v$ are $0$ or $1$ at the edges, while the other ranges from $[0, 1]$.
+
+\subsection{Parametric Patches}
+As with curves, we create a surface by joining a lot of simple surfaces continuously - we need to match three values at each corner:
+\begin{align*}
+  \bm{P}(\mu, v) && \frac{\partial\bm{P}(\mu, v)}{\partial \mu} && \frac{\partial\bm{P}(\mu, v)}{\partial v}
+\end{align*}
+
+\subsubsection{Edges}
+\begin{figure}[htb!]
+  \centering
+  \caption{Spline patch.}
+  \includegraphics[scale=0.5]{splinepatch}
+\end{figure}
+We need to ensure the patch joins its neighbours exactly at the edges - we ensure the edge contours are the same on adjacent patches.
+
+We do this identically as with cubic spline curve patches - we ensure the gradients are the same for the four patches that meet at a point.
+
+\subsubsection{Coons Patch}
+To define the internal points, we linearly interpolate:
+\begin{align*}
+  \bm{P}(\mu, v) &= \bm{P}(\mu, 0)(1-v) + \bm{P}(\mu, 1)v
+                 &+ \bm{P}(0, v)(1-\mu) + \bm{P}(1, v)\mu
+                 &- \bm{P}(0, 1)(1-\mu)v - \bm{P}(1, 0)\mu(1-v)
+                 &- \bm{P}(0,0)(1-\mu)(1-v) - \bm{P}(1,1)\mu v
+\end{align*}
+
+\subsection{Rendering a Patch}
+\begin{itemize}
+  \item \textbf{Polygonization} - select a grid of points and triangulate.
+    \begin{itemize}
+      \item Large polygons for speed.
+      \item Smaller to match pixel size for accuracy.
+    \end{itemize}
+  \item \textbf{Ray Tracing} - numerical ray-patch algorithm:
+    \begin{enumerate}
+      \item Polygonize the patch at a low resolution.
+      \item Calculate the ray intersection with the triangles and find the nearest intersection.
+      \item Polygonize the immediate area of the intersection, calculate a better estimate of the intersection.
+      \item Continue until the best estimate is found.
+    \end{enumerate}
+\end{itemize}
 
 \end{document}
 
