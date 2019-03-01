@@ -941,7 +941,7 @@ There is no need for communication primitives but as the DSM uses asynchronous p
 Memory consistency models define the set of allowable memory access orderings.
 We must redefine correctness - traditionally a \textit{read} returns the value of the most recent write, but what is the \textit{most recent} in a distributed system?
 
-\subsection{Strict Consistency/Linearizability}
+\subsubsection{Strict Consistency/Linearizability}
 \begin{itemize}
   \item Common \textbf{global time}.
   \item Full replication of each data item.
@@ -957,7 +957,7 @@ We are only concerned with operations that overlap:
 
 We can use \textbf{total order broadcasting} to send all requests from the application to the other processors.
 
-\subsection{Sequential Consistency}
+\subsubsection{Sequential Consistency}
 \begin{itemize}
   \item We relax to \textbf{local time} reference.
   \item The result of any execution is the same as if all operations of the processors were executed in \textbf{some} sequential order.
@@ -969,16 +969,73 @@ The \textit{read} operations of different processors are independent of each oth
 
 There are two versions \textbf{local reads} and \textbf{local writes}, which prioritize their namesakes.
 
-\subsection{Causal Consistency}
+\subsubsection{Causal Consistency}
 \begin{itemize}
-  \item We relax the assumption that all writes have to be in the same order.
-  \item Only writes that are \textbf{causally related} need to be seen in order, we still use \textbf{total order broadcasts}:
+  \item Only \textit{writes} that are \textbf{causally related} need to be seen in order, we still use \textbf{total order broadcasts}:
     \begin{itemize}
       \item \textbf{Local Order} - at a processor, the serial order of events is the local order.
       \item \textbf{Inter-process Order} - a \textit{write} operation causally precedes a \textit{read} operation issued by another processor if the value returned is the value written by the \textit{write}.
       \item \textbf{Transitive Closure} - the transitive closure of the above two relations defines the causal order, all causally related \textit{writes} are seen in the same order by all processors.
     \end{itemize}
 \end{itemize}
+
+\subsubsection{Processor Consistency/Pipelined RAM (PRAM)}
+\begin{itemize}
+  \item Only \textit{writes} issued by any one processor are seen by all other processors in the same order they were issued.
+  \item \textit{writes} issued by different processors may be seen in different orders by different processors, \textbf{local causality}.
+  \item FIFO broadcast.
+\end{itemize}
+
+\subsubsection{Slow Memory Consistency}
+\begin{itemize}
+  \item Only \textit{writes} issued by the same processor and to the same memory (same variable) are seen by all other processors in the same order that they were issued.
+\end{itemize}
+
+\subsection{Synchronisation Based Consistency Models}
+Only synchronisation/co-ordination statements across the various processes must satisfy the consistency conditions - others can be executed without any conditions.
+
+\subsubsection{Weak Consistency}
+\begin{itemize}
+  \item When synchronisation occurs, all \textit{writes} are \textbf{propagated to all processes}, and all \textit{writes} done by others are \textbf{brought locally}.
+  \item Accesses to synchronisation variables are \textbf{sequentially consistent}.
+  \item Access to a synchronisation variable is not allowed until all previous writes have completed everywhere.
+  \item Access to data is not allowed until all previous access to synchronisation variables have been performed.
+  \item We do not distinguish between entering or exiting the critical section.
+\end{itemize}
+
+\subsubsection{Release and Entry Consistency}
+\begin{itemize}
+  \item \textbf{Acquire} - enter the critical section, writes from other processes should be locally reflected.
+  \item \textbf{Release} - leave the critical section, local updates must be propagated.
+  \item Every ordinary shared variable is associated with a \textbf{synchronisation} variable.
+\end{itemize}
+
+\subsection{Lamport's Bakery Algorithm}
+When we share a resource among many processes in the network, we have certain access requirements:
+\begin{itemize}
+  \item \textbf{Mutual exclusion} (safety property).
+  \item Bounded waiting.
+  \item \textbf{Progress} (liveness property).
+\end{itemize}
+
+We can solve this with Lamport's bakery algorithm:
+\begin{enumerate}
+  \item Each customer is given a unique identifier when they enter the bakery.
+  \item Customers are served when their number is called.
+  \item Other customers wait while a customer is being served.
+  \item Once a customer has finished being served, the next customer is called (whose identifier is $1 +$ the previous customer's).
+  \item If a customer wants to shop again, they need to get another token.
+\end{enumerate}
+
+This has a \textbf{space complexity} with lower bound of $n$ registers, and a \textbf{time complexity} of $O(n)$.
+
+\subsection{Wait-Freedom}
+Process can have arbitrary delays or crash, preventing others from completing their actions.
+
+\textbf{Wait-freedom} guarantees that any process can complete any synchronisation operation in a finite number of lower-level steps, irrespective of the execution speed of other processes.
+This is important for fault-tolerant systems, \textbf{when possible}.
+
+A wait-free concurrent object ensures that any process can complete an operation on it in a finite number of steps, irrespective of whether other processes crash or get unexpected delays.
 
 
 
