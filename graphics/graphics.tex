@@ -380,7 +380,7 @@ We apply the transformation matrix:
 
 We rotate about $y$ until $d$ is in the $y-z$ plane ($x = 0$):
 \begin{align*}
-  \lVert \textbf{v} \lVert = v = \sqrt{d_x^2 + d_z^2} && \cos \theta = d_z / v && \sin \theta = d_x / v
+  \lVert \bm{v} \lVert = v = \sqrt{d_x^2 + d_z^2} && \cos \theta = d_z / v && \sin \theta = d_x / v
 \end{align*}
 
 \[
@@ -433,9 +433,9 @@ We then rotate about $x$ until $d$ points along the $z$-axis:
 \[
   \mathcal{T} = \mathcal{CBA}  
 \]
-Then for every point $\textbf{P}$ in the scene, we calculate:
+Then for every point $\bm{P}$ in the scene, we calculate:
 \[
-  \textbf{P}_t = \mathcal{T}\textbf{P}  
+  \bm{P}_t = \mathcal{T}\bm{P}  
 \]
 The view is now in canonical form, and we can apply the standard perspective or othographic projection.
 
@@ -641,10 +641,10 @@ When we multiply the matrix by unit vectors, we get the individual columns of th
 
 This means that the columns are the original axis system after transforming to the new coordinate system:
 \begin{itemize}
-  \item \textbf{q} is the transformed $x$-axis.
-  \item \textbf{r} is the transformed $y$-axis.
-  \item \textbf{s} is the transformed $z$-axis.
-  \item \textbf{C} is the transformed origin.
+  \item \bm{q} is the transformed $x$-axis.
+  \item \bm{r} is the transformed $y$-axis.
+  \item \bm{s} is the transformed $z$-axis.
+  \item \bm{C} is the transformed origin.
 \end{itemize}
 
 \subsubsection{Effect of a Transformation Matrix}
@@ -663,11 +663,11 @@ We get the old axes and origin in the new coordinate system:
     0 & 0 & 0 & 1
   \end{pmatrix}
   =
-  \begin{bmatrix} \textbf{q} & \textbf{r} & \textbf{s} & \textbf{C} \end{bmatrix}
+  \begin{bmatrix} \bm{q} & \bm{r} & \bm{s} & \bm{C} \end{bmatrix}
 \]
 
 \subsection{General Viewing Matrix Transformation}
-Normally, we are not given the transformation matrix, but the view direction $\textbf{d}$ and location $\textbf{C}$ instead.
+Normally, we are not given the transformation matrix, but the view direction $\bm{d}$ and location $\bm{C}$ instead.
 
 \subsubsection{Dot Product}
 \begin{defn}
@@ -690,16 +690,16 @@ Normally, we are not given the transformation matrix, but the view direction $\t
 
 \subsubsection{Changing Axes by Projection}
 \begin{figure}[htb!]
-  \caption{Transforming a point $\textbf{P}$ to a different axes.}
+  \caption{Transforming a point $\bm{P}$ to a different axes.}
   \includegraphics[scale=0.2]{changingaxes}
   \centering
 \end{figure}
 
 We can express projections using the dot product:
 \begin{alignat*}{2}
-  P_x^t &= (\textbf{P} - \textbf{C}) \cdot \textbf{u} &&= \textbf{P} \cdot \textbf{u} - \textbf{C} \cdot \textbf{u} \\
-  P_y^t &= (\textbf{P} - \textbf{C}) \cdot \textbf{v} &&= \textbf{P} \cdot \textbf{v} - \textbf{C} \cdot \textbf{v} \\
-  P_z^t &= (\textbf{P} - \textbf{C}) \cdot \textbf{w} &&= \textbf{P} \cdot \textbf{w} - \textbf{C} \cdot \textbf{w}
+  P_x^t &= (\bm{P} - \bm{C}) \cdot \bm{u} &&= \bm{P} \cdot \bm{u} - \bm{C} \cdot \bm{u} \\
+  P_y^t &= (\bm{P} - \bm{C}) \cdot \bm{v} &&= \bm{P} \cdot \bm{v} - \bm{C} \cdot \bm{v} \\
+  P_z^t &= (\bm{P} - \bm{C}) \cdot \bm{w} &&= \bm{P} \cdot \bm{w} - \bm{C} \cdot \bm{w}
 \end{alignat*}
 
 In matrix notation:
@@ -707,45 +707,45 @@ In matrix notation:
   \begin{pmatrix} P_x^t \\ P_y^t \\ P_z^t \\ 1 \end{pmatrix}
   =
   \begin{pmatrix}
-    u_x & u_y & u_z & -\textbf{C} \cdot \textbf{u} \\ 
-    v_x & v_y & v_z & -\textbf{C} \cdot \textbf{v} \\ 
-    w_x & w_y & w_z & -\textbf{C} \cdot \textbf{w} \\ 
+    u_x & u_y & u_z & -\bm{C} \cdot \bm{u} \\ 
+    v_x & v_y & v_z & -\bm{C} \cdot \bm{v} \\ 
+    w_x & w_y & w_z & -\bm{C} \cdot \bm{w} \\ 
     0 & 0 & 0 & 1
   \end{pmatrix}
   \begin{pmatrix} P_x \\ P_y \\ P_z \\ 1 \end{pmatrix}
 \]
 
-By maintaining values of $\textbf{C}, \textbf{u}, \textbf{v}, \textbf{w}$ throughout an animation sequence, we can write down the correct scene transformation matrix.
+By maintaining values of $\bm{C}, \bm{u}, \bm{v}, \bm{w}$ throughout an animation sequence, we can write down the correct scene transformation matrix.
 
 \subsubsection{Returning to Flying Sequences}
-As we know $\textbf{d}$ is the direction of the new axis, then
+As we know $\bm{d}$ is the direction of the new axis, then
 \[
-  \textbf{w} = \frac{\textbf{d}}{\lvert \textbf{d} \rvert}
+  \bm{w} = \frac{\bm{d}}{\lvert \bm{d} \rvert}
 \]
 
-We can write $\textbf{u}$ in terms of some vector $\textbf{p}$ in the horizontal direction:
+We can write $\bm{u}$ in terms of some vector $\bm{p}$ in the horizontal direction:
 \[
-  \textbf{u} = \frac{\textbf{p}}{\lvert \textbf{p} \rvert}
+  \bm{u} = \frac{\bm{p}}{\lvert \bm{p} \rvert}
 \]
 and set $p_y = 0$ to ensure it has no vertical component.
 
-We can write $\textbf{v}$ in terms of some vector $\textbf{q}$ in the vertical direction:
+We can write $\bm{v}$ in terms of some vector $\bm{q}$ in the vertical direction:
 \[
-  \textbf{v} = \frac{\textbf{q}}{\lvert \textbf{q} \rvert}
+  \bm{v} = \frac{\bm{q}}{\lvert \bm{q} \rvert}
 \]
 and force $q_y = 1$ to ensure it has a positive $y$ component.
 
 We now have:
 \begin{align*}
-  \textbf{p} &= \begin{pmatrix} p_x \\ 0 \\ p_z \end{pmatrix}
-  & \textbf{q} &= \begin{pmatrix} q_x \\ 1 \\ q_z \end{pmatrix}
+  \bm{p} &= \begin{pmatrix} p_x \\ 0 \\ p_z \end{pmatrix}
+  & \bm{q} &= \begin{pmatrix} q_x \\ 1 \\ q_z \end{pmatrix}
 \end{align*}
 
 It must be that:
 \[
-  \textbf{d} = \textbf{p} \times \textbf{q} 
+  \bm{d} = \bm{p} \times \bm{q} 
 \]
-since $\textbf{d}$ is orthogonal to both, and the magnitude of the new vectors has not been set.
+since $\bm{d}$ is orthogonal to both, and the magnitude of the new vectors has not been set.
 
 Evaluating the cross products results in:
 \begin{align*}
@@ -756,30 +756,30 @@ Evaluating the cross products results in:
 
 Which means:
 \[
-  \textbf{p} = \begin{pmatrix} d_z \\ 0 \\ -d_x \end{pmatrix} 
+  \bm{p} = \begin{pmatrix} d_z \\ 0 \\ -d_x \end{pmatrix} 
 \]
 
-Using the dot product with $\textbf{p}$ and $\textbf{q}$, then:
+Using the dot product with $\bm{p}$ and $\bm{q}$, then:
 \[
-  \textbf{p} \cdot \textbf{q} = p_xq_x + p_zq_z = 0
+  \bm{p} \cdot \bm{q} = p_xq_x + p_zq_z = 0
 \]
 which we solve with the result from the cross product:
 \[
   d_y = p_zq_x - p_xq_z
 \]
 
-Once we have expressions for $\textbf{p}$ and $\textbf{q}$ in terms of given vector $\textbf{d}$, then we have obtained:
+Once we have expressions for $\bm{p}$ and $\bm{q}$ in terms of given vector $\bm{d}$, then we have obtained:
 \begin{align*}
-  \textbf{u} &= \frac{\textbf{p}}{\lvert \textbf{p} \rvert} &
-  \textbf{v} &= \frac{\textbf{q}}{\lvert \textbf{q} \rvert} &
-  \textbf{w} &= \frac{\textbf{d}}{\lvert \textbf{d} \rvert}
+  \bm{u} &= \frac{\bm{p}}{\lvert \bm{p} \rvert} &
+  \bm{v} &= \frac{\bm{q}}{\lvert \bm{q} \rvert} &
+  \bm{w} &= \frac{\bm{d}}{\lvert \bm{d} \rvert}
 \end{align*}
 which we use to write down:
 \[
   \begin{pmatrix}
-    u_x & u_y & u_z & -\textbf{C} \cdot \textbf{u} \\ 
-    v_x & v_y & v_z & -\textbf{C} \cdot \textbf{v} \\ 
-    w_x & w_y & w_z & -\textbf{C} \cdot \textbf{w} \\ 
+    u_x & u_y & u_z & -\bm{C} \cdot \bm{u} \\ 
+    v_x & v_y & v_z & -\bm{C} \cdot \bm{v} \\ 
+    w_x & w_y & w_z & -\bm{C} \cdot \bm{w} \\ 
     0 & 0 & 0 & 1
   \end{pmatrix}
 \]
@@ -820,26 +820,26 @@ In planes, we use the general equations:
 \subsection{Homogeneous Coordinates}
 We can link the plane equation to homogeneous coordinates:
 \[
-  \textbf{H} = \begin{pmatrix} A \\ B \\ C \\ D \end{pmatrix}  
+  \bm{H} = \begin{pmatrix} A \\ B \\ C \\ D \end{pmatrix}  
 \]
 However, each point has an infinite number of equivalent homogenous coordinates as they can be scaled, $\begin{pmatrix} sx & sy & sz & sw \end{pmatrix}$.
 
-We solve this by scaling $\textbf{H}$ so that $\begin{pmatrix} A & B & C \end{pmatrix}$ becomes normalized:
+We solve this by scaling $\bm{H}$ so that $\begin{pmatrix} A & B & C \end{pmatrix}$ becomes normalized:
 \[
   A^2 + B^2 + C^2 = 1  
 \]
 
 \begin{figure}[htb!]
-  \caption{Using $\textbf{H}$ to find the distance to a point $\textbf{p}$.}
+  \caption{Using $\bm{H}$ to find the distance to a point $\bm{p}$.}
   \includegraphics[scale=0.3]{signeddistance}
   \centering
 \end{figure}
 
 Then the distance is calculated:
 \[
-  d = \textbf{H} \cdot \textbf{p} = \textbf{H}^\intercal \textbf{p} 
+  d = \bm{H} \cdot \bm{p} = \bm{H}^\intercal \bm{p} 
 \]
-since $\textbf{H}$ is the normal of the plane.
+since $\bm{H}$ is the normal of the plane.
 
 $d$ is a \textbf{signed distance}:
 \begin{itemize}
@@ -847,18 +847,18 @@ $d$ is a \textbf{signed distance}:
   \item Negative $\rightarrow$ outside the plane, clip (or cull or reject).
 \end{itemize}
 
-We do not actually need to normalize as we test only the sign of $\textbf{H} \cdot \textbf{p}$.
+We do not actually need to normalize as we test only the sign of $\bm{H} \cdot \bm{p}$.
 
 \subsection{Clipping with respect to View Frustum}
-We test a point $\textbf{p}$ against each of the 6 planes, where each normal $\textbf{H}$ is oriented towards the interior.
+We test a point $\bm{p}$ against each of the 6 planes, where each normal $\bm{H}$ is oriented towards the interior.
 
 \begin{align*}
-  \textbf{H}_{near} &= \begin{pmatrix} 0 & 0 & 1 & -near \end{pmatrix}^\intercal \\
-  \textbf{H}_{far} &= \begin{pmatrix} 0 & 0 & -1 & far \end{pmatrix}^\intercal \\
-  \textbf{H}_{bottom} &= \begin{pmatrix} 0 &  near & -bottom & 0 \end{pmatrix}^\intercal \\
-  \textbf{H}_{top} &= \begin{pmatrix} 0 & -near & top & 0 \end{pmatrix}^\intercal \\
-  \textbf{H}_{left} &= \begin{pmatrix} -near  & 0 & left & 0 \end{pmatrix}^\intercal \\
-  \textbf{H}_{right} &= \begin{pmatrix} near & 0 & -right & 0 \end{pmatrix}^\intercal
+  \bm{H}_{near} &= \begin{pmatrix} 0 & 0 & 1 & -near \end{pmatrix}^\intercal \\
+  \bm{H}_{far} &= \begin{pmatrix} 0 & 0 & -1 & far \end{pmatrix}^\intercal \\
+  \bm{H}_{bottom} &= \begin{pmatrix} 0 &  near & -bottom & 0 \end{pmatrix}^\intercal \\
+  \bm{H}_{top} &= \begin{pmatrix} 0 & -near & top & 0 \end{pmatrix}^\intercal \\
+  \bm{H}_{left} &= \begin{pmatrix} -near  & 0 & left & 0 \end{pmatrix}^\intercal \\
+  \bm{H}_{right} &= \begin{pmatrix} near & 0 & -right & 0 \end{pmatrix}^\intercal
 \end{align*}
 
 We can derive the first two from observing the frustum and recalling that that the viewpoint looks along the $z$-axis.
@@ -879,36 +879,36 @@ The rest can be derived by taking points from the frustum corners:
 \]
 
 \begin{alignat*}{2}
-  \quad & (\textbf{P} - \textbf{P}_1) \cdot \textbf{n} &&= 0 \\
+  \quad & (\bm{P} - \bm{P}_1) \cdot \bm{n} &&= 0 \\
   \implies & ny - bz &&= 0 \\
-  \implies & \textbf{H}_{bottom} &&= \begin{pmatrix} 0 & n & -b & 0 \end{pmatrix}^\intercal
+  \implies & \bm{H}_{bottom} &&= \begin{pmatrix} 0 & n & -b & 0 \end{pmatrix}^\intercal
 \end{alignat*}
 
 \subsection{Line-Plane Intersection}
 Explicit (parametric) line equation:
 \[
-  \textbf{L}(\mu) = \textbf{p}_0 + \mu(\textbf{p}_1 - \textbf{p}_0) = \mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0
+  \bm{L}(\mu) = \bm{p}_0 + \mu(\bm{p}_1 - \bm{p}_0) = \mu \bm{p}_1 + (1 - \mu) \bm{p}_0
 \]
 
-To compute the intersection point, we use the fact that $(\textbf{P} - \textbf{P}_1) \cdot \textbf{n} = 0$:
+To compute the intersection point, we use the fact that $(\bm{P} - \bm{P}_1) \cdot \bm{n} = 0$:
 \begin{enumerate}
-  \item Let the intersection point be $\mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0$.
-  \item Choose $\textbf{v}$ to be any point on the plane.
-  \item A vector in the plane is given by $\mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0 - \textbf{v}$.
-  \item Then $\textbf{n} \cdot (\mu \textbf{p}_1 + (1 - \mu) \textbf{p}_0 - \textbf{v}) = 0$
+  \item Let the intersection point be $\mu \bm{p}_1 + (1 - \mu) \bm{p}_0$.
+  \item Choose $\bm{v}$ to be any point on the plane.
+  \item A vector in the plane is given by $\mu \bm{p}_1 + (1 - \mu) \bm{p}_0 - \bm{v}$.
+  \item Then $\bm{n} \cdot (\mu \bm{p}_1 + (1 - \mu) \bm{p}_0 - \bm{v}) = 0$
   \item Solve for $\mu$ to find the point of intersection.
 \end{enumerate}
 
 \subsubsection{Segment Clipping}
 \begin{itemize}
-  \item If $\textbf{H} \cdot \textbf{p} > 0$ and $\textbf{H} \cdot \textbf{q} < 0$: clip $\textbf{q}$ to plane.
-  \item If $\textbf{H} \cdot \textbf{p} < 0$ and $\textbf{H} \cdot \textbf{q} > 0$: clip $\textbf{p}$ to plane.
-  \item If $\textbf{H} \cdot \textbf{p} > 0$ and $\textbf{H} \cdot \textbf{q} > 0$: pass through.
-  \item If $\textbf{H} \cdot \textbf{p} < 0$ and $\textbf{H} \cdot \textbf{q} < 0$: clipped out.
+  \item If $\bm{H} \cdot \bm{p} > 0$ and $\bm{H} \cdot \bm{q} < 0$: clip $\bm{q}$ to plane.
+  \item If $\bm{H} \cdot \bm{p} < 0$ and $\bm{H} \cdot \bm{q} > 0$: clip $\bm{p}$ to plane.
+  \item If $\bm{H} \cdot \bm{p} > 0$ and $\bm{H} \cdot \bm{q} > 0$: pass through.
+  \item If $\bm{H} \cdot \bm{p} < 0$ and $\bm{H} \cdot \bm{q} < 0$: clipped out.
 \end{itemize}
 
 \subsubsection{Clipping against the Frustum}
-For each frustum plane $\textbf{H}$, we apply segment clipping.
+For each frustum plane $\bm{H}$, we apply segment clipping.
 This results in a single segment.
 
 \subsection{Clipping and Containment}
@@ -1240,7 +1240,7 @@ Ideal diffuse reflectors reflect light according to \textit{Lambert's cosine law
 
 We further model the reflectance as:
 \[
-  L(\omega_r) = k_d (\textbf{n} \cdot \textbf{l}) \frac{\Phi_s}{4\pi d^2} 
+  L(\omega_r) = k_d (\bm{n} \cdot \bm{l}) \frac{\Phi_s}{4\pi d^2} 
 \]
 where
 \begin{itemize}
@@ -1249,7 +1249,7 @@ where
   \item $l$ is the light direction.
 \end{itemize}
 
-We use $\max ((\textbf{n} \cdot \textbf{l}), 0)$ to avoid a negative dot product value when the vectors are facing away from each other, and must normalize the vectors before applying the dot product.
+We use $\max ((\bm{n} \cdot \bm{l}), 0)$ to avoid a negative dot product value when the vectors are facing away from each other, and must normalize the vectors before applying the dot product.
 
 \subsection{Ideal Specular Reflectance}
 Here, reflection is only at a mirror angle.
@@ -1294,13 +1294,13 @@ In \textit{Snell's Law}, the incoming ray, the surface normal, and the reflected
 The light reflected depends on the angle between the ideal reflection direction and the viewer direction $\alpha$.
 
 \[
-  L(\omega_r) = k_s(\cos \alpha)^q \frac{\Phi_s}{4\pi d^2} = k_s (\textbf{v} \cdot \textbf{r})^q \frac{\Phi_s}{4\pi d^2} 
+  L(\omega_r) = k_s(\cos \alpha)^q \frac{\Phi_s}{4\pi d^2} = k_s (\bm{v} \cdot \bm{r})^q \frac{\Phi_s}{4\pi d^2} 
 \]
 where:
 \begin{itemize}
   \item $k_s$ is the specular reflection coefficient.
   \item $q$ is the specular reflection exponent.
-  \item $\textbf{r} = 2(\textbf{n} \cdot \textbf{l}) \textbf{n} - \textbf{l}$.
+  \item $\bm{r} = 2(\bm{n} \cdot \bm{l}) \bm{n} - \bm{l}$.
 \end{itemize}
 
 Higher values of $q$ result in greater, more centred reflections.
@@ -1311,13 +1311,13 @@ Higher values of $q$ result in greater, more centred reflections.
   \caption{The Blinn-Phong variation.}
   \includegraphics[scale=0.3]{blinnphong}
 \end{figure}
-We use the halfway vector $\textbf{h}$ between $\textbf{l}$ and $\textbf{v}$:
+We use the halfway vector $\bm{h}$ between $\bm{l}$ and $\bm{v}$:
 \[
-  \textbf{h} = \frac{\textbf{l} + \textbf{v}}{\lVert \textbf{l} + \textbf{v} \rVert} 
+  \bm{h} = \frac{\bm{l} + \bm{v}}{\lVert \bm{l} + \bm{v} \rVert} 
 \]
 leading to:
 \[
-  L(\omega_r) = k_s(\cos \beta)^q \frac{\Phi_s}{4\pi d^2} = k_s (\textbf{n} \cdot \textbf{h})^q \frac{\Phi_s}{4\pi d^2} 
+  L(\omega_r) = k_s(\cos \beta)^q \frac{\Phi_s}{4\pi d^2} = k_s (\bm{n} \cdot \bm{h})^q \frac{\Phi_s}{4\pi d^2} 
 \]
 
 \subsection{Ambient Illumination}
@@ -1330,7 +1330,7 @@ where $k_a$ is the ambient coefficient.
 \subsection{Phong Illumination Model}
 We sum up the three components, diffuse reflection + specular reflection + ambient:
 \[
-  L(\omega_r) = k_a + (k_d (\textbf{n} \cdot \textbf{l}) + k_s (\textbf{v} \cdot \textbf{r})^q) \frac{\Phi_s}{4\pi d^2} 
+  L(\omega_r) = k_a + (k_d (\bm{n} \cdot \bm{l}) + k_s (\bm{v} \cdot \bm{r})^q) \frac{\Phi_s}{4\pi d^2} 
 \]
 
 \subsubsection{Inverse Square Law and Heuristic Law}
@@ -1409,16 +1409,16 @@ This requires per-vertex normals.
 \subsubsection{Interpolation of the 3D Normals}
 We may express any point in parametric form:
 \[
-  \textbf{P} = \textbf{V}_1 + \mu_1 (\textbf{V}_2 - \textbf{V}_1) + \mu_2 (\textbf{V}_3 - \textbf{V}_1)
+  \bm{P} = \bm{V}_1 + \mu_1 (\bm{V}_2 - \bm{V}_1) + \mu_2 (\bm{V}_3 - \bm{V}_1)
 \]
 
-The average normal vector at the same point may be calculated as the vector $\textbf{a}$:
+The average normal vector at the same point may be calculated as the vector $\bm{a}$:
 \[
-  \textbf{a} = \textbf{n}_1 + \mu_1 (\textbf{n}_2 - \textbf{n}_1) + \mu_2 (\textbf{n}_3 - \textbf{n}_1)  
+  \bm{a} = \bm{n}_1 + \mu_1 (\bm{n}_2 - \bm{n}_1) + \mu_2 (\bm{n}_3 - \bm{n}_1)  
 \]
 then:
 \[
-  \textbf{n}_{average} = \textbf{a} / \lvert \textbf{a} \rvert 
+  \bm{n}_{average} = \bm{a} / \lvert \bm{a} \rvert 
 \]
 
 Interpolation calculations may be done in either 2D or 3D, but for specular reflections the calculation of the reflected vector and viewpoint vector must be done in 3D.
@@ -1581,7 +1581,7 @@ Textures can be defined as:
 
 \subsection{Procedural Textures}
 \[
-  F(\textbf{p}) \rightarrow \text{ colour} 
+  F(\bm{p}) \rightarrow \text{ colour} 
 \]
 
 \begin{itemize}
@@ -1682,18 +1682,18 @@ where:
 \end{figure}
 An alternative method is to use bilinear texture mapping.
 \begin{align*}
-  \textbf{p} &= \alpha\textbf{a} + \beta\textbf{e}
-  \textbf{e} &= \textbf{b} + \alpha(\textbf{c} - \textbf{b})
+  \bm{p} &= \alpha\bm{a} + \beta\bm{e}
+  \bm{e} &= \bm{b} + \alpha(\bm{c} - \bm{b})
 \end{align*}
 so:
 \[
-  \textbf{p} = \alpha\textbf{a} + \beta\textbf{b} + \alpha\beta(\textbf{c} - \textbf{b})
+  \bm{p} = \alpha\bm{a} + \beta\bm{b} + \alpha\beta(\bm{c} - \bm{b})
 \]
 
 The second order term means that straight lines in the texture may become curved.
-However if the mapping is to a parallelogram where $\textbf{b} = \textbf{c}$, then:
+However if the mapping is to a parallelogram where $\bm{b} = \bm{c}$, then:
 \[
-  \textbf{p} = \alpha\textbf{a} + \beta\textbf{b}
+  \bm{p} = \alpha\bm{a} + \beta\bm{b}
 \]
 
 \subsection{Additional Mappings}
@@ -1895,7 +1895,7 @@ If the ray has more than one intersection, the smallest distance identifies the 
 The primary rays are thus the rays from the viewpoint to the nearest intersection point.
 Local illumination is computed as before:
 \[
-  L = k_a + (k_d (\textbf{n} \cdot \textbf{l}) + k_s(\textbf{v} \cdot \textbf{r})^q)I_s 
+  L = k_a + (k_d (\bm{n} \cdot \bm{l}) + k_s(\bm{v} \cdot \bm{r})^q)I_s 
 \]
 
 \subsubsection{Secondary Rays}
@@ -1908,7 +1908,7 @@ Secondary rays are rays originating at intersection points, these can be caused 
 
 \subsubsection{Final Equation}
 \[
-  L = k_a + (k_d (\textbf{n} \cdot \textbf{l}) + k_s(\textbf{v} \cdot \textbf{r})^q)I_s + k_{reflected} L_{reflected} + k_{refracted}L_{refracted}
+  L = k_a + (k_d (\bm{n} \cdot \bm{l}) + k_s(\bm{v} \cdot \bm{r})^q)I_s + k_{reflected} L_{reflected} + k_{refracted}L_{refracted}
 \]
 
 \subsection{Precision Problems}
@@ -1937,13 +1937,13 @@ To calculate the illumination as a result of reflections:
   \item Calculate the direction of the secondary ray at the intersection of the primary ray with the object.
   \item 
     \[
-      \textbf{v}' = \textbf{v} - (2 \textbf{v} \cdot \textbf{n}) \textbf{n} 
+      \bm{v}' = \bm{v} - (2 \bm{v} \cdot \bm{n}) \bm{n} 
     \]
     where:
     \begin{itemize}
-      \item $\textbf{n}$ is the unit surface normal.
-      \item $\textbf{v}$ is the direction of the primary ray.
-      \item $\textbf{v}'$ is the direction of the secondary ray as a result of reflections.
+      \item $\bm{n}$ is the unit surface normal.
+      \item $\bm{v}$ is the direction of the primary ray.
+      \item $\bm{v}'$ is the direction of the secondary ray as a result of reflections.
     \end{itemize}
 \end{itemize}
 
@@ -1984,14 +1984,14 @@ The smaller the angle between the ray and the normal, the more that is transmit 
 
 Schlick's approximation:
 \[
-  k_{fresnel} (\theta) = k_{fresnel} (0) + (1 - k_{fresnel}(0)) (1 - (\textbf{n} \cdot \textbf{l}))^5
+  k_{fresnel} (\theta) = k_{fresnel} (0) + (1 - k_{fresnel}(0)) (1 - (\bm{n} \cdot \bm{l}))^5
 \]
 where $k_{fresnel}(0)$ is the Fresnel factor at zero degrees, we can choose $0.8$ for stainless steel.
 
 \subsection{Shadows}
 We add $s$ to the equation:
 \[
-  L = k_a + s(k_d (\textbf{n} \cdot \textbf{l}) + k_s(\textbf{v} \cdot \textbf{r})^q)I_s + k_{reflected} L_{reflected} + k_{refracted}L_{refracted}
+  L = k_a + s(k_d (\bm{n} \cdot \bm{l}) + k_s(\bm{v} \cdot \bm{r})^q)I_s + k_{reflected} L_{reflected} + k_{refracted}L_{refracted}
 \]
 where:
 \[
@@ -2356,5 +2356,105 @@ To define the internal points, we linearly interpolate:
     \end{enumerate}
 \end{itemize}
 
+\section{Warping and Morphing}
+\begin{defn}
+  \textbf{Warping} is the geometric transformation of graphical objects between coordinate systems.
+\end{defn}
+
+\begin{defn}
+  \textbf{Morphing} refers to an animation technique in which one graphical object is gradually turned into the other; the aim is to find the average object.
+\end{defn}
+
+\subsection{Averaging}
+To find the average of two points $\bm{P}, \bm{Q}$, we use linear interpolation:
+\[
+  \bm{P} + 0.5\bm{v} = \bm{P} + 0.5(\bm{Q} - \bm{P}) = 0.5\bm{P} + 0.5\bm{Q} 
+\]
+
+\subsection{Image Blending}
+We need to determine how to combine attributes associated with geometrical primitives; such attributes include: colour, texture coordinates, and normals.
+
+\textbf{Cross-dissolve}:
+\[
+  I = (1 - t) \cdot I_A + t\cdot I_B 
+\]
+
+If the images are not aligned, we must perform warping first, $\text{Morphing } = (\text{warping})^2 + \text{ blending}$.
+
+\subsection{Image Warping}
+\begin{itemize}
+  \item \textbf{Image filtering} - changing the \textbf{range} of the image, $g(x) = T(f(x))$.
+  \item \textbf{Image warping} - changing the \textbf{domain} of the image, $g(x) = f(T(x))$.
+\end{itemize}
+
+\subsubsection{Forward Warping}
+Given a coordinate transform $(x', y') = \bm{T}(x, y)$ and a source image $f(x,y)$, we compute the transformed image $g(x', y') = f(T(x, y))$:
+\begin{enumerate}
+  \item Send each pixel $f(x, y)$ to its corresponding location $(x', y')$ in the second image.
+  \item If the pixel lands between two pixels, we distribute colour among the neighbouring pixels.
+\end{enumerate}
+
+\subsubsection{Inverse Warping}
+To get the corresponding location for each pixel $g(x', y')$:
+\begin{enumerate}
+  \item $(x, y) = \bm{T}^{-1}(x', y')$.
+  \item If the pixel comes from between two pixels, interpolate colour value from neighbours.
+\end{enumerate}
+
+\subsection{Feature-Based Warping: Beier-Neeley}
+We use pairs of lines to specify warp:
+\begin{align*}
+  u = \frac{(p-x)\cdot(y-x)}{\lVert y - x \rVert^2} &&
+  v = \frac{(p-x)\cdot\text{ Perpendicular}(y - x)}{\lVert y - x \rVert}
+\end{align*}
+$u$ is a fraction, while $v$ is a length.
+
+For each pixel $p$ in the destination image:
+\begin{enumerate}
+  \item Find the corresponding $u, v$.
+  \item Find the $p'$ in the source image for that $u, v$:
+    \[
+      p' = x + u \cdot (y' - x') + \frac{v \cdot \text{ Perpendicular}(y'-x')}{\lVert y'-x' \rVert} 
+    \]
+  \item 
+\end{enumerate}
+
+With a single line pair we can translate, scale, or rotate.
+
+\subsubsection{Multiple Line Pairs}
+We can warp using multiple line pairs by using the weighted combination of points defined by each pair of corresponding lines.
+
+For each line pair:
+\[
+  \text{weight}[i] = \left( \frac{\text(length)[i]^p}{a + \text{ dist}[i]} \right)^b 
+\]
+
+\subsection{Warping using Control Points}
+\begin{figure}[htb!]
+  \centering
+  \caption{Partitioning the convex hull of the control points into a set of triangles; the original points are underneath the displaced points.}
+  \includegraphics[scale=0.5]{controlpoints}
+\end{figure}
+\begin{enumerate}
+  \item Each control point has a displacement vector.
+  \item Partition the convex hull of the control points into a set of triangles.
+  \item Find the triangle which contains point $\bm{p}$, express it in terms of the vertices of the triangle:
+    \[
+      \bm{p} = \bm{x}_1 + \alpha(\bm{x}_2 - \bm{x}_1) + \beta(\bm{x}_3 - \bm{x}_1)
+    \]
+  \item Under the affine transformation:
+    \[
+      \bm{p}' = \gamma\bm{x}_1' + \alpha\bm{x}_2' + \beta\bm{x}_3' 
+    \]
+    where $\gamma = 1 - (\alpha + \beta)$.
+\end{enumerate}
+This can result in non-smooth transformations as straight lines may be kinked across triangle boundaries.
+
+\subsubsection{Triangulations}
+\begin{defn}
+  A \textbf{triangulation} of a set of points in the plane is a partition of the convex hull to triangles, whose vertices are the points and do not contain other points.
+\end{defn}
+
+For quality triangulations, we want to maximize smallest angles.
 \end{document}
 
