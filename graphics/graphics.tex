@@ -2456,5 +2456,94 @@ This can result in non-smooth transformations as straight lines may be kinked ac
 \end{defn}
 
 For quality triangulations, we want to maximize smallest angles.
-\end{document}
 
+\section{Radiosity}
+In ray tracing, we assumed a small number of point light sources.
+In the reflectance equation, every surface reflects light so each should be considered a light source - we must refine the ambient light.
+
+\subsection{Ambient Light}
+We make ambient light a function of the incident light as well:
+\[
+  I_{reflected} = k_a I_{incident} + k_d(\bm{n} \cdot \bm{l}) I_{incident} + k_s(\bm{r} \cdot \bm{v})^q I_{incident} 
+\]
+or more simply $I_{reflected} = R I_{incident}$, where $R$ is the viewpoint dependent reflectance function.
+
+\subsection{Radiosity}
+We divide the scene into patches $i = 1, \dots, n$, for the $i$-th patch:
+\[
+  B_i = E_i + R_i I_i 
+\]
+where:
+\begin{itemize}
+  \item $B_i$ is the total energy leaving.
+  \item $E_i$ is the total energy emitted.
+  \item $R_i$ is the reflectance value.
+  \item $I_i$ is the incident energy arriving.
+\end{itemize}
+
+We can estimate the incident energy as $I_i = \sum_{j = 1}^n B_j F_{ij}$, where $F_{ij}$ is the \textbf{form factor} - the link between patch $i$ and $j$, taking into account the angle they face each other.
+
+\[
+  B_i = E_i + R_i \sum_j B_j F_{ij} 
+\]
+Solving this using a matrix is very computationally intense.
+
+The radiosity values are wavelength dependent so separate values must be computed for $R, G, B$.
+
+\subsection{Specular Reflections}
+The specular component depends on the relative positions of the viewpoint and light.
+Every patch is a light source, and each light source is no longer a point - this is computationally infeasible.
+
+\subsection{Large Polygons}
+When dividing into patches for small polygons, we can use the polygon map.
+For large polygons, we need to subdivide them:
+\begin{itemize}
+  \item Emitted light is not constant across a large polygon -  we will see subdivisions.
+  \item We can project patches to sub-pixel size, then smooth the results.
+\end{itemize}
+
+\subsection{Form Factors}
+These couple two patches and determine the proportion of radiated energy from one that strikes the other - no coupling when in the same plane, maximal coupling when they directly face each other.
+
+\[
+  F_{ij} = \frac{\cos \phi_i \cos \phi_i \lvert A_j \rvert}{\pi r^2} 
+\]
+where:
+\begin{itemize}
+  \item $\phi_i, \phi_j$ are the angles between the normal of that patch and the line to the other patch.
+  \item $A_j$ is the area of patch $j$.
+  \item $r$ is the distance between the patches.
+\end{itemize}
+
+\subsection{Hemicube Method}
+It can be shown that all patches that project onto the same area of a hemisphere have the same form factor - we use hemicubes as they are less computationally intense.
+
+The hemicube is divided into small pixel areas and form factors are computed for each pixel.
+The factors for each pixel will be the same for every patch so we can store them in a look-up table, then look-up the ones which light up.
+The (\textbf{delta form factor}) computation can be simplified:
+\begin{itemize}
+  \item Top faces: $\frac{\lvert A \rvert}{\pi r^4}$.
+  \item Side faces: $\frac{z_p \lvert A \rvert}{\pi r^4}$.
+\end{itemize}
+Additionally $F_{ji} = \frac{F_{ij}\lvert A_i \rvert}{\lvert A_j \rvert}$, so only half the patches need to be computed.
+
+We can use ray tracing to determine the patches that are actual visible from each hemicube pixel.
+
+Finally, we sum the delta form factors to get the final form factor.
+
+\subsection{Gauss-Seidel Method}
+To solve the matrix, we can use the \textbf{Gauss-Seidel} method to approximate, by using the iteration:
+\[
+  B_i^k = E_i + R_i \sum_j B_j^{k - 1}F_{ij} 
+\]
+to give successive estimates, with initial values $B_i^0$.
+
+\subsubsection{Shooting and Gathering}
+\begin{itemize}
+  \item \textbf{Gathering} is the evaluation of one $B_i$ value.
+  \item \textbf{Shooting} is the change to every other path from a change in one patch, through $\Delta B_i$.
+\end{itemize}
+
+We choose to evaluate the patch with the largest change $\Delta B$ first, then shoot the radiosity to all other patches - this leads to the fastest convergence.
+
+\end{document}
