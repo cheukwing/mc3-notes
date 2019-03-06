@@ -1266,4 +1266,82 @@ GMM-EM can be used to do unsupervised classification - each mixture component is
 
 GMM-EM is like \textbf{soft $k$-means clustering} - every point belongs to several clusters with certain degrees.
 
+\section{Genetic Algorithms}
+\begin{defn}
+  \textbf{Genetic algorithms} are an optimization algorithm for black-box functions.
+  It can be seen as a reinforcement learning problem.
+\end{defn}
+
+A common base is:
+\begin{enumerate}
+  \item Randomly generate a population of solutions.
+  \item Each solution is represented by a genotype, which develops into a phenotype (the actual parameters).
+  \item A \textbf{fitness function} measures the performance of phenotypes.
+  \item The fittest individuals have a higher probability to pass part of their genotype to their offspring.
+\end{enumerate}
+
+The differences lie in:
+\begin{itemize}
+  \item \textbf{Representation of genotype}.
+  \item \textbf{Selection operator} - how to select which solutions to reproduce.
+  \item \textbf{Cross-over operator} - how to mix the parents' genotypes.
+  \item \textbf{Mutation operator} - the type and frequency of variations applied to the genotype after reproduction.
+\end{itemize}
+
+\subsection{Fitness Function}
+To solve the problem, we maximize fitness - it represents the problem we want to solve.
+
+\subsection{Genotype and Phenotype}
+These represent the potential solutions to the problem.
+A genotype can be a binary string and the phenotype be the aggregation of this string into trios, and converting each trio into an integer to act as the actual solution.
+
+\subsection{Selection Operator}
+This selects the parents of the next generation:
+\begin{itemize}
+  \item \textbf{Biased roulette wheel} - individuals with a higher fitness have a larger proportion of the roulette circle.
+  \item \textbf{Tournament} - randomly draw two individuals and select the best out of the two as the parent, then only relative values of fitness are considered.
+\end{itemize}
+
+In general, the new population replaces the old.
+With \textbf{elitism}, we may keep a fraction of the best individuals found so far.
+
+\subsection{Cross-over Operator}
+Combine the traits of the parents - on a string we can perform \textbf{single-point cross-over}, selecting a random split point and forming two children by exchanging portions of the genotype.
+
+\subsection{Mutation Operator}
+To explore nearby solutions, we can randomly choose whether to flip each bit of the string.
+We can also add more specific mutation for the problem, e.g.\ swapping groups of bits.
+
+\section{Evolutionary Strategies}
+For problems involving real parameters, we use an \textbf{evolutionary strategy}:
+\begin{itemize}
+  \item \textbf{Genotype} - list of reals.
+  \item \textbf{Parent selection} - uniform.
+  \item \textbf{Mutation} - Gaussian.
+\end{itemize}
+
+\subsection{$(\mu + \lambda)$ - ES}
+\begin{enumerate}
+  \item Randomly generate a population of size $(\mu + \lambda)$.
+  \item Evaluate the population.
+  \item Select the $\mu$ best as the parents $x$.
+  \item Generate $\lambda$ offspring $y$, from the parents:
+    \[
+      y_i = x_i + \mathcal{N}(0, \sigma) \text{ where } $j = \text{ random}(\mu)  
+    \]
+  \item The new population is the union of parents and offspring.
+\end{enumerate}
+
+\subsubsection{Finding $\sigma$}
+\begin{itemize}
+  \item Large $\sigma$ - population moves to solution quickly but hard to refine.
+  \item Small $\sigma$ - population moves to solution slowly, more affected by local optimums. 
+  \item We can adapt $\sigma$ over time by adding it to the genotype, then:
+      \[
+        \sigma_i = \sigma_j \exp(\tau_0 \mathcal{N}(0, 1)) 
+      \]
+      where $\tau_0$ is proportional to $\frac{1}{\sqrt(n)}$.
+\end{itemize}
+
+
 \end{document}
