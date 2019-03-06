@@ -1607,7 +1607,49 @@ Anti-CSRF tokens do not apply as we have yet to login.
   \item Embed login form on a dedicated page.
 \end{itemize}
 
+\section{Browser Fingerprinting}
+\begin{itemize}
+  \item \textbf{Network fingerprinting} - detecting configuration information to identify a system component; important part of pentesting intelligence gathering.
+  \item \textbf{Browser fingerprinting} - recognizing the same browser instance across website visits; can be used for authentication, authorization, access control, or tracking.
+\end{itemize}
 
+\subsection{Passive Fingerprinting}
+HTTP requests sent to the server can reveal information:
+\begin{itemize}
+  \item Headers can directly reveal information.
+  \item Identity and order of headers is different across browsers.
+\end{itemize}
 
+This cannot be detected or prevented, and can gather only information exposed by the target.
+
+\subsection{Active Fingerprinting}
+JavaScript and plugins can be used to check e.g.\ installed fonts; installed plugins; time-zone; screen resolution and colour depth.
+
+This can be detected and prevented, the target is disrupted.
+We can probe deeper into the target to reveal more precise information.
+
+\subsection{Fingerprints}
+\begin{itemize}
+  \item \textbf{Precision} - a good fingerprint should be different for any two devices.
+  \item \textbf{Stability} - a useful fingerprint does not change much over time.
+  \item More attributes in a fingerprint can improve precision but decrease stability.
+  \item A hash of a fingerprint (if stable) can be used to reduce network traffic.
+\end{itemize}
+
+\subsection{Countermeasures}
+\begin{itemize}
+  \item Browser extensions and options, network proxies and firewalls.
+  \item Blacklist fingerprinters, rewrite HTTP requests, disable plugins and JavaScript - degrades user experience.
+  \item Mimic a target - constrained by difference between devices and context.
+  \item Hide in the crowd - spoof a very common fingerprint compatible with user device.
+  \item Destabilize fingerprint - spoof to present different fingerprint on each visit.
+\end{itemize}
+
+\subsection{Counter-countermeasures}
+\begin{itemize}
+  \item Choose more robust attributes.
+  \item Detect implausible configurations.
+  \item Anti-fingerprinting behaviour is itself a fingerprintable feature.
+\end{itemize}
 
 \end{document}
