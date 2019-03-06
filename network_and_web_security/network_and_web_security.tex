@@ -1505,4 +1505,109 @@ As it is present only on the client, it remains effective after the vulnerable p
 
 To counter this, we choose to not trust values stored in the browser - sanitize stored values; periodically validate, refresh, or delete stored data.
 
+\section{Secure Sessions}
+\subsection{HTTP Authentication} 
+As HTTP is stateless, the user needs to establish identity:
+\begin{itemize}
+  \item \textbf{Basic Authentication} - username and password sent in clear text.
+  \item \textbf{Digest Authentication} - send hash of password and server-generated nonce that may restrict validity; does not protect other fields or headers.
+\end{itemize}
+
+Authentication is needed for every different web asset, so the authentication server is contacted with every request and credentials may be leaked.
+To sign out, the user must close the browser.
+
+\subsection{Sessions}
+\begin{itemize}
+  \item \textbf{Unauthenticated sessions}:
+    \begin{enumerate}
+      \item Server issues a short-lived token to client.
+      \item Client presents token with requests that affect client state on the server.
+      \item Web app state may be kept track of on behalf of user.
+    \end{enumerate}
+  \item \textbf{Authenticated sessions} (occurs after an unauthenticated session):
+    \begin{enumerate}
+      \item Client authenticates once.
+      \item Client presents token when authorization needed.
+    \end{enumerate}
+\end{itemize}
+
+The session token is implemented using \textbf{cookies}.
+
+\subsubsection{Session Fixation}
+\begin{enumerate}
+  \item Attacker obtains unauthenticated session token by connecting to web server.
+  \item User tricked to logging in using attacker's token (e.g.\ via XSS or MITM).
+  \item Token is associated to a valid session - attacker can perform actions on behalf of user.
+\end{enumerate}
+To counter this, issue a new token after login.
+
+\subsubsection{Session Hijacking}
+An attacker can obtain a valid token from a user:
+\begin{itemize}
+  \item Guessing attack (spoof).
+  \item MITM - stealing over HTTP.
+  \item XSS attack.
+\end{itemize}
+
+To mitigate this:
+\begin{itemize}
+  \item Send tokens over HTTPS.
+  \item Invalidate session on log-out.
+  \item Use \textbf{secure tokens}
+\end{itemize}
+
+\subsection{Secure Tokens}
+\begin{itemize}
+  \item Spoofing - use randomness in each token.
+  \item Stealing - restrict where tokens can be used, e.g.\ binding to an IP address.
+  \item Session data storage:
+    \begin{itemize}
+      \item \textbf{Server keeps data} - the token is hashed, a database lookup is required for each request.
+      \item \textbf{Server sends data to client} - a larger encrypt-then-MAC token is sent, but the server must still keep track of login status.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Cross-Site Request Forgery (CSRF)}
+The trust between a browser and the target is exploited:
+\begin{enumerate}
+  \item The user is in a position to issue requests that cause side-effects.
+  \item User visits a web page or clicks on link crafted by attacker.
+  \item User is tricked into issuing request that causes undesirable side-effects.
+\end{enumerate}
+
+To mitigate this, we can embed a second token as a hidden field of each form presented on authenticated pages - the attacker cannot access this token:
+\begin{itemize}
+  \item \textbf{Double cookie} - same token in form and cookie, server checks if the same.
+  \item \textbf{Different tokens} - server knows which 2 should correspond, form token can be different for each form.
+\end{itemize}
+Additionally, the \texttt{SameSite} attribute for session cookies can be used - cannot access existing session via an external link.
+
+\subsection{Cross-Origin Resource Sharing (CORS)}
+SOP allows cross-origin communication when both parties are willing to engage, but prevents cross-origin AJAX requests to stop attacker stealing anti-CSRF tokens by loading the target page via AJAX.
+
+CORS relaxing SOP for servers that opt-in:
+\begin{enumerate}
+  \item Browser attaches \texttt{Origin=}\textit{origin} header to cross-origin AJAX request (upon redirection, set to null).
+  \item If the server accepts cross-origin requests from \textit{origin}, replies with \texttt{Access-Control-Allow-Origin:} \textit{origin}, browser allows AJAX response to be received by script.
+  \item If server does not care for CORS, response discarded by browser.
+\end{enumerate}
+
+\subsection{Login CSRF}
+\begin{enumerate}
+  \item User visits attacker's website.
+  \item User tricked into logging into attacker's account.
+  \item User works as usual.
+  \item Attacker can track what the user is doing through their account (e.g.\ search history).
+\end{enumerate}
+
+\subsubsection{Mitigations}
+Anti-CSRF tokens do not apply as we have yet to login.
+\begin{itemize}
+  \item Validate \texttt{refer} or \texttt{origin} header of login request - network proxies or user preferences may strip these headers.
+  \item Embed login form on a dedicated page.
+\end{itemize}
+
+
+
+
 \end{document}
