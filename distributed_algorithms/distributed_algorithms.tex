@@ -834,7 +834,7 @@ This is similar to LCR, but requires knowledge of the network.
 \subsubsection{Complexity}
 The time complexity is directly related to the diameter as the algorithm stops after $diameter$ rounds.
 
-The message complexity is $\text{diameter } \multiply \text{ number of directed edges}$, as a message is sent along every directed edge.
+The message complexity is $\text{diameter } \times \text{ number of directed edges}$, as a message is sent along every directed edge.
 
 \subsubsection{Optimisations}
 \begin{itemize}
@@ -1037,7 +1037,112 @@ This is important for fault-tolerant systems, \textbf{when possible}.
 
 A wait-free concurrent object ensures that any process can complete an operation on it in a finite number of steps, irrespective of whether other processes crash or get unexpected delays.
 
+\section{Peer-to-Peer Overlay Networks}
+We want to create a virtual network at the application layer in order to \textbf{share resources}.
 
+We want heterogenous nodes in terms of resource capacity; all nodes are equal and communicate directly (no client-server relationship); and high churn with the entering and leaving of nodes.
+
+\subsection{Data Indexing}
+\begin{itemize}
+  \item \textbf{Centralized} - one or more central servers store references to the resource on many peers.
+  \item \textbf{Distributed} - store indexes to resources spread across the network, common flat key space used to map between nodes and resources.
+  \item \textbf{Local} - index only local resources, remote resources must be searched for.
+\end{itemize}
+
+\subsection{Structured Overlays}
+User-distributed indexing is used - the placement of resources is deterministic.
+A hash table using the resource name can be used to map to the value.
+
+The disadvantages are that arbitrary queries (e.g.\ range, attribute) cannot be done quickly; resource insertion and deletion has overhead under high churn.
+
+\subsection{Unstructured Overlays}
+Local indexing is used, the placement of resources has no structure.
+The local overlay can be adjusted easily as nodes join or leave, and arbitrary queries are supported.
+
+The disadvantage is that searching for a resource has a high message overhead and delay - can be more efficient with data replication.
+
+\subsubsection{Search Strategies}
+\begin{itemize}
+  \item \textbf{Flooding} - flood search query to all neighbours:
+    \begin{itemize}
+      \item High message overhead.
+      \item Use TTL or hop count to reduce messages in network.
+      \item \textbf{Expanding ring} - flood with increasing TTL if match is not found.
+      \end{itemize}
+    \item \textbf{Random Walk} - send search query to random neighbour.
+    \begin{itemize}
+      \item Low message overhead but increased latency.
+      \item \textbf{$k$-random walk} - send to $k$ random neighbours.
+    \end{itemize}
+\end{itemize}
+
+\subsection{\textit{Napster}}
+Uses centralized indexing - the central server maintains a table with information about the clients.
+\begin{enumerate}
+  \item Client connects to meta-server.
+  \item Meta-server picks a lightly loaded server to process the query.
+  \item Client sends the query to the server.
+  \item Server replies with list of peers connected and the resources being shared.
+  \item Client chooses the best option, downloads the file directly from peer.
+\end{enumerate}
+
+\subsection{\textit{Gnutella}}
+Completely decentralized and uses local indexing - the standard nodes from the Gnutella directory are necessary for joining.
+\begin{enumerate}
+  \item A new node connects to the network by connecting to some standard nodes.
+  \item \textit{Ping} sent to advertise new host and to discover existing hosts.
+  \item \textit{Pong} sent in response, containing IP, port, and max data size for download.
+  \item Host floods \textit{Query} messages.
+  \item \textit{QueryHit} responses when resource is found, message follows the reverse path of \textit{Query} floods.
+\end{enumerate}
+
+\subsection{Chord}
+Distributed indexing with a distributed hash table is used.
+Node addresses and resources are both mapped to a logical identifier in the common key space using a consistent hash function.
+
+\subsubsection{Architecture}
+With an $m$-bit identifier, there are $2^m$ potential nodes arranged in a logical ring.
+
+A key $k$ is assigned to the first node such that $id \geq k \mod (2^m)$.
+
+\begin{figure}[htb!]
+  \centering
+  \caption{Chord architecture.}
+  \includegraphics[scale=0.5]{chordarc}
+\end{figure}
+
+\subsubsection{Simple Lookup}
+Each node knows it successor in the ring.
+A query for key $k$ is forwarded along the ring until it reaches the first node whose identifier is $\geq k \mod(2^m)$, then the result is returned along the reverse path.
+
+\subsubsection{Scalable Lookup}
+Each node $i$ maintains a routing table, \textbf{finger table}, with $O(\log n)$ entries.
+\begin{itemize}
+  \item The $p^{th}$ entry is the node identifier of the node successor $(i + 2^{p - 1}) \mod(2 ^m)$, i.e.\ the first node whose key is greater than the key of node $i$ by at least $2^{p-1} \mod (2^m)$.
+  \item More information about closer nodes, than those further away.
+  \item Contains at most $m$ entries.
+\end{itemize}
+
+A key $k$ is sent to successor of node $i$ if $i < k \leq \text{ succ}(i)$.
+Otherwise the finger table is searched to identify node $j$, such that $j$ most immediately precedes $k$, and the query is sent to $j$.
+At node $j$, this is repeated.
+
+\subsubsection{Churn}
+On node $i$ joining:
+\begin{enumerate}
+  \item Calculate position of $i$ in the network.
+  \item Adjust predecessor and successor of nodes around $i$.
+  \item Transfer required keys.
+  \item Recalculate finger tables.
+\end{enumerate}
+
+If a node is detected as failing from periodic checking:
+\begin{enumerate}
+  \item Recalculate successor and predecessor.
+  \item Recalculate finger tables.
+\end{enumerate}
+
+There is a risk of lost keys when a node fails - store keys at multiple successors.
 
 \end{document}
 
