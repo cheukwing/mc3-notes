@@ -1652,4 +1652,46 @@ We can probe deeper into the target to reveal more precise information.
   \item Anti-fingerprinting behaviour is itself a fingerprintable feature.
 \end{itemize}
 
+\section{Web User Tracking}
+There are legitimate and illegitmate usages, with desirable and undesirable effects.
+\begin{itemize}
+  \item \textbf{1st party trackers} - iframes and scripts on the origin of the website visited by the user.
+  \item \textbf{3rd party trackers} - cross-domain iframes and their resources, included by visited websites.
+\end{itemize}
+
+\subsection{Browser Support for Tracking}
+To store information in the browser:
+\begin{itemize}
+  \item Cookies.
+  \item \textbf{Supercookies} - HTML5/plugin storage.
+  \item \textbf{Cached resources} - server can tell browse to cache a script, other page loads including the same script get the same value.
+  \item \textbf{Cache headers} - use the \texttt{ETag} header (intended for cache validation) as a tracking id; it is sent every time to the server.
+\end{itemize}
+
+To send information back to the server (via HTTP request/responses):
+\begin{itemize}
+  \item \textbf{Explicit communication} - clicking of links, loading of page resources.
+  \item \textbf{Implicit communication} - beacons, pre-rendering.
+\end{itemize}
+
+\subsection{Browser Countermeasures}
+\begin{itemize}
+  \item \textbf{Do Not Track header} (\texttt{DNT}) - mostly interpreted as \textit{do not target users based on collected data}, but still collect data.
+  \item \textbf{Private browsing/incognito mode} - prevents caching, history, cookies, and preferences; JavaScript, ETag header, etc.\ can still track.
+  \item \textbf{Block 3rd party cookies} - pop-ups mean the 3rd party iframe is now 1st party.
+\end{itemize}
+
+\subsection{Zombie Cookies}
+Cookies can be \textbf{respawned} after deletion through tracking data saved in other headers, cache, or supercookies - if these are also cleared, then Flash cookies can still respawn.
+This is a key role in \textbf{fingerprinting}.
+
+\subsection{Further Countermeasures}
+\begin{itemize}
+  \item Disable plugins.
+  \item Disable JavaScript.
+  \item Use TOR browser.
+  \item Use anti-fingerprinting countermeasures.
+  \item Install anti-tracking extensions.
+\end{itemize}
+
 \end{document}
