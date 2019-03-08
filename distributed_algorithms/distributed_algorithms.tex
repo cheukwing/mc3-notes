@@ -243,7 +243,7 @@ We assume messages are unique (e.g.\ they include a process-id and seq-no), no p
 \end{itemize}
 
 \begin{itemize}
-  \item \textbf{No Duplication (S)} and \textbf{No Creation (S)} dervied from PL.
+  \item \textbf{No Duplication (S)} and \textbf{No Creation (S)} derived from PL.
   \item \textbf{No Duplication (S)} also assumes messages are unique.
   \item \textbf{Validity (L)} derived from \textbf{Reliable Delivery (L)} in PL and the fact that the message needs to be sent to all processes.
 \end{itemize}
@@ -306,7 +306,7 @@ $O(N^2)$ messages.
 
 Uses BEB, but includes a failure detector component to detect processes that have failed (and stopped).
 When a crash is detected, all messages from that process are broadcast.
-When a messsage is received from a crashed process then the message is broadcast, otherwise if it is a correct process it is not.
+When a message is received from a crashed process then the message is broadcast, otherwise if it is a correct process it is not.
 
 \begin{itemize}
   \item \textbf{Agreement (L)} is derived from the \textbf{Validity (L)} from BEB, that every correct process forwards every message it delivers when it detects a crashed process, and from PFD.
@@ -526,7 +526,7 @@ Carrying the entirety of the message's past means the overall message size can g
 
 \subsubsection{CRB with Vector Clocks}
 We can use \textbf{vector clocks} to avoid storing past messages.
-The vector clock (an array of sequence numbers) indicates the number of messages from each process that have been delivered.
+The vector clock (an array of sequence numbers) indicates the \textbf{number of messages from each process that have been delivered}.
 Each process also maintains a count of the number of messages it has broadcast.
 
 When a process broadcasts, it includes its vector clock with its own entry set to the broadcast's sequence number.
@@ -708,7 +708,7 @@ We can achieve this by selecting one process from the network as the leader.
 
 \subsection{Models and Assumptions}
 Our network is \textbf{synchronous} and modelled as a digraph: $G = (V, E)$, where $\lvert V \rvert$ is the number of processes, and $E$ are the communication channels between them.
-Processes consist of an initial state, a set of states, message generation function, and state transisiton function.
+Processes consist of an initial state, a set of states, message generation function, and state transition function.
 
 The leader election process can be initiated by any process in the system.
 Each process maintains two boolean variables:
@@ -919,7 +919,7 @@ The algorithm is then:
 \subsubsection{Correctness}
 \begin{itemize}
   \item \textbf{Monotonicity} - a process initiates the formation of a new view (with a higher id) only when its current set is a subset of the current view membership.
-  \item \textbf{Uniform Agreement} - follows from the unfirom agreement property of the underlying uniform consensus abstraction.
+  \item \textbf{Uniform Agreement} - follows from the uniform agreement property of the underlying uniform consensus abstraction.
   \item \textbf{Completeness} - follows from the strong completeness property of the perfect failure-detector abstraction:
     \begin{itemize}
       \item If $p$ is detected as crashed then there will be a consensus instance in which every proposal will not include $p$.
@@ -941,7 +941,7 @@ There is no need for communication primitives but as the DSM uses asynchronous p
 Memory consistency models define the set of allowable memory access orderings.
 We must redefine correctness - traditionally a \textit{read} returns the value of the most recent write, but what is the \textit{most recent} in a distributed system?
 
-\subsubsection{Strict Consistency/Linearizability}
+\subsubsection{Strict Consistency/Linearisability}
 \begin{itemize}
   \item Common \textbf{global time}.
   \item Full replication of each data item.
@@ -1040,7 +1040,7 @@ A wait-free concurrent object ensures that any process can complete an operation
 \section{Peer-to-Peer Overlay Networks}
 We want to create a virtual network at the application layer in order to \textbf{share resources}.
 
-We want heterogenous nodes in terms of resource capacity; all nodes are equal and communicate directly (no client-server relationship); and high churn with the entering and leaving of nodes.
+We want heterogeneous nodes in terms of resource capacity; all nodes are equal and communicate directly (no client-server relationship); and high churn with the entering and leaving of nodes.
 
 \subsection{Data Indexing}
 \begin{itemize}
