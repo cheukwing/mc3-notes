@@ -28,27 +28,20 @@
 \textbf{Device independence} allows us to resize or transport a picture to a different operating system, and have it fit exactly in the window where we place it.
 We define a \textbf{world coordinate system} when drawing objects, based on the window size.
 
-The units of these arguments will depend on that application.
-The application uses drawing primitives and these units to convert their numeric values to pixels, before the image is rendered on the screen.
-
 In order to implement a world coordinate system, we need to be able to translate between world coordinates and the device or pixel coordinates - this is done by getting the pixel coordinates of the window.
 
 \begin{figure}[htb!]
   \caption{World coordinate window against viewport on the screen.}
-  \includegraphics[scale=0.4]{normalisation}
+  \includegraphics[scale=0.2]{normalisation}
   \centering
 \end{figure}
 
 We then perform normalisation to compute the pixel coordinates from the world coordinates, using simple ratios.
 For the $x$ direction:
 \[
-  \frac{X_w - W_{xmin}}{W_{xmax} - W_{xmin}} = \frac{X_v - V_{xmin}}{V_{xmax} - V_{xmin}}
-\]
-\[
   X_v = \frac{(X_w - W_{xmin})(V_{xmax} - V_{xmin})}{W_{xmax} - W_{xmin}} + V_{xmin}
 \]
-
-With a similar expression for $y$.
+with a similar expression for $Y_v$.
 
 From the known values, we can form a simple pair of linear equations:
 \begin{align*}
@@ -60,85 +53,43 @@ If the window is moved or resized, we must re-calculate the constants $A, B, C, 
 
 \subsection{Representing Planar Polygons}
 Most graphical scenes and objects are built out of planar polyhedra, three-dimensional objects whose faces are all planar polygons (\textbf{faces} or \textbf{facets}).
-To describe objects made of polygons, we need the \textbf{locations} of the vertices and their \textbf{topology}.
-
+To describe objects made of polygons, we need the \textbf{locations} of the vertices and their \textbf{topology}:
 \begin{itemize}
   \item Numerical Data - 3D coordinates of vertices.
   \item Topological Data - what is connected to what.
 \end{itemize}
 
-\begin{figure}[htb!]
-  \caption{Data for a polygon.}
-  \includegraphics[scale=0.3]{polygon}
-  \centering
-\end{figure}
-
 \subsection{Projections of Wire-Frame Models}
-A \textbf{projection} transforms an $n$-dimensional space into an $m$-dimensional space, where $m < n$.
-When projecting an object onto a surface, we first select a viewpoint then define \textit{projectors} or lines which join each vertex of the object to the viewpoint.
-Where the projector intersects with the surface is defined as the projection of the corresponding vertex in the object.
-
-The most common projections for viewing 3D scenes use a plane for the projection surface and straight lines for the projectors, these are \textbf{planar geometric projections}.
-\textbf{Wire frame} models simply include points and lines, to render such a representation we need to specify only which edges join which points.
-Other forms of rendering need to define the object faces.
-
-There are two commons types of planar geometric projection:
-\begin{itemize}
-  \item \textbf{Parallel projection} - parallel projectors.
-  \item \textbf{Perspective projection} - projectors pass through a single point (\textit{viewpoint}).
-\end{itemize}
-
-We first make some assumptions:
-\begin{itemize}
-  \item The viewpoint is at $z = - \infty$.
-  \item The plane of projection is $z = 0$ (we can use coordinate transformations in 3D to make it so).
-\end{itemize}
+To draw a 3D wire frame model, we must first convert the points to 2D representation - \textbf{projection}.
+A \textbf{projector} takes a point on the object to a point on the 2D projection surface.
 
 \subsection{Orthographic Projections}
-In parallel projection, all projectors have the same direction $d$, and the viewpoint is considered to be at infinity.
-For a vertex $V = (V_x, V_y, V_z)^\intercal$:
-\[
-  P = V + \mu d
-\]
-
-A special case is \textbf{orthographic projection}, where the projectors are perpendicular to the projection plane.
-This means:
-\[
-  d = 
-  \begin{pmatrix}
-    0 \\
-    0 \\
-    -1
-  \end{pmatrix}
-\]
-
 \begin{figure}[htb!]
-  \caption{Parallel projection.}
+  \caption{Orthographic projection.}
   \includegraphics[scale=0.3]{parallel}
   \centering
 \end{figure}
+Assumptions:
+\begin{itemize}
+  \item Viewpoint at $z = - \infty$.
+  \item Plane of projection is $z = 0$.
+\end{itemize}
 
-Which gives the Cartesian equations for each component:
-\begin{align*}
-  P_x &= V_x  & P_y &= V_y & P_z &= V_z - \mu
-\end{align*}
-Note that since $z = 0$, then $P_z = 0$.
+All projectors have the same direction:
+\[ \bm{d} = \begin{pmatrix} 0 \\ 0 \\ - 1 \end{pmatrix} \]
 
-This means we simply take the $x$ and $y$ coordinates:
-\[
-  P =
-  \begin{pmatrix}
-    V_x \\
-    V_y \\
-    0
-  \end{pmatrix}
-\]
+Each projection line has the equation:
+\[ \bm{P} = \bm{V} + \mu\bm{d} \]
+
+We simply take the $x$ and $y$ coordinates:
+\[ P = \begin{pmatrix} V_x \\ V_y \\ 0 \end{pmatrix} \]
+since the projection plane is $z = 0$.
 
 \subsection{Perspective Projections}
 Orthographic projections are fine in cases where we do not care about depth.
 In \textbf{perspective projection}, all the projectors pass through one point in space, the \textit{centre of projection}.
 If the centre of projection is on the opposite side of the plane of projection compared to the 3D object, the orientation of the image is the same as the object.
-Otherwise if thecentre is between the plane and the object, the image is inverted.
+Otherwise if the centre is between the plane and the object, the image is inverted.
 
 \begin{figure}[htb!]
   \caption{Perspective projection where the viewpoint is on the opposite side of the object.}
@@ -146,58 +97,40 @@ Otherwise if thecentre is between the plane and the object, the image is inverte
   \centering
 \end{figure}
 
-We first make two assumptions:
+Assumptions:
 \begin{itemize}
-  \item The centre of projection is at the origin.
-  \item The projection plane is placed at a constant $z$ value, $z = f$.
+  \item Centre of projection is at the origin.
+  \item Projection plane is at a constant $z$ value, $z = f$.
 \end{itemize}
 
-The perspective projector equation from vertex $V$ is:
-\[
-  P = \mu V
-\]
-
-It follows that since $z = f$, then $f = \mu V_z$, and $\mu_p = f / V_z$.
+The perspective projector equation from vertex $\bm{V}$ is:
+\[ \bm{P} = \mu \bm{V} \]
 
 This means:
 \begin{align*}
   P_x = \mu_p V_x = \frac{fV_x}{V_z} && P_y = \mu_p V_y = \frac{fV_y}{V_z}
 \end{align*}
-
-We call $\mu_p$ the \textit{foreshortening} factor, if the object moves further away then $V_z$ increases and the image becomes smaller.
+since $P_z = f$.
 
 \subsection{Space Transformations}
-Graphics scenes are defined in a particular coordinate system but we want to be able to view it at any point of our choosing.
-
-We may also want to transform for other purposes:
+We want to transform for:
 \begin{itemize}
+  \item Changing viewpoint.
   \item Animating objects.
   \item Multiple instances.
   \item Reflections and other special effects.
 \end{itemize}
 
-In order to still be able to use canonical projection, we need to transform the coordinates of the scene so that the view direction is along the $z$-axis and the viewpoint at the origin.
-That is, we want to change the coordinates of every point in the scene such that some chosen viewpoint $C$ becomes the origin, and the chosen view direction $d$ becomes the $z$-axis.
 Transformation matricies can be used for nearly all simple transformations, except for translation using normal Cartesian coordinates.
 We thus introduce \textbf{homogeneous coordinates}.
 
 \subsubsection{Homogeneous Coordinates}
-To express a point in homogeneous coordinates, we introduce a fourth coordinate (or \textit{ordinate}):
-\[
-  P =
-  \begin{pmatrix}
-    p_x \\
-    p_y \\
-    p_z \\
-    s
-  \end{pmatrix}
-\]
+To express a point in homogeneous coordinates, we introduce a fourth ordinate:
+\[ P = \begin{pmatrix} p_x \\ p_y \\ p_z \\ s \end{pmatrix} \]
 
-The fourth ordinate is a scale factor, we use it to convert back to Cartesian form by dividing it into the other ordinates.
-\[
-  (p_x, p_y, p_z, s) \Leftrightarrow (\frac{p_x}{s}, \frac{p_y}{s}, \frac{p_z}{s})
-\]
-In most cases $s$ is $1$.
+The fourth ordinate is a \textbf{scale factor}:
+\[ (p_x, p_y, p_z, s) \Leftrightarrow (\frac{p_x}{s}, \frac{p_y}{s}, \frac{p_z}{s}) \]
+In most cases $s = 1$.
 
 \subsubsection{Translation}
 To represent translation:
@@ -267,17 +200,14 @@ The inverse is:
   \end{pmatrix}
 \]
 
-
 \subsubsection{Combining Transformations}
 To combine transformations, we can multiply out their matrices and apply the transformation with the resultant matrix.
 
 \begin{figure}[htb!]
-  \caption{Importance of the order of transformations.}
+  \caption{Importance of the order of transformations, $\bm{T} \cdot \bm{S} \neq \bm{S} \cdot \bm{T}$.}
   \includegraphics[scale=0.2]{combining}
   \centering
 \end{figure}
-
-Transformations are not necessarily commutative, it is important that they are carried out in the correct order.
 
 \subsubsection{Rotation}
 To define rotation we need an axis and an angle.
@@ -312,7 +242,7 @@ Matrices for rotation around the three cartesian axes are:
   \centering
 \end{figure}
 
-This assumes a left had axis system.
+This assumes a left had axis system:
 \begin{itemize}
   \item Rotation is \textbf{anti-clockwise} when looking along the axis of rotation.
   \item Rotation is \textbf{clockwise} when looking back towards the origin from the positive side of the axis.
@@ -341,8 +271,8 @@ When the viewpoint changes, we need to transform all the coordinates of the scen
 \subsection{Flying Sequences}
 Each moved viewpoint is a change of origin:
 \begin{itemize}
-  \item Let the required viewpoint be $C = (C_x, C_y, C_z)$.
-  \item Let the required direction be $d = \begin{pmatrix} d_x \\ d_y \\ d_z \end{pmatrix}$.
+  \item Let the required viewpoint be $\bm{C} = (C_x, C_y, C_z)$.
+  \item Let the required direction be $\bm{d} = \begin{pmatrix} d_x \\ d_y \\ d_z \end{pmatrix}$.
 \end{itemize}
 
 The required transformation is split into three parts:
@@ -453,16 +383,10 @@ However if we do the $R_x$ first, we could end up inverting the vertical.
 \subsection{Rotation about a General Line}
 To perform this transformation, we:
 \begin{enumerate}
-  \item Make the line of rotation one of the Cartesian axes.
-  \item Rotate about the chosen axis.
-  \item \textbf{Restore} the line to its original place.
+  \item Make the line of rotation one of the Cartesian axes - $\mathcal{CBA}$.
+  \item Rotate about the chosen axis - the $z$-axis is aligned with the general line.
+  \item \textbf{Restore} the line to its original place - invert the initial matrices.
 \end{enumerate}
-
-We achieve the first part through the same method as for \textit{flying sequences}: $\mathcal{CBA}$.
-
-We then rotate about the $z$-axis, which is aligned with the general line.
-
-Finally, we invert the initial matrices.
 
 \[
   \mathcal{T} = \mathcal{A}^{-1} \mathcal{B}^{-1} \mathcal{C}^{-1} \mathcal{R}_z \mathcal{CBA}  
@@ -490,16 +414,6 @@ Similar effects can be created using this approach.
     0 & 0 & 0 & 1
   \end{pmatrix}
 \]
-\[
-  \mathcal{M}_o
-  \begin{pmatrix}
-    x \\ y \\ z \\ 1
-  \end{pmatrix}
-  =
-  \begin{pmatrix}
-    x \\ y \\ 0 \\ 1
-  \end{pmatrix}
-\]
 
 \subsection{Perspective Projection Matrix}
 \[
@@ -511,38 +425,27 @@ Similar effects can be created using this approach.
     0 & 0 & 1 / f & 0
   \end{pmatrix}
 \]
-\[
-  \mathcal{M}_p
-  \begin{pmatrix}
-    x \\ y \\ z \\ 1
-  \end{pmatrix}
-  =
-  \begin{pmatrix}
-    x \\ y \\ z \\ z / f
-  \end{pmatrix}
-\]
 
-We then normalise the result to get:
+We must then normalise the result to get:
 \[
   \begin{pmatrix} xf/z \\ yf/z \\ f \\ 1 \end{pmatrix}  
 \]
 as required.
 
-\subsection{Singular}
-Both projection matricies are singular, notice each has a column of zeroes.
-This means they cannot be inverted: we cannot reconstruct the original 3D scene from a 2D image.
+\subsection{Singularity}
+Both projection matricies are \textbf{singular}, notice each has a column of zeroes - they \textbf{cannot be inverted}.
 
 \subsection{Homogeneous Coordinates and Vectors}
 \begin{itemize}
   \item \textbf{Position vectors} - $\begin{pmatrix} x \\ y \\ z \\ s \end{pmatrix}$.
     \begin{itemize}
-      \item Non-zero final ordinate ($s$).
+      \item $s > 0$.
       \item Can be normalised into Cartesian form.
       \item \textit{Fixed point in space.}
     \end{itemize}
   \item \textbf{Direction vectors} - $\begin{pmatrix} x \\ y \\ z \\ 0 \end{pmatrix}$.
     \begin{itemize}
-      \item Zero final ordinate.
+      \item $s = 0$.
       \item Have direction and magnitude.
       \item \textit{Not associated with a particular point.}
     \end{itemize}
@@ -673,19 +576,19 @@ Normally, we are not given the transformation matrix, but the view direction $\b
 \begin{defn}
   The \textbf{dot product} is defined:
   \[
-    P \cdot u = \lvert P \rvert \lvert u \rvert \cos \theta  
+    \bm{P} \cdot \bm{u} = \lvert \bm{P} \rvert \lvert \bm{u} \rvert \cos \theta  
   \]
 \end{defn}
 
 \begin{figure}[htb!]
-  \caption{The dot product as an ordinate of $P$.}
+  \caption{The dot product as an ordinate of $\bm{P}$.}
   \includegraphics[scale=0.2]{dotproduct}
   \centering
 \end{figure}
 
 \begin{itemize}
-  \item If $u$ is a unit vector, then $P \cdot u = \lvert P \rvert \cos \theta$.
-  \item If $u$ is along a coordinate axis, then $P \cdot u$ is the ordinate of $P$ in the direction of $u$.
+  \item If $\bm{u}$ is a unit vector, then $\bm{P} \cdot \bm{u} = \lvert \bm{P} \rvert \cos \theta$.
+  \item If $\bm{u}$ is along a coordinate axis, then $\bm{P} \cdot \bm{u}$ is the ordinate of $\bm{P}$ in the direction of $\bm{u}$.
 \end{itemize}
 
 \subsubsection{Changing Axes by Projection}
@@ -1855,12 +1758,12 @@ One major problem with rasterization are alias effects (e.g.\ jagged edges), the
 \subsubsection{Supersampling}
 The most successful solution to this problem is to apply a degree of blurring to the boundary to reduce the effect, the most successful technique is \textbf{supersampling}.
 
-We compute the picture at a higher resolution than the display area and average to find the pixel values, thus blurring boundaries but leaving coherent areas of colour unchanged.
+Compute the picture at a \textbf{higher resolution} than the display area and average to find the pixel values, thus blurring boundaries but leaving coherent areas of colour unchanged.
 
 While supersampling works well for scenes made up of filled polygons, it does not work for line drawings and has high computational costs.
 
 \subsubsection{Convolution Filtering}
-The more common and faster method is to use a filter to blur the image, taking an average over a small region around each pixel to change the resultant pixel.
+The more common and faster method is to use a \textbf{filter to blur the image}, taking an average over a small region around each pixel to change the resultant pixel.
 
 Taking a local average can have undesirable effects so we normally use a weight average, putting more weight on pixels in the centre of the region.
 
@@ -2051,20 +1954,11 @@ The viewing ray can be parameterized by $\mu$:
   \includegraphics[scale=0.5]{sphereintersection}
 \end{figure}
 For any point on the surface of the sphere $\lvert q - p_s \rvert ^2 - r^2 = 0$, where
-$r$ is the radius of the sphere.
-
-We substitute $q = p_0 + \mu d$:
-\[
-  \lvert p_0 + \mu d - p_s \rvert ^2 - r^2 = 0 
-\]
-and then set $\Delta p = p_0 - p_s$:
-\[
-  \mu^2 + 2\mu(d \cdot \Delta p) + \lvert \Delta p \rvert ^ 2 - r^2 = 0 
-\]
-and finally obtain:
+$r$ is the radius of the sphere:
 \[
   \mu = -d \cdot \Delta p \pm \sqrt{(d \cdot \Delta p) ^2 - \lvert \Delta p \rvert ^2 + r^2} 
 \]
+
 \begin{itemize}
   \item If we have no solutions $\mu$, then the ray does not intersect.
   \item If we have two solutions $\mu_1 < \mu_2$:
@@ -2083,7 +1977,6 @@ A cylinder can be described by:
   \item A radius $r$.
 \end{itemize}
 The axis of the cylinder can be written $\Delta p = p_1 - p_2$.
-
 \[
   r^2 = \left( p_0 + \mu d - p_1 - \left( \frac{p_0 \cdot \Delta p + \mu d \cdot \Delta p - p_1 \cdot \Delta p}{\Delta p \cdot \Delta p} \right) \Delta p \right)^2
 \]
@@ -2104,7 +1997,7 @@ Objects are often described by geometric primitives; to test intersections of th
 
 \subsubsection{Planes}
 \[
-  \mu - \frac{(p_0 - p_1) \cdot n}{d \cdot n} 
+  \mu = - \frac{(p_0 - p_1) \cdot n}{d \cdot n} 
 \]
 where:
 \begin{itemize}
@@ -2152,17 +2045,16 @@ We want to reduce the number of ray-primitive intersections, this can be achieve
   \caption{Ray tracing using a regular grid.}
   \includegraphics[scale=0.5]{regulargrid}
 \end{figure}
-We can create a grid and insert primitives onto the grid to help us find bounding regions easier.
 
-To create the grid, we choose a grid resolution $(n_x, n_y, n_z)$.
-We then insert primitives onto the grid; if they overlap onto multiple cells then they are inserted into multiple cells.
-
-When we draw the ray, for each cell the ray crosses we check if it contains an intersection.
-If so, we return the closest intersection (there may be two primitives within a cell).
-
-To prevent repeated computation, we can mark objects so we do not reconsider them as we check other cells the ray crosses.
-
-We also do not return distant intersections, those which are not within the cell range of the cell we are considering, as there may be something closer which intersects with the ray before the distant one.
+\begin{enumerate}
+  \item Create a grid with resolution $(n_x, n_y, n_z)$.
+  \item Insert primitives into the grid - if they overlap onto multiple cells then insert into multiple cells.
+  \item Draw the ray - for each cell the ray crosses, check if it contains an intersection with the object(s) in it, and return the closest.
+    \begin{itemize}
+      \item Mark objects to prevent repeated computation.
+      \item Do not return distant intersections (outside cell range), there may be closer intersections.
+    \end{itemize}
+\end{enumerate}
 
 \subsection{Adaptive Grids}
 \begin{figure}[htb!]
