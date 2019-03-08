@@ -1144,5 +1144,65 @@ If a node is detected as failing from periodic checking:
 
 There is a risk of lost keys when a node fails - store keys at multiple successors.
 
+\section{FLP Impossibility Result}
+\begin{defn}
+  The \textbf{FLP impossibility result} proves that any algorithm for consensus in an asynchronous system has executions that do not terminate, even if only one process crashes - it is true even if no process crashes.
+\end{defn}
+These executions are highly unlikely, but still possible.
+
+\subsection{Model}
+\begin{itemize}
+  \item \textbf{$N$ processes} - each has an initial input bit (the proposal), and an output bit (the final decided value).
+  \item \textbf{Global message buffer} - holds messages of the form $(P, M)$ message $M$ for process $P$..
+  \item $send(P, M)$ - adds \texttt{(P, M)} to the buffer.
+  \item $receive(P)$ - randomly removes $(P, M)$ from the buffer, and delivers $M$ to $P$, or returns the null value $\phi$; $\phi$ can be returned even if there is a message in the buffer, we can arbitrarily delay messages.
+  \item \textbf{Configuration $C$} - internal state of each process and the contents of the buffer.
+  \item \textbf{Initial configuration} - input bit of each process is set, the buffer is empty.
+  \item \textbf{Step} - takes the system between configurations; executed by a single process $P$:
+    \begin{enumerate}
+      \item Perform $receive(P)$ to get $M$ or $\phi$.
+      \item Execute some code, change internal state.
+      \item Send a finite number of messages to the buffer.
+    \end{enumerate}
+  \item \textbf{Event $E=(P, M)$} - the receipt of a message $(P, M)$.
+  \item \textbf{$E(C)$} - the configuration after $E$ is applied to $C$.
+  \item \textbf{Schedule $\sigma$} - a finite/infinite sequence of events applied starting from configuration $C$.
+  \item \textbf{Execution} - a schedule is an execution if $C$ is an initial configuration.
+  \item \textbf{(Deciding/Admissible) Run} - a sequence of steps corresponding to $\sigma$ is a run; in a deciding run some process reaches a decision; in an admissible run one process is faulty and messages to other processes are eventually received.
+  \item \textbf{Reachable and Accessible} - $\sigma(C)$ is the configuration after $\sigma$ is applied to $C$; the resulting configuration is reachable from $C$, and accessible if $C$ is an initial configuration.
+\end{itemize}
+
+\subsection{Lemma 1}
+If $\sigma1$ and $\sigma2$ are disjoint, then given a configuration $C$:
+\[
+  \sigma1(\sigma2(C)) = \sigma2(\sigma1(C)) 
+\]
+
+\subsection{Valent Configurations}
+A configuration has a decision value $V$ if some process has an output bit of $V$.
+\begin{itemize}
+  \item \textbf{0-valent configuration} - leads only to configurations with a $0$ decision value.
+  \item \textbf{1-valent configuration} - leads only to configurations with a $1$ decision value.
+  \item \textbf{Univalent configuration} - leads only to configurations with a $k$ decision value, where $k$ is either $0$ or $1$.
+  \item \textbf{Bivalent configuration} - leads to both $0$ and $1$ decision value configurations; indecisive.
+\end{itemize}
+
+\subsection{Lemma 2}
+Algorithm $A$ has a bivalent initial configuration.
+
+\subsection{Lemma 3}
+Let $C$ be a bivalent configuration for algorithm $A$, and $E = (P, M)$ be an event applicable to $C$.
+Let $\mathcal{C}$ be the set of configurations reachable from $C$, without applying $E$.
+Let $\mathcal{D}$ be the set of configurations reachable from $C$ by applying $E$ - this is equivalent to the set of configurations from applying $E$ on $\mathcal{C}$.
+
+Then $\mathcal{D}$ contains a bivalent configuration.
+
+\subsection{Proof}
+\begin{enumerate}
+  \item Lemma 2 states that there exists a bivalent initial configuration.
+  \item Apply lemma 3 repeatedly; we take steps to go from a bivalent configuration to another repeatedly.
+\end{enumerate}
+We never reach a univalent configuration, so we never make a decision.
+
 \end{document}
 
