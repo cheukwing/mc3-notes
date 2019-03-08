@@ -55,7 +55,7 @@ There are three main types of \textbf{Label Spaces}:
   \item \textbf{Categorical} (also called class) - $y_i$ is a categorical or nominal variable from some finite set $y_i \in \{1, \ldots, C \}$ (e.g.\ ``Apple'', ``Banana''.).
     The supervised learning task is known as \textbf{classification} or \textbf{pattern recognition}.
   \item \textbf{Real-valued Scalar} - e.g.\ credit score, the task is known as \textbf{regression} or \textbf{function approximation}.
-  \item \textbf{Ordinal Regression} - this occurs when the label space has some natural ordering which can be approximated as a regression problem that is subsequently discretised, e.g.\ school grades.
+  \item \textbf{Ordinal Regression} - this occurs when the label space has some natural ordering which can be approximated as a regression problem that is subsequently discretized, e.g.\ school grades.
 \end{itemize}
 
 \subsection{Unsupervised Learning}
@@ -200,7 +200,7 @@ An example of this is the $k$-NN algorithm.
   A general, explicit description of the target function is constructed, based on the provided training examples.
 \end{defn}
 
-Examples of this are in artifical neural networks and decision trees.
+Examples of this are in artificial neural networks and decision trees.
 
 \begin{itemize}
   \item The \textbf{same approximation to the target function} is used, which must be learned based on training examples, and before input queries are observed.
@@ -393,7 +393,7 @@ The table highlights the risk of each prediction - in some cases it may be more 
 \]
 \begin{itemize}
   \item The number of correctly classified positive examples divided by the total number of predicted positive examples.
-  \item High precision - a positively labeled example is positive.
+  \item High precision - a positively labelled example is positive.
   \item Probability that a positively classified example is positive.
 \end{itemize}
 
@@ -433,7 +433,7 @@ It is important to look at the confusion matrix.
       \item There is no guarantee the performance would remain the same.
     \end{itemize}
   \item Upsample the minority class.
-  \item Downsample the majoirty class.
+  \item Downsample the majority class.
 \end{itemize}
 
 \subsection{Overfitting}
@@ -1020,7 +1020,7 @@ If our data has complex patterns we want to introduce more capacity, but this ha
 
 If a feature is present that describes only the training data, the network may latch onto it and aggressively try to learn it, we can penalise this by:
 \begin{itemize}
-  \item \textbf{L2 Regularisation}
+  \item \textbf{L1 Regularisation}
     \begin{align*}
       J(\theta) = Loss(Y, A) + \lambda \sum_w w^2 &&
       w \leftarrow w - \alpha \left( \frac{\partial Loss}{\partial w} + 2 \lambda w \right)
@@ -1071,7 +1071,7 @@ One approach is \textbf{data augmentation} which introduces noise to the data:
 \[
   X' = X + \mathcal{N}(\mu, \sigma^2) 
 \]
-This wiggles specific features/points in the data using Gaussian noise so that they are no longer static - we are generating artifical data based on the original data, giving better generalisation and reducing overfitting.
+This wiggles specific features/points in the data using Gaussian noise so that they are no longer static - we are generating artificial data based on the original data, giving better generalisation and reducing overfitting.
 For example, we could blur and flip images when doing image recognition.
 
 A more common technique is \textbf{data normalisation} where we normalize the input, and potentially the output data.
@@ -1115,7 +1115,7 @@ An unsupervised learning problem is one where the right label does not exist, we
   \includegraphics[scale=0.3]{elbow}
 \end{figure}
 \begin{enumerate}
-  \item Run $k$-means forall possible values of $k$.
+  \item Run $k$-means for all possible values of $k$.
   \item Compute a score or each - the average of the mean distance to the centroid.
   \item Select the $k$ where the rate of decrease sharply shifts, the \textbf{elbow point}.
 \end{enumerate}
@@ -1141,12 +1141,12 @@ An unsupervised learning problem is one where the right label does not exist, we
       \item Must define $k$.
       \item Only applicable if the mean is defined.
       \item Sensitive to initialization and outliers.
-      \item Not suitable for non hyper-ellipsoidic clusters.
+      \item Not suitable for non hyper-ellipsoidal clusters.
     \end{itemize}
 \end{itemize}
 
 \section{Density Estimation}
-We use \textbf{density estimation} to perform anomoly or novelty detection.
+We use \textbf{density estimation} to perform anomaly or novelty detection.
 
 \subsection{Probability Density Functions (PDFs)}
 A PDF models the probability of a sample to be generated in a specific area.
@@ -1184,7 +1184,7 @@ This is analogous to the concept of loss functions - we search for the parameter
   \mathcal{L} = \frac{N}{2} \log(2 \pi) + \frac{N}{2} \log(\sigma^2) + \frac{1}{2\sigma^2} \sum_{n = 1}^N (x_n - \mu)^2 
 \]
 
-The optimum values are when the derviates are equal to $0$, which gives us:
+The optimum values are when the derivatives are equal to $0$, which gives us:
 \begin{align*}
   \mu = \frac{1}{N} \sum_{n = 1}^N x_n && \sigma^2 = \frac{1}{N} \sum_{n = 1}^N (x_n - \mu)^2
 \end{align*}
@@ -1192,7 +1192,7 @@ The optimum values are when the derviates are equal to $0$, which gives us:
 \subsection{Gaussian Mixture Model (GMM)}
 \begin{figure}[htb!]
   \centering
-  \caption{Gaussian v.s.\ Guassian Mixture Model}
+  \caption{Gaussian v.s.\ Gaussian Mixture Model}
   \includegraphics[scale=0.5]{mixture}
 \end{figure}
 We may need to use a combination of several distributions to construct our model:
@@ -1214,7 +1214,7 @@ In GMM, all $k$ mixture components contribute to the probability distribute, we 
 \]
 
 \subsubsection{Expectation Maximization (EM)}
-We cannot maximise the likelihood to update each parameter, as the update of each parameter depends on the other paramaeters.
+We cannot maximise the likelihood to update each parameter, as the update of each parameter depends on the other parameters.
 
 Instead we perform \textbf{expectation maximization} on GMM, known as \textbf{GMM-EM}:
 \begin{enumerate}
@@ -1327,7 +1327,7 @@ For problems involving real parameters, we use an \textbf{evolutionary strategy}
   \item Select the $\mu$ best as the parents $x$.
   \item Generate $\lambda$ offspring $y$, from the parents:
     \[
-      y_i = x_i + \mathcal{N}(0, \sigma) \text{ where } $j = \text{ random}(\mu)  
+      y_i = x_i + \mathcal{N}(0, \sigma) \text{ where } j = \text{ random}(\mu)  
     \]
   \item The new population is the union of parents and offspring.
 \end{enumerate}
