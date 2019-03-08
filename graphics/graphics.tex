@@ -121,7 +121,7 @@ We want to transform for:
   \item Reflections and other special effects.
 \end{itemize}
 
-Transformation matricies can be used for nearly all simple transformations, except for translation using normal Cartesian coordinates.
+Transformation matrices can be used for nearly all simple transformations, except for translation using normal Cartesian coordinates.
 We thus introduce \textbf{homogeneous coordinates}.
 
 \subsubsection{Homogeneous Coordinates}
@@ -211,7 +211,7 @@ To combine transformations, we can multiply out their matrices and apply the tra
 
 \subsubsection{Rotation}
 To define rotation we need an axis and an angle.
-Matrices for rotation around the three cartesian axes are:
+Matrices for rotation around the three Cartesian axes are:
 \begin{align*}
   \mathcal{R}_x &=
   \begin{pmatrix}
@@ -367,7 +367,7 @@ Then for every point $\bm{P}$ in the scene, we calculate:
 \[
   \bm{P}_t = \mathcal{T}\bm{P}  
 \]
-The view is now in canonical form, and we can apply the standard perspective or othographic projection.
+The view is now in canonical form, and we can apply the standard perspective or orthographic projection.
 
 \subsubsection{Verticals}
 \begin{figure}[htb!]
@@ -433,7 +433,7 @@ We must then normalise the result to get:
 as required.
 
 \subsection{Singularity}
-Both projection matricies are \textbf{singular}, notice each has a column of zeroes - they \textbf{cannot be inverted}.
+Both projection matrices are \textbf{singular}, notice each has a column of zeroes - they \textbf{cannot be inverted}.
 
 \subsection{Homogeneous Coordinates and Vectors}
 \begin{itemize}
@@ -725,7 +725,7 @@ We can link the plane equation to homogeneous coordinates:
 \[
   \bm{H} = \begin{pmatrix} A \\ B \\ C \\ D \end{pmatrix}  
 \]
-However, each point has an infinite number of equivalent homogenous coordinates as they can be scaled, $\begin{pmatrix} sx & sy & sz & sw \end{pmatrix}$.
+However, each point has an infinite number of equivalent homogeneous coordinates as they can be scaled, $\begin{pmatrix} sx & sy & sz & sw \end{pmatrix}$.
 
 We solve this by scaling $\bm{H}$ so that $\begin{pmatrix} A & B & C \end{pmatrix}$ becomes normalized:
 \[
@@ -891,7 +891,7 @@ Care must be taken to ensure the normal found is an \textbf{inner normal}, see f
     \end{itemize}
   \item \textbf{Visibility/Display}:
     \begin{itemize}
-      \item Occulsions and transparency blending.
+      \item Occlusions and transparency blending.
       \item Determines which objects closest, and therefore visible.
       \item Depth buffer.
     \end{itemize}
@@ -1001,7 +1001,7 @@ The frame buffer pixel can be formatted as RGBA or as an index into a table of c
 \subsection{Architectural Overview}
 \begin{figure}[htb!]
   \centering
-  \caption{Overview of the archiecture.}
+  \caption{Overview of the architecture.}
   \includegraphics[scale=0.3]{architecture}
 \end{figure}
 
@@ -1392,7 +1392,7 @@ Pure colours are fully saturated, these correspond to the colours around the edg
 Saturation of an arbitrary point is the ratio of its distance to the white point over the distance of the white point to the edge.
 
 \subsubsection{Complement Colour}
-THe complement of a fully saturated colour is the point diametrically opposite through the white point.
+The complement of a fully saturated colour is the point diametrically opposite through the white point.
 A colour added to its complement gives us white.
 
 \begin{figure}[htb!]
@@ -1648,7 +1648,7 @@ where $\alpha, \beta, \gamma$ are called barycentric coordinates.
 
 We can have two types of barycentric coordinates:
 \begin{itemize}
-  \item \textbf{Homogenous barycentric coordinates} are normalized so that $\alpha + \beta + \gamma = \text{ area of triangle}$.
+  \item \textbf{Homogeneous barycentric coordinates} are normalized so that $\alpha + \beta + \gamma = \text{ area of triangle}$.
   \item \textbf{Areal coordinates} or \textbf{absolute barycentric coordinates} are normalized by the area of the original triangle, $\alpha + \beta + \gamma = 1$.
 \end{itemize}
 
@@ -1917,7 +1917,7 @@ To achieve glossy reflections, we can use \textbf{Monte Carlo ray tracing} - ran
   \item Cast random rays from the visible point - accumulate radiance contribution.
   \item Recurse.
   \item From all intersection points of rays, send ray to the light.
-  \item Trace only one secondary ray per recusrion, but send many primary rays per pixel.
+  \item Trace only one secondary ray per recursion, but send many primary rays per pixel.
 \end{enumerate}
 
 \section{Intersection Calculations}
@@ -1940,7 +1940,7 @@ We can obtain $d$ from a point on the line $p_v$:
   d = \frac{p_0 - p_v}{\lvert p_0 - p_v \rvert} 
 \]
 
-The viewing ray can be parameterized by $\mu$:
+The viewing ray can be parametrized by $\mu$:
 \begin{itemize}
   \item $\mu > 0$ denotes the part of the ray behind the viewing plane.
   \item $\mu < 0$ denotes the part of the ray in front of the viewing plane.
