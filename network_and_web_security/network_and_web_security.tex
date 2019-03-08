@@ -161,7 +161,7 @@ We create a tree structure with the following properties:
   \item Children are steps to achieve goal.
   \item Leaves are concrete attacks.
   \item Siblings represent sufficient steps to achieve goal (step 1 or step 2).
-  \item Special notation for sibilings which represent necessary steps (step 1 and step 2).
+  \item Special notation for siblings which represent necessary steps (step 1 and step 2).
 \end{itemize}
 
 Attack trees are an alternative to STRIDE.
@@ -181,7 +181,7 @@ We use the DREAD system to score each threat between 5 and 15, where higher scor
 \subsubsection{Addressing each Threat}
 To recommend a response, we use META:
 \begin{itemize}
-  \item \textbf{Mitigate} - make a threat hearder to exploit.
+  \item \textbf{Mitigate} - make a threat harder to exploit.
   \item \textbf{Eliminate} - remove the feature that was exposed to the threat.
   \item \textbf{Transfer} - let another party assume the risk.
   \item \textbf{Accept} - other options are impossible or impractical; keep track that the threat remains valid.
@@ -268,7 +268,7 @@ Exploit kits are commoditised, commercial malware toolkits sold or rented out to
       \item Scan programs for \textit{signatures}, sequences of instructions typical of malware.
       \item Signatures can be obfuscated, so the new signatures need to be added to the anti-virus.
     \end{itemize}
-  \item Blacklist web pages hosting phising and malware.
+  \item Blacklist web pages hosting phishing and malware.
 \end{itemize}
 
 The attacker always has a window of opportunity before detection.
@@ -284,7 +284,7 @@ The attacker always has a window of opportunity before detection.
     \begin{itemize}
       \item Look at effects on storage, settings, network traffic, etc.
       \item Malware can kill logging processes in the guest OS.
-      \item Malware can sometimes detect virtualization and behave differently.
+      \item Malware can sometimes detect virtualisation and behave differently.
     \end{itemize}
   \item Dynamic analysis:
     \begin{itemize}
@@ -900,8 +900,8 @@ DNS traffic is sent over UDP, but may fall back to TCP if more data needs to be 
 \subsection{Security Issues}
 \begin{itemize}
   \item DNS requests and responses are not authenticated - MITM or compromised DNS can map to malicious IPs.
-  \item \textit{Cache poisioning}.
-  \item \textit{Rebining}.
+  \item \textit{Cache poisoning}.
+  \item \textit{Rebinding}.
   \item Name servers can be misconfigured or hijacked.
 \end{itemize}
 
@@ -1224,7 +1224,7 @@ If a response takes longer than normal, injection may have been successful.
 Untrusted data can be handled securely when it is first inserted into the database to avoid injection, but must also be handled securely later in the process.
 Other application components may read the data in the database, assume it does not need sanitisation, and use it as part of a new query.
 
-An attacker can submit payloads that are dangerous only on the second usage, for example setting their usename to ``\texttt{admin' --}'' and requesting to change their password - then the password of the actual admin is changed instead.
+An attacker can submit payloads that are dangerous only on the second usage, for example setting their username to ``\texttt{admin' --}'' and requesting to change their password - then the password of the actual admin is changed instead.
 
 \subsection{Countermeasures}
 \begin{itemize}
@@ -1276,7 +1276,7 @@ Phishing sites can be generated using phishing kits - some of these kits can sen
 \end{itemize}
 
 \subsection{HTML}
-The building blocks (scripts, links, forms, etc) for web applications can be considered trustworthy, but some browsers can interpret special cases in bizarre ways leading to subleties in using them correctly.
+The building blocks (scripts, links, forms, etc.) for web applications can be considered trustworthy, but some browsers can interpret special cases in bizarre ways leading to subleties in using them correctly.
 
 Other security-sensitive elements (Java, Flash, ActiveX, etc) are handled by browser plugins and have their own security restrictions.
 These can suffer from memory corruption or other vulnerabilities, leading to browser compromise.
@@ -1310,7 +1310,7 @@ When a new page is loaded, the BC goes through the following steps:
 \end{enumerate}
 
 \subsection{JavaScript in the Browser}
-All scripts embedded in the same document \textbf{share the same execution enviornment} and DOM.
+All scripts embedded in the same document \textbf{share the same execution environment} and DOM.
 
 JavaScript can be embedded in a page via the HTML, in URLs (even within CSS files), and in event handlers.
 When executed, it can further embed scripts into the page.
@@ -1653,7 +1653,7 @@ We can probe deeper into the target to reveal more precise information.
 \end{itemize}
 
 \section{Web User Tracking}
-There are legitimate and illegitmate usages, with desirable and undesirable effects.
+There are legitimate and illegitimate usages, with desirable and undesirable effects.
 \begin{itemize}
   \item \textbf{1st party trackers} - iframes and scripts on the origin of the website visited by the user.
   \item \textbf{3rd party trackers} - cross-domain iframes and their resources, included by visited websites.
