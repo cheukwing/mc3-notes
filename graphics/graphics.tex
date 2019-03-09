@@ -917,9 +917,8 @@ This is executed in software, so it cannot be divided into individual steps that
 Changes are made to the scene as required, perhaps due to user interaction or in an animation.
 The new scene with all its primitives is then forwarded to the next step of the pipeline.
 
-The most important task performed is data management.
-This includes acceleration techniques using spatial subdivision schemes that optimize the data currently stored in memory.
-A modern day computer game's world and textures are much bigger than what could be loaded into the available RAM or graphics memory.
+The most important task performed is data management - optimizing the data currently stored in memory.
+A computer game's world and textures are much bigger than what could be loaded into the available RAM or graphics memory.
 
 \subsection{Geometry Stage}
 \begin{figure}[htb!]
@@ -1062,7 +1061,7 @@ When we look at a point on an object, the colour and shading intensity perceived
     \begin{itemize}
       \item Position relative to the light sources.
       \item Surface normal vector.
-      \item Albedo (ability to absorb light energy) of the surface, or reflectivity of the surface.
+      \item Ability to absorb light energy of the surface, or reflectivity of the surface.
     \end{itemize}
   \item \textbf{Light source properties}:
     \begin{itemize}
@@ -1078,16 +1077,10 @@ When we look at a point on an object, the colour and shading intensity perceived
 
 \begin{defn}
   \textbf{Radiance} is the radiant flux per unit solid angle per unit projected area.
-  \[
-    L(\omega) = \frac{d^2 \Phi}{\cos \theta dAd\omega} 
-  \]
 \end{defn}
 
 \begin{defn}
   \textbf{Irradiance} is the differential flux falling onto differential area.
-  \[
-    E = \frac{d\Phi}{dA}
-  \]
 \end{defn}
 
 \begin{defn}
@@ -1098,50 +1091,12 @@ When we look at a point on an object, the colour and shading intensity perceived
   \textbf{Reflectance} is a fraction of the incident flux that is reflected.
 \end{defn}
 
-\subsection{Reflectance}
-\begin{figure}[htb!]
-  \centering
-  \caption{Irradiance and radiance.}
-  \includegraphics[scale=0.3]{brdf}
-\end{figure}
-\begin{defn}
-  The \textbf{Bidirectional Reflectance Distribution Function} (BRDF) defines how light is reflected:
-  \[
-    f_r(\theta_i, \phi_i, \theta_r, \phi_r) = \frac{dL_r (\theta_r, \phi_r)}{dE_i (\theta_i, \phi_i)}  
-  \]
-\end{defn}
-
-\subsubsection{Isotropic BRDFs}
-Rotation along the surface normal does not change reflectance, so:
-\[
-  f_r(\theta_i, \phi_i, \theta_r - \phi_r) = f_r(\theta_i, \theta_r, \phi_d) = \frac{dL_r (\theta_r, \phi_d)}{dE_i (\theta_i, \phi_d)}  
-\]
-
-\subsubsection{Anisotropic BRDFs}
-These are concerned with surfaces with strongly oriented microgeometry elements, e.g.\ brushed metals, hair, fur, cloth.
-
-\subsubsection{Properties}
-\begin{itemize}
-  \item \textbf{Non-negativity}: $f_r(\theta_i, \phi_i, \theta_r, \phi_r) \geq 0$.
-  \item \textbf{Energy Conservation}: $\int_\Omega f_r(\theta_i, \phi_i, \theta_r, \phi_r) d\mu(\theta_r, \phi_r) \leq 1 \text{ for all } (\theta_i, \phi_i)$.
-  \item \textbf{Reciprocity}: $f_r(\theta_i, \phi_i, \theta_r, \phi_r) = f_r(\theta_r, \phi_r, \theta_i, \phi_i)$.
-\end{itemize}
-
-\subsubsection{BSSRDF}
-The bidirectional scattering-surface distribution function is used with surfaces which have layers, e.g.\ skin.
-Light may be absorbed by one layer and reflected by another.
-
 \subsection{Ideal Diffuse Reflectance}
 We assume the surface reflects equally in all directions, an ideal diffuse surface would be a very rough surface at the microscopic level, e.g.\ chalk, clay.
 
-Then the value of the BRDF value would be constant throughout:
-\[
-  L_r(\omega_r) = \int_\Omega f_r(\omega_i, \omega_r) dE_i(\omega_i) = f_r \int_\Omega dE_i(\omega_i) = f_r E_i
-\]
-
 Ideal diffuse reflectors reflect light according to \textit{Lambert's cosine law} - this means that the greater the angle of the light direction to the surface normal (up to orthogonal), the less is reflected. 
 
-We further model the reflectance as:
+We model the reflectance as:
 \[
   L(\omega_r) = k_d (\bm{n} \cdot \bm{l}) \frac{\Phi_s}{4\pi d^2} 
 \]
@@ -1167,7 +1122,7 @@ Here, reflection is only at a mirror angle.
   \includegraphics[scale=0.3]{snell}
 \end{figure}
 
-In \textit{Snell's Law}, the incoming ray, the surface normal, and the reflected ray all lie in a common plane.
+In \textit{Snell's Law}, the incoming ray, the surface normal, and the reflected ray all lie in a common plane: $\theta_l = \theta_r$.
 
 \subsection{Non-Ideal Reflectors}
 \textit{Snell's Law} only applies to ideal mirror reflectors, real materials tend to deviate significantly from ideal mirror reflectors and they are not ideal diffuse surfaces either.
@@ -1252,7 +1207,6 @@ There are three levels at which shading can be applied:
 where the latter are \textbf{interpolation shading}.
 
 \subsubsection{Flat Shading}
-
 \begin{itemize}
   \item Each polygon is shaded uniformly over its surface.
   \item Shade is computed by taking a point in the centre and the surface normal vector.
@@ -1670,7 +1624,7 @@ We can have two types of barycentric coordinates:
 \begin{figure}[htb!]
   \centering
   \caption{The possible positions of a point for different values of coordinate $\beta$.}
-  \includegraphics[scale=0.5]{signeddistances}
+  \includegraphics[scale=0.3]{signeddistances}
 \end{figure}
 Let $p = \alpha a + \beta b + \gamma c$, each coordinate is the signed distance from $p$ to the line through the triangle edge.
 
@@ -2043,7 +1997,7 @@ We want to reduce the number of ray-primitive intersections, this can be achieve
 \begin{figure}[htb!]
   \centering
   \caption{Ray tracing using a regular grid.}
-  \includegraphics[scale=0.5]{regulargrid}
+  \includegraphics[scale=0.3]{regulargrid}
 \end{figure}
 
 \begin{enumerate}
@@ -2060,7 +2014,7 @@ We want to reduce the number of ray-primitive intersections, this can be achieve
 \begin{figure}[htb!]
   \centering
   \caption{Adaptive grid and storage of primitives.}
-  \includegraphics[scale=0.5]{adaptivegrid}
+  \includegraphics[scale=0.3]{adaptivegrid}
 \end{figure}
 Instead of static cell sizes, we can \textbf{subdivide cells} until each cell contains no more than $n$ elements, or a maximum depth $d$ is reached.
 
@@ -2105,7 +2059,7 @@ which we can use to solve $a_1, a_2$.
 \begin{figure}[htb!]
   \centering
   \caption{Cubic spline patch.}
-  \includegraphics[scale=0.5]{splinepatches}
+  \includegraphics[scale=0.4]{splinepatches}
 \end{figure}
 The order of the spline matches the number of knots, higher order polynomials are undesirable as they tend to oscillate - we can solve this with \textbf{spline patches}, piecing together a number of parametric splines.
 
@@ -2226,9 +2180,9 @@ We do this identically as with cubic spline curve patches - we ensure the gradie
 \subsubsection{Coons Patch}
 To define the internal points, we linearly interpolate:
 \begin{align*}
-  \bm{P}(\mu, v) &= \bm{P}(\mu, 0)(1-v) + \bm{P}(\mu, 1)v
-                 &+ \bm{P}(0, v)(1-\mu) + \bm{P}(1, v)\mu
-                 &- \bm{P}(0, 1)(1-\mu)v - \bm{P}(1, 0)\mu(1-v)
+  \bm{P}(\mu, v) &= \bm{P}(\mu, 0)(1-v) + \bm{P}(\mu, 1)v \\
+                 &+ \bm{P}(0, v)(1-\mu) + \bm{P}(1, v)\mu \\
+                 &- \bm{P}(0, 1)(1-\mu)v - \bm{P}(1, 0)\mu(1-v) \\
                  &- \bm{P}(0,0)(1-\mu)(1-v) - \bm{P}(1,1)\mu v
 \end{align*}
 
@@ -2318,7 +2272,7 @@ We can warp using multiple line pairs by using the weighted combination of point
 
 For each line pair:
 \[
-  \text{weight}[i] = \left( \frac{\text(length)[i]^p}{a + \text{ dist}[i]} \right)^b 
+  \text{weight}[i] = \left( \frac{\text{length}[i]^p}{a + \text{ dist}[i]} \right)^b 
 \]
 
 \subsection{Warping using Control Points}
